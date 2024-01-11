@@ -2,26 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+/* Typography */
+
+h1 {
+  font-family: var(--font-delo);
+  line-height: 100px;
+  @apply text-8xl font-bold;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
+h2 {
+  font-family: var(--font-delo);
+  line-height: 88px;
+  font-size: 80px;
+  @apply font-bold;
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+h3 {
+  font-family: var(--font-delo);
+  line-height: 80px;
+  @apply text-7xl font-bold;
+}
+
+h4 {
+  font-family: var(--font-delo);
+  line-height: 88px;
+  font-size: 80px;
+  @apply font-bold;
+}
+
+h5 {
+  font-family: var(--font-delo);
+  line-height: 60px;
+  font-size: 52px;
+  @apply font-bold;
+}
+
+h6 {
+  font-family: var(--font-delo);
+  line-height: 48px;
+  font-size: 40px;
+  @apply font-bold;
+}
+
+.text-bodyXs {
+  font-size: 10px;
+  @apply leading-3 font-normal;
+}
+
+.text-bodySm {
+  @apply text-xs !leading-4 font-normal;
+}
+
+.text-bodyMd {
+  @apply text-sm !leading-5 font-normal;
+}
+
+.text-bodyLg {
+  @apply text-base !leading-5 font-normal;
+}
+
+.text-SubheadXXs {
+  font-size: 10px;
+  @apply leading-3 font-bold;
+}
+
+.text-SubheadXs {
+  @apply text-xs !leading-4 font-bold;
+}
+
+.text-SubheadSm {
+  @apply text-sm !leading-5 font-bold;
+}
+
+.text-SubheadMd {
+  @apply text-base !leading-6 font-bold;
+}
+
+.text-SubheadLg {
+  @apply text-xl !leading-6 font-bold;
+}
+
+.text-SubheadXl {
+  @apply text-2xl !leading-7 font-bold;
+}
+
+.text-Subhead2Xl {
+  font-size: 28px;
+  @apply leading-8  font-bold;
+}
+
+.text-Subhead3Xl {
+  @apply text-3xl !leading-10 font-bold;
+}
+
+.text-Subhead4Xl {
+  @apply text-[40px] leading-[48px] font-bold;
+}
+
+.text-Heading4xl {
+  @apply font-bold max-sm:text-[32px] max-sm:leading-10 md:text-[40px] md:leading-[48px];
+}
+
+.text-Heading3xl {
+  @apply font-bold max-sm:text-2xl max-sm:!leading-7 md:text-[32px] md:leading-10;
+}
+
+.text-Heading2xl {
+  @apply font-bold max-sm:text-xl max-sm:!leading-6 md:text-[28px] md:leading-[32px];
+}
+
+.text-HeadingXl {
+  @apply font-bold max-sm:text-xl max-sm:!leading-6 md:text-2xl md:!leading-7;
+}
+
+.text-HeadingLg {
+  @apply font-bold max-sm:text-base max-sm:!leading-5 md:text-xl md:!leading-6;
 }

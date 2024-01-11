@@ -1,0 +1,38 @@
+[
+  {
+    "user": {
+      "id": "1",
+      "username": "Lê Công Minh",
+      "userRankNumber": "IV",
+      "userRank": "emerald",
+      "specialName": "Bá Vương Học Đường",
+      "imageURL": "/image/leaderboard/user1.png",
+      "twitterName": "congminh.le"
+    },
+    "score": "9500"
+  },
+  {
+    "user": {
+      "id": "2",
+      "username": "Lê Công Minh",
+      "userRankNumber": "IV",
+      "userRank": "emerald",
+      "specialName": "Bá Vương Học Đường",
+      "imageURL": "/image/leaderboard/user1.png",
+      "twitterName": "congminh.le"
+    },
+    "score": "9500"
+  },
+  {
+    "user": {
+      "id": "3",
+      "username": "Lê Công Minh",
+      "userRankNumber": "IV",
+      "userRank": "emerald",
+      "specialName": "Bá Vương Học Đường",
+      "imageURL": "/image/leaderboard/user1.png",
+      "twitterName": "congminh.le"
+    },
+    "score": "9500"
+  }
+]
