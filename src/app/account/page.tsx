@@ -7,15 +7,16 @@ import {
   DialogClose,
   DialogContent,
   DialogFooter,
+  DialogHeader,
   DialogTrigger,
 } from "@/components/common/Dialog";
 export default function Account() {
   const handleOnClick = () => {
-    
+
   };
   return (
     <>
-      <div className="text-xl text-primary-900 px-8">Học Sinh
+      <div className="text-xl text-primary-900 px-8">Thông tin tài khoản
       </div>
       <hr className="bg-gray-200 w-full my-4" />
       <div className="border rounded-xl border-gray-200 mx-8 w-2/3 grid grid-cols-5 p-4">
@@ -94,10 +95,28 @@ export default function Account() {
         </div>
         <div className="w-full flex justify-end mt-4">
           <Dialog>
-            <DialogTrigger asChild>
-              <Button className="bg-transparent !text-primary-600 text-SubheadSm !p-0">Đổi mật khẩu</Button>
+            <DialogTrigger>
+              <Button onClick={handleOnClick} className="bg-transparent !text-primary-600 text-SubheadSm !p-0">Đổi mật khẩu</Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-md">
+              <div className="w-full text-center text-SubheadLg text-primary-900">ĐỔI MẬT KHẨU</div>
+              <hr className="border border-gray-200"/>
+              <div className="w-full px-8">
+                <div className="text-sm">
+                  Mật khẩu mới:
+                </div>
+                <Input type="password"
+                  placeholder="Nhập mật khẩu"
+                  customClassNames="mt-2"
+                  customInputClassNames="text-sm" />
+                <div className="mt-3 text-sm">
+                  Nhập lại mật khẩu mới:
+                </div>
+                <Input type="password"
+                  customClassNames="mt-2"
+                  placeholder="Nhập lại mật khẩu"
+                  customInputClassNames="text-sm" />
+              </div>
               <DialogFooter className="sm:justify-center">
                 <DialogClose>
                   <Button outlined className="!px-12 !rounded-3xl text-base !py-2">

@@ -34,7 +34,7 @@ export const ClassesDataTable = ({ data }: Props) => {
                     return (
                         <TableRow
                             key={row?.user.username}
-                            className={classNames((index + 1) % 2 !== 0 && "bg-gray-50")}
+                            className={classNames((index + 1) % 2 === 0 && "bg-gray-50")}
                         >
                             <TableCell className="font-medium text-center">
                                 Lê Văn Lương kéo dài
