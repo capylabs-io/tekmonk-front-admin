@@ -15,10 +15,11 @@ import { LeaderboardData } from "@/types/common-types";
 import { Button } from "../common/Button";
 type Props = {
     data: LeaderboardData[];
+    isDetailTable?: boolean
 };
-export const StudentDataTable = ({ data }: Props) => {
+export const StudentDataTable = ({ data, isDetailTable = false }: Props) => {
     return (
-        <Table className="border border-gray-300 !rounded-3xl">
+        <Table>
             <TableHeader>
                 <TableRow>
                     <TableHead className="w-[100px] text-center">STT</TableHead>
@@ -35,7 +36,7 @@ export const StudentDataTable = ({ data }: Props) => {
                     return (
                         <TableRow
                             key={row?.user.username}
-                            className={classNames((index + 1) % 2 !== 0 && "bg-gray-50")}
+                            className={classNames((index + 1) % 2 === 0 && "bg-gray-50")}
                         >
                             <TableCell className="font-medium text-center">
                                 {index + 1}
@@ -59,9 +60,12 @@ export const StudentDataTable = ({ data }: Props) => {
                             </TableCell>
                             <TableCell className="text-center">9500</TableCell>
                             <TableCell className="text-center flex gap-x-3 justify-center">
-                                <Button className="h-max bg-transparent !p-0 !text-black">
-                                    <Edit size={16} />
-                                </Button>
+                                {
+                                    !isDetailTable &&
+                                    <Button className="h-max bg-transparent !p-0 !text-black">
+                                        <Edit size={16} />
+                                    </Button>
+                                }
                                 <Button className="h-max bg-transparent !p-0 !text-black">
                                     <Trash size={16} />
                                 </Button>
@@ -70,6 +74,6 @@ export const StudentDataTable = ({ data }: Props) => {
                     );
                 })}
             </TableBody>
-        </Table>
+        </Table >
     );
 };

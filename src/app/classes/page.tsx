@@ -30,7 +30,9 @@ export default function Classes() {
         </div>
         <UserInfoContainer />
       </div>
+
       <hr className="bg-gray-200 w-full my-4" />
+      
       <div className="w-full flex justify-between items-center px-8">
         <InputWithIcon
           type="text"
@@ -46,18 +48,19 @@ export default function Classes() {
           </DialogTrigger>
           <DialogContent className="sm:min-w-md">
             <div className="w-full text-center text-SubheadLg text-primary-900">Thêm Lớp Học</div>
-            <hr className="border border-gray-200"/>
-            <ClassesModalForm />
-            <DialogFooter className="sm:justify-center">
+            <hr className="bg-gray-200"/>
+            <ClassesModalForm customClassname="px-6 mt-4"/>
+            <hr className="bg-gray-200"/>
+            <DialogFooter className="sm:justify-end px-6">
               <DialogClose>
-                <Button outlined className="!px-12 !rounded-3xl text-base !py-2">
+                <Button outlined className="!rounded-xl text-sm !py-2">
                   Huỷ
                 </Button>
               </DialogClose>
               <Button
-                className="!px-12 !rounded-3xl text-base !py-2"
+                className="!rounded-xl text-sm !py-2"
               >
-                Mua
+                Thêm lớp học
               </Button>
 
             </DialogFooter>

@@ -39,7 +39,7 @@ export default function Layout({
           </div>
         </div>
       </div>
-      <div className="py-5 overflow-y-auto">{children}</div>
+      <div className="py-5 overflow-y-auto w-full">{children}</div>
     </section>
   );
 }
