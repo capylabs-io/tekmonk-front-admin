@@ -14,24 +14,24 @@
   {
     "user": {
       "id": "2",
-      "username": "Lê Công Minh",
+      "username": "Lê Công Tú",
       "userRankNumber": "IV",
       "userRank": "emerald",
       "specialName": "Bá Vương Học Đường",
       "imageURL": "/image/leaderboard/user1.png",
-      "twitterName": "congminh.le"
+      "twitterName": "congtu.le"
     },
     "score": "9500"
   },
   {
     "user": {
       "id": "3",
-      "username": "Lê Công Minh",
+      "username": "Lê Công Tuấn",
       "userRankNumber": "IV",
       "userRank": "emerald",
       "specialName": "Bá Vương Học Đường",
       "imageURL": "/image/leaderboard/user1.png",
-      "twitterName": "congminh.le"
+      "twitterName": "congtuan.le"
     },
     "score": "9500"
   }
