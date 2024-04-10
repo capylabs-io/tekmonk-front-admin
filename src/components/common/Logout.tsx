@@ -22,22 +22,16 @@ export function Logout() {
   return (
     <>
       <Dialog>
-        <DialogTrigger>
-          <div className="grow-0 px-3 w-full">
-            <Button className="bg-transparent h-max !p-0 mb-3">
-              <LogOut size={18} className="text-red-500 mr-4" />
-              <div className="text-black">Đăng xuất</div>
-            </Button>
-          </div>
+        <DialogTrigger className="grow-0 p-3 w-full flex items-center">
+          <LogOut size={18} className="text-red-500 mr-4" />
+          <div className="text-black">Đăng xuất</div>
         </DialogTrigger>
         <DialogContent className="sm:max-w-md p-6">
           <span>Xác nhận đăng xuất</span>
           <div>Bạn chắc chắn muốn đăng xuất tài khoản chứ?</div>
           <DialogFooter className="sm:justify-end px-6 mt-12">
-            <DialogClose>
-              <Button outlined className="!rounded-xl text-sm !py-2">
-                Huỷ
-              </Button>
+            <DialogClose className="!rounded-xl text-sm px-6 py-3 border">
+              Huỷ
             </DialogClose>
             <Button
               className="!rounded-xl text-sm !py-2"

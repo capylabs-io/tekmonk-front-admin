@@ -42,11 +42,9 @@ const Classes: React.FC = () => {
           iconElement={<Search size={16} />}
         />
         <Dialog>
-          <DialogTrigger>
-            <Button size="small" className="text-xs h-max !py-3">
-              <Plus size={16} className="mr-2" />
-              Thêm lớp học
-            </Button>
+          <DialogTrigger className="text-xs h-max px-4 py-2 text-white rounded-lg bg-primary-600 flex items-center">
+            <Plus size={16} className="mr-2" />
+            <div>Thêm lớp học</div>
           </DialogTrigger>
           <DialogContent className="sm:min-w-md">
             <div className="w-full text-center text-SubheadLg text-primary-900">
@@ -56,10 +54,8 @@ const Classes: React.FC = () => {
             <ClassesModalForm customClassname="px-6 mt-4" />
             <hr className="bg-gray-200" />
             <DialogFooter className="sm:justify-end px-6">
-              <DialogClose>
-                <Button outlined className="!rounded-xl text-sm !py-2">
-                  Huỷ
-                </Button>
+              <DialogClose className="!rounded-xl text-sm px-6 py-3 border">
+                Huỷ
               </DialogClose>
               <Button className="!rounded-xl text-sm !py-2">
                 Thêm lớp học
