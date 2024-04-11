@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import { Button } from "@/components/common/Button";
 import { Input } from "@/components/common/Input";
 import React from "react";
@@ -17,20 +17,21 @@ import { Pagination } from "@/components/common/Pagination";
 import { ClassesDataTable } from "@/components/classes/ClassesDataTable";
 import { UserInfoContainer } from "@/components/home/UserInfoContainer";
 import { ClassesModalForm } from "@/components/classes/ClassesModalForm";
-export default function Classes() {
-  const handleOnClick = () => {
-  };
-  const handleNextPage = () => { };
-  const handlePrevPage = () => { };
+import WithAuth from "@/components/hoc/WithAuth";
+
+const Classes: React.FC = () => {
+  const handleOnClick = () => {};
+  const handleNextPage = () => {};
+  const handlePrevPage = () => {};
   return (
     <>
       <div className="text-xl text-primary-900 px-8 w-full flex justify-between items-center">
-        <div>
-          Lớp Học
-        </div>
+        <div>Lớp Học</div>
         <UserInfoContainer />
       </div>
+
       <hr className="bg-gray-200 w-full my-4" />
+
       <div className="w-full flex justify-between items-center px-8">
         <InputWithIcon
           type="text"
@@ -41,25 +42,24 @@ export default function Classes() {
           iconElement={<Search size={16} />}
         />
         <Dialog>
-          <DialogTrigger>
-            <Button size="small" className="text-xs h-max !py-3"><Plus size={16} className="mr-2" />Thêm lớp học</Button>
+          <DialogTrigger className="text-xs h-max px-4 py-2 text-white rounded-lg bg-primary-600 flex items-center">
+            <Plus size={16} className="mr-2" />
+            <div>Thêm lớp học</div>
           </DialogTrigger>
           <DialogContent className="sm:min-w-md">
-            <div className="w-full text-center text-SubheadLg text-primary-900">Thêm Lớp Học</div>
-            <hr className="border border-gray-200"/>
-            <ClassesModalForm />
-            <DialogFooter className="sm:justify-center">
-              <DialogClose>
-                <Button outlined className="!px-12 !rounded-3xl text-base !py-2">
-                  Huỷ
-                </Button>
+            <div className="w-full text-center text-SubheadLg text-primary-900">
+              Thêm Lớp Học
+            </div>
+            <hr className="bg-gray-200" />
+            <ClassesModalForm customClassname="px-6 mt-4" />
+            <hr className="bg-gray-200" />
+            <DialogFooter className="sm:justify-end px-6">
+              <DialogClose className="!rounded-xl text-sm px-6 py-3 border">
+                Huỷ
               </DialogClose>
-              <Button
-                className="!px-12 !rounded-3xl text-base !py-2"
-              >
-                Mua
+              <Button className="!rounded-xl text-sm !py-2">
+                Thêm lớp học
               </Button>
-
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -77,4 +77,6 @@ export default function Classes() {
       </div>
     </>
   );
-}
+};
+
+export default WithAuth(Classes);

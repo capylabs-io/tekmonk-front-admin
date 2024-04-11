@@ -12,6 +12,7 @@ type Props = {
   placeholder?: string;
   onChange?: (value: string) => void;
   onBlur?: () => void;
+  onKeyPress?: (event: React.KeyboardEvent<HTMLInputElement>) => void;
 };
 const BASE_CLASS =
   "w-full rounded-xl border border-grey-300 bg-grey-50 p-3 outline-none min-h-[48px]";
@@ -26,6 +27,7 @@ export const Input = ({
   onBlur,
   customInputClassNames,
   customClassNames,
+  onKeyPress,
 }: Props) => {
   const [showPassword, setshowPassword] = useState(false);
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -47,7 +49,7 @@ export const Input = ({
           value &&
             !error &&
             "border-green-400 focus:border-green-400 focus:border-2",
-          customClassNames,
+          customClassNames
         )}
       >
         <div className="flex w-full items-center text-base font-bold">
@@ -59,6 +61,7 @@ export const Input = ({
             value={value}
             onChange={handleOnChange}
             onBlur={handleOnBlur}
+            onKeyPress={onKeyPress}
           />
           {type === "password" && (
             <button type="button" onClick={handleShowPassword}>
