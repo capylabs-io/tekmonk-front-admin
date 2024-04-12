@@ -9,77 +9,64 @@ import {
 import { Input } from "../common/Input";
 import classNames from "classnames";
 import { Textarea } from "../common/TextArea";
+import { Inputcn } from "../common/Inputcn";
 
 type Props = {
   customClassname?: string;
 };
 
-export const ClassesModalForm = ({ customClassname }: Props) => {
+export const CreateHiringModal = ({ customClassname }: Props) => {
   return (
     <div className={classNames("flex flex-col gap-y-4", customClassname)}>
       <div className="grid grid-cols-5">
-        <div className="col-span-2 my-auto">Cơ sở</div>
-        <div className="col-span-3">
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn cơ sở" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">HÀNG BÚN</SelectItem>
-              <SelectItem value="2">HOÀNG HOA THÁM</SelectItem>
-              <SelectItem value="3">NGUYỄN CHÍ THANH</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="grid grid-cols-5">
-        <div className="col-span-2 my-auto">Khoá học</div>
-        <div className="col-span-3">
-          <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Chọn khoá học" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="1">CSS</SelectItem>
-              <SelectItem value="2">JS</SelectItem>
-              <SelectItem value="3">Python</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-      <div className="grid grid-cols-5">
-        <div className="col-span-2 my-auto">Tên lớp</div>
+        <div className="col-span-2 my-auto">Tên bài tuyển dụng</div>
         <div className="col-span-3">
           <Input
             type="text"
-            placeholder="VD: Lớp học UI/UX tại Tekmonk"
+            placeholder="VD: Tuyển dụng giáo viên UI/UX"
             customInputClassNames="text-sm"
           />
         </div>
       </div>
       <div className="grid grid-cols-5">
-        <div className="col-span-2 my-auto">GV phụ trách</div>
+        <div className="col-span-2 my-auto">Thumbnail</div>
+        <div className="col-span-3">
+          <Inputcn type="file"></Inputcn>
+        </div>
+      </div>
+      <div className="grid grid-cols-5">
+        <div className="col-span-2 my-auto">Thời gian tuyển dụng</div>
         <div className="col-span-3">
           <Input
             type="text"
-            placeholder="VD: Lớp học UI/UX tại Tekmonk"
+            placeholder="VD: 12/08/2023 - 20/10/2023"
             customInputClassNames="text-sm"
           />
         </div>
       </div>
       <div className="grid grid-cols-5">
-        <div className="col-span-2 my-auto">Trạng thái</div>
+        <div className="col-span-2 my-auto">Mức lương</div>
+        <div className="col-span-3">
+          <Input
+            type="text"
+            placeholder="VD: 9,000,000 - 12,000,000"
+            customInputClassNames="text-sm"
+          />
+        </div>
+      </div>
+      <div className="grid grid-cols-5">
+        <div className="col-span-2 my-auto">Khu vực tuyển dụng</div>
         <div className="col-span-3">
           <Select>
             <SelectTrigger>
-              <SelectValue defaultValue="1" placeholder="Chọn Trạng Thái" />
+              <SelectValue defaultValue="1" placeholder="Chọn khu vực" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="1" className="text-green-500">
-                Đang hoạt động
+                Hà Nội
               </SelectItem>
               <SelectItem value="2" className="text-red-500">
-                Không hoạt động
+                Hồ Chí Minh
               </SelectItem>
             </SelectContent>
           </Select>
@@ -88,7 +75,7 @@ export const ClassesModalForm = ({ customClassname }: Props) => {
       <div className="grid grid-cols-5">
         <div className="col-span-2">Mô tả</div>
         <div className="col-span-3">
-          <Textarea className="resize-none" />
+          <Textarea className="resize-none" placeholder="Nội dung tuyển dụng" />
         </div>
       </div>
     </div>
