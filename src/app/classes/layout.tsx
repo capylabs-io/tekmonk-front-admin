@@ -1,18 +1,16 @@
 "use client";
-import {
-  ArrowLeft,
-  LogOut,
-} from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import Image from "next/image";
 import { MenuLayout } from "@/components/home/MenuLayout";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/common/Button";
+
+import { Logout } from "@/components/common/Logout";
+
 export default function Layout({
   children, // will be a page or nested layout
 }: {
   children: React.ReactNode;
 }) {
-  const router = useRouter();
   return (
     <section className="w-full h-screen flex">
       {/* Include shared UI here e.g. a header or sidebar */}
@@ -31,12 +29,7 @@ export default function Layout({
         </div>
         <div className="flex flex-col mt-4 grow">
           <MenuLayout />
-          <div className="grow-0 px-3 w-full">
-            <Button className="bg-transparent h-max !p-0 mb-3">
-              <LogOut size={18} className="text-red-500 mr-4"/>
-              <div className="text-black">Đăng xuất</div>
-            </Button>
-          </div>
+          <Logout />
         </div>
       </div>
       <div className="py-5 overflow-y-auto w-full">{children}</div>

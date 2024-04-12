@@ -1,65 +1,148 @@
 "use client";
-import React from "react";
+import React, { useMemo } from "react";
 import { MenuCard } from "./MenuCard";
 import classNames from "classnames";
 import {
-  Bell,
   BookOpenText,
   CircleUserRound,
   DoorClosed,
-  Goal,
   GraduationCap,
   Home,
-  Newspaper,
-  ShoppingCart,
   User,
-  Zap,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
+import { Role } from "@/app/contants/role";
+import { useUserStore } from "@/store/UserStore";
+import { get } from "lodash";
 
 type Props = {
   customClassName?: string;
 };
+
 const BASE_CLASS = "grow";
+
 export const MenuLayout = ({ customClassName }: Props) => {
+  const currentRole = useUserStore((state) =>
+    get(state.userInfo, "role.name", "").toLowerCase()
+  );
+
+  const pathname = usePathname();
+
+  // const renderDashboard = useMemo(
+  //   () =>
+  //     currentRole === Role.SUPERADMIN || currentRole === Role.ADMIN
+  //       ? true
+  //       : false,
+  //   [currentRole]
+  // );
+
+  const renderStudentMenu = useMemo(
+    () =>
+      currentRole === Role.SUPERADMIN ||
+      currentRole === Role.ADMIN ||
+      currentRole === Role.TEACHER
+        ? true
+        : false,
+    [currentRole]
+  );
+
+  const renderTeacherMenu = useMemo(
+    () =>
+      currentRole === Role.SUPERADMIN ||
+      currentRole === Role.ADMIN ||
+      (currentRole === Role.TEACHER && pathname.includes("/teacher"))
+        ? true
+        : false,
+    [currentRole, pathname]
+  );
+
+  const renderClassesMenu = useMemo(
+    () =>
+      currentRole === Role.SUPERADMIN ||
+      currentRole === Role.ADMIN ||
+      (currentRole === Role.TEACHER && pathname.includes("/classes"))
+        ? true
+        : false,
+    [currentRole, pathname]
+  );
+
+  const renderPostsMenu = useMemo(
+    () => currentRole === Role.COLLABORATOR,
+    [currentRole]
+  );
+
+  const renderProjectMenu = useMemo(
+    () =>
+      currentRole === Role.SUPERADMIN || currentRole === Role.ADMIN
+        ? true
+        : false,
+    [currentRole]
+  );
+
+  const renderAdvertisementMenu = useMemo(
+    () =>
+      currentRole === Role.SUPERADMIN || currentRole === Role.ADMIN
+        ? true
+        : false,
+    [currentRole]
+  );
+
   return (
     <div className={classNames(BASE_CLASS, customClassName)}>
       <MenuCard
-        title="Trang chủ"
-        active={usePathname() === "/home"}
+        title="Dashboard"
+        active={pathname === "/home"}
         iconElement={<Home size={20} />}
         url="/home"
       />
-      <MenuCard
-        active={usePathname() === "/student"}
-        title="Học viên"
-        iconElement={<User size={20} />}
-        url="/student"
-      />
-      <MenuCard
-        title="Giảng viên"
-        active={usePathname().includes("/teacher")}
-        iconElement={<GraduationCap size={20} />}
-        url="/teacher"
-      />
-      <MenuCard
-        title="Bài giảng"
-        active={usePathname().includes("/course")}
-        url="/course"
-        iconElement={<BookOpenText size={20} />}
-      />
-      <MenuCard
-        title="Lớp học"
-        active={usePathname().includes("/classes")}
-        iconElement={<DoorClosed size={20} />}
-        url="/classes"
-      />
-      <MenuCard
-        title="Tài khoản"
-        active={usePathname().includes("/account")}
-        iconElement={<CircleUserRound size={20} />}
-        url="/account"
-      />
+      {renderStudentMenu && (
+        <MenuCard
+          active={pathname === "/student"}
+          title="Học viên"
+          iconElement={<User size={20} />}
+          url="/student"
+        />
+      )}
+      {renderTeacherMenu && (
+        <MenuCard
+          title="Giảng viên"
+          active={pathname.includes("/teacher")}
+          iconElement={<GraduationCap size={20} />}
+          url="/teacher"
+        />
+      )}
+      {renderClassesMenu && (
+        <MenuCard
+          title="Lớp học"
+          active={pathname.includes("/classes")}
+          iconElement={<DoorClosed size={20} />}
+          url="/classes"
+        />
+      )}
+      {renderProjectMenu && (
+        <MenuCard
+          title="Dự án của học viên"
+          active={pathname.includes("/product")}
+          iconElement={<CircleUserRound size={20} />}
+          url="/product"
+        />
+      )}
+      {renderPostsMenu && (
+        <MenuCard
+          title="Đăng bài"
+          active={pathname.includes("/post")}
+          url="/post"
+          iconElement={<BookOpenText size={20} />}
+        />
+      )}
+      {renderAdvertisementMenu && (
+        <MenuCard
+          title="Quảng cáo"
+          active={pathname.includes("/advertisement")}
+          iconElement={<CircleUserRound size={20} />}
+          url="/advertisement"
+        />
+      )}
     </div>
   );
 };
