@@ -36,11 +36,11 @@ const Hiring: React.FC = () => {
         <Dialog>
           <DialogTrigger className="text-xs h-max px-4 py-2 text-white rounded-lg bg-primary-600 flex items-center">
             <Plus size={16} className="mr-2" />
-            <div>Thêm bài đăng</div>
+            <div>Thêm bài viết</div>
           </DialogTrigger>
           <DialogContent className="sm:min-w-md">
             <div className="w-full text-center text-SubheadLg text-primary-900">
-              Thêm Bài Đăng
+              Thông tin
             </div>
             <hr className="bg-gray-200" />
             <CreateHiringModal customClassname="px-6 mt-4" />
@@ -50,7 +50,7 @@ const Hiring: React.FC = () => {
                 Huỷ
               </DialogClose>
               <Button className="!rounded-xl text-sm !py-2">
-                Thêm bài đăng
+                Thêm bài viết
               </Button>
             </DialogFooter>
           </DialogContent>
