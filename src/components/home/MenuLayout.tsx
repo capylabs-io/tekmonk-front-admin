@@ -9,11 +9,14 @@ import {
   GraduationCap,
   Home,
   User,
+  Newspaper,
+  UserRoundPlus,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { Role } from "@/app/contants/role";
 import { useUserStore } from "@/store/UserStore";
 import { get } from "lodash";
+import { ROUTES } from "@/const/routes";
 
 type Props = {
   customClassName?: string;
@@ -87,44 +90,60 @@ export const MenuLayout = ({ customClassName }: Props) => {
     [currentRole]
   );
 
+  const renderNewsMenu = useMemo(
+    () =>
+      currentRole === Role.SUPERADMIN || currentRole === Role.ADMIN
+        ? true
+        : false,
+    [currentRole]
+  );
+
+  const renderHiringMenu = useMemo(
+    () =>
+      currentRole === Role.SUPERADMIN || currentRole === Role.ADMIN
+        ? true
+        : false,
+    [currentRole]
+  );
+
   return (
     <div className={classNames(BASE_CLASS, customClassName)}>
       <MenuCard
         title="Dashboard"
-        active={pathname === "/home"}
+        active={pathname === ROUTES.HOME}
         iconElement={<Home size={20} />}
-        url="/home"
+        url={ROUTES.HOME}
       />
       {renderStudentMenu && (
         <MenuCard
-          active={pathname === "/student"}
+          active={pathname === ROUTES.STUDENT}
           title="Học viên"
           iconElement={<User size={20} />}
-          url="/student"
+          url={ROUTES.STUDENT}
         />
       )}
       {renderTeacherMenu && (
         <MenuCard
           title="Giảng viên"
-          active={pathname.includes("/teacher")}
+          active={pathname.includes(ROUTES.TEACHER)}
           iconElement={<GraduationCap size={20} />}
-          url="/teacher"
+          url={ROUTES.TEACHER}
         />
       )}
       {renderClassesMenu && (
         <MenuCard
           title="Lớp học"
-          active={pathname.includes("/classes")}
+          active={pathname.includes(ROUTES.CLASSES)}
           iconElement={<DoorClosed size={20} />}
-          url="/classes"
+          url={ROUTES.CLASSES}
         />
       )}
       {renderProjectMenu && (
         <MenuCard
           title="Dự án của học viên"
-          active={pathname.includes("/product")}
+          active={pathname.includes(ROUTES.PROJECT)}
           iconElement={<CircleUserRound size={20} />}
-          url="/product"
+          url={ROUTES.PROJECT}
         />
       )}
       {renderPostsMenu && (
@@ -141,6 +160,22 @@ export const MenuLayout = ({ customClassName }: Props) => {
           active={pathname.includes("/advertisement")}
           iconElement={<CircleUserRound size={20} />}
           url="/advertisement"
+        />
+      )}
+      {renderNewsMenu && (
+        <MenuCard
+          title="Tin tức"
+          active={pathname.includes(ROUTES.NEWS)}
+          iconElement={<Newspaper size={20} />}
+          url={ROUTES.NEWS}
+        />
+      )}
+      {renderHiringMenu && (
+        <MenuCard
+          title="Tuyển dụng"
+          active={pathname.includes(ROUTES.HIRING)}
+          iconElement={<UserRoundPlus size={20} />}
+          url={ROUTES.HIRING}
         />
       )}
     </div>
