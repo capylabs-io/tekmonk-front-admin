@@ -19,8 +19,11 @@ import {
 } from "@/components/common/Dialog";
 import { DialogFooter } from "@/components/common/Dialog";
 import { CreateHiringModal } from "@/components/hiring/CreateHiringModal";
+import { useFetchNews } from "@/lib/hook/useFetchNews";
 
 const Hiring: React.FC = () => {
+  const filter = "filters[type][$eq]=hiring&populate[0]=user";
+  const hiringNews = useFetchNews(filter);
   const handleOnClick = () => {};
   const handleNextPage = () => {};
   const handlePrevPage = () => {};
@@ -57,7 +60,7 @@ const Hiring: React.FC = () => {
         </Dialog>
       </div>
       <div className="mx-8 mt-4 rounded-xl border border-gray-300">
-        <DataTable data={LeaderboardMock} headers={HEADERS} isDetailTable />
+        <DataTable data={hiringNews} headers={HEADERS} isDetailTable />
       </div>
       <div className="px-8 mt-4 flex justify-end">
         <Pagination

@@ -23,13 +23,20 @@ import {
 } from "@/components/common/Tabs";
 import { CreateEventModal } from "@/components/news/CreateEventModal";
 import { CreateNewsModal } from "@/components/news/CreateNewsModal";
+import { useFetchNews } from "@/lib/hook/useFetchNews";
 
 const Hiring: React.FC = () => {
+  const newsFilter = "filters[type][$eq]=news&populate[0]=user";
+  const eventFilter = "filters[type][$eq]=event&populate[0]=user";
+
   const [currentTab, setCurrentTab] = useState(TABS.NEWS);
 
   const handleChangeTab = (value: string) => {
     setCurrentTab(value);
   };
+
+  const news = useFetchNews(newsFilter);
+  const events = useFetchNews(eventFilter);
 
   const handleOnClick = () => {};
   const handleNextPage = () => {};
@@ -89,11 +96,7 @@ const Hiring: React.FC = () => {
             </Dialog>
           </div>
           <div className="mx-8 mt-4 rounded-xl border border-gray-300">
-            <DataTable
-              data={LeaderboardMock}
-              headers={NEWS_HEADERS}
-              isDetailTable
-            />
+            <DataTable data={news} headers={NEWS_HEADERS} isDetailTable />
           </div>
           <div className="px-8 mt-4 flex justify-end">
             <Pagination
@@ -133,11 +136,7 @@ const Hiring: React.FC = () => {
             </Dialog>
           </div>
           <div className="mx-8 mt-4 rounded-xl border border-gray-300">
-            <DataTable
-              data={LeaderboardMock}
-              headers={EVENT_HEADERS}
-              isDetailTable
-            />
+            <DataTable data={events} headers={EVENT_HEADERS} isDetailTable />
           </div>
           <div className="px-8 mt-4 flex justify-end">
             <Pagination

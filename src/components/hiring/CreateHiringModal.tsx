@@ -10,7 +10,6 @@ import { Input } from "../common/Input";
 import classNames from "classnames";
 import { Textarea } from "../common/TextArea";
 import { Inputcn } from "../common/Inputcn";
-import { AspectRatio } from "../common/AspectRatio";
 import { ImagePlus } from "lucide-react";
 import Image from "next/image";
 
