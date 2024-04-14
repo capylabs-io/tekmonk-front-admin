@@ -27,7 +27,6 @@ type Props = {
 };
 
 export const DataTable = ({ headers, data, isDetailTable = false }: Props) => {
-  console.log(data);
   return (
     <Table>
       <TableHeader>

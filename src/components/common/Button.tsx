@@ -25,6 +25,7 @@ type Props = {
   wide?: boolean;
   highlight?: boolean;
   id?: string;
+  type?: "button" | "submit" | "reset";
 };
 
 export const Button = ({
@@ -40,11 +41,12 @@ export const Button = ({
   onClick,
   iconElement,
   id,
+  type,
 }: PropsWithChildren<Props>) => {
   const sizes = ["small", "medium", "large"];
   const classes = classNames([
     BASE_CLASS,
-    size && sizes.includes(size) ? styles[`b-${size}`] : '',
+    size && sizes.includes(size) ? styles[`b-${size}`] : "",
     loading || disabled ? "cursor-default opacity-10" : "",
     outlined
       ? "bg-white text-primary-900 border border-gray-200"
@@ -61,7 +63,7 @@ export const Button = ({
     <button
       id={id}
       onClick={handleOnClick}
-      type="button"
+      type={type || "button"}
       disabled={disabled || loading}
       className={classes}
     >
@@ -69,7 +71,7 @@ export const Button = ({
         <span
           className={classNames(
             "inline-block h-6 w-6 animate-spin rounded-full border-[3px] border-current border-t-transparent",
-            outlined ? "text-black/60" : "text-white/60",
+            outlined ? "text-black/60" : "text-white/60"
           )}
           role="status"
           aria-label="loading"
