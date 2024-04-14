@@ -35,7 +35,7 @@ export const CreateHiringModal = ({
   open,
   setOpen,
 }: Props) => {
-  const [selectedFile, setSelectedFile] = useState<Blob>(new Blob());
+  const [selectedFile, setSelectedFile] = useState<Blob>();
   const [title, setTitle] = useState("");
   const [time, setTime] = useState("");
   const [salary, setSalary] = useState("");
@@ -89,7 +89,9 @@ export const CreateHiringModal = ({
       formData.append("location", location);
       formData.append("locationName", location);
       formData.append("content", content);
-      formData.append("background", selectedFile);
+      if (selectedFile) {
+        formData.append("background", selectedFile);
+      }
       formData.append("type", "hiring");
       // Call API here
       await createNews(formData);
