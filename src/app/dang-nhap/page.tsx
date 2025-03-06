@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useUserStore } from "@/store/UserStore";
 import "react-toastify/dist/ReactToastify.css";
 import { Role } from "@/contants/role";
@@ -10,20 +10,24 @@ import { HandleReturnMessgaeErrorLogin } from "@/requests/return-message-error";
 import { Input } from "@/components/common/Input";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { useCustomRouter } from "@/components/common/router/CustomRouter";
+import { useForm, FormProvider, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { postLogin } from "@/requests/login";
+
+// Define validation schema using zod
+const loginSchema = z.object({
+  identifier: z.string().min(1, "Vui lòng nhập tên tài khoản hoặc email"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  rememberMe: z.boolean().default(false),
+});
+
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const [user, setUser] = useState({
-    identifier: "",
-    password: "",
-  });
-
+  const [isClient, setIsClient] = useState(false);
   const [login] = useUserStore((state) => [state.login]);
-
-  const [isShowing, show, hide] = useLoadingStore((state) => [
-    state.isShowing,
-    state.show,
-    state.hide,
-  ]);
+  const [show, hide] = useLoadingStore((state) => [state.show, state.hide]);
   const [error, success] = useSnackbarStore((state) => [
     state.error,
     state.success,
@@ -31,29 +35,42 @@ export default function Login() {
 
   const router = useCustomRouter();
 
-  const handleChangeUsername = (identifier: string) => {
-    setUser((prevState) => ({
-      ...prevState,
-      identifier,
-    }));
-  };
+  // Initialize react-hook-form
+  const methods = useForm<LoginFormValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      identifier: "",
+      password: "",
+      rememberMe: false,
+    },
+  });
 
-  const handChangePassword = (password: string) => {
-    setUser((prevState) => ({
-      ...prevState,
-      password,
-    }));
-  };
+  const {
+    handleSubmit,
+    control,
+    reset,
+    formState: { errors },
+  } = methods;
 
   const handleForgotPassword = () => {
     router.push("/doi-mat-khau-moi");
   };
 
-  const handleLogin = async () => {
+  const onSubmit = async (data: LoginFormValues) => {
     show();
 
     try {
-      const resUserInfo = await login(user);
+      // Call the login API
+      await postLogin({
+        identifier: data.identifier,
+        password: data.password,
+        rememberMe: data.rememberMe,
+      });
+
+      const resUserInfo = await login({
+        identifier: data.identifier,
+        password: data.password,
+      });
 
       const roleName = get(resUserInfo, "role.name", "").toLowerCase();
 
@@ -62,17 +79,10 @@ export default function Login() {
         router.push("/");
       } else {
         useUserStore.getState().clear();
-        setUser({
-          identifier: "",
-          password: "",
-        });
+        reset();
         error("Lỗi", "Đăng nhập thất bại, vui lòng thử lại sau");
       }
     } catch (err) {
-      // setUser({
-      //   identifier: "",
-      //   password: "",
-      // });
       const message = HandleReturnMessgaeErrorLogin(err);
       error("Lỗi", message);
     } finally {
@@ -80,64 +90,80 @@ export default function Login() {
     }
   };
 
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
   return (
-    <div className="mx-auto min-h-[calc(100vh-64px)] flex justify-center items-center p-2">
-      <div
-        className="w-[368px] h-[468px] mx-auto flex flex-col gap-6 border border-gray-20 p-6 bg-gray-00 rounded-2xl"
-        style={{
-          boxShadow: "0px 4px 0px #DDD0DD",
-        }}
-      >
-        <div className="w-full">
-          <div className="text-HeadingSm text-gray-95">Đăng nhập</div>
-          <div className="text-BodySm text-gray-60">
-            Tham gia ngay vào cộng đồng Tekmonk
-          </div>
-        </div>
-        <div className="flex flex-col gap-4">
-          <div className="w-full flex flex-col gap-2">
-            <div className="text-SubheadSm text-gray-60">
-              Tên tài khoản hoặc email
+    isClient && (
+      <div className="mx-auto min-h-[calc(100vh-64px)] flex justify-center items-center p-2">
+        <div
+          className="w-[368px] min-h-[430px] mx-auto flex flex-col gap-6 border border-gray-20 p-6 bg-gray-00 rounded-2xl"
+          style={{
+            boxShadow: "0px 4px 0px #DDD0DD",
+          }}
+        >
+          <div className="w-full">
+            <div className="text-HeadingSm text-gray-95">Đăng nhập</div>
+            <div className="text-BodySm text-gray-60">
+              Tham gia ngay vào cộng đồng Tekmonk
             </div>
-            <Input
-              type="text"
-              customClassNames="h-[48px]"
-              placeholder="Tên tài khoản hoặc email"
-            />
           </div>
-          <div className="w-full flex flex-col gap-2">
-            <div className="text-SubheadSm text-gray-60">Mật khẩu</div>
-            <Input
-              type="password"
-              customClassNames="h-[48px]"
-              placeholder="Mật khẩu"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              className="w-[20px] h-[20px] text-red-500 accent-primary-80 
-             appearance-none bg-white border border-gray-20 rounded-[4px] outline-none 
-             focus:ring-0 focus:outline-none checked:appearance-auto"
-            />
+          <FormProvider {...methods}>
+            <form className="flex flex-col gap-4">
+              <div className="w-full flex flex-col gap-2">
+                <div className="text-SubheadSm text-gray-60">
+                  Tên tài khoản hoặc email
+                </div>
+                <Controller
+                  name="identifier"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="text"
+                      customClassNames="h-[48px]"
+                      placeholder="Tên tài khoản hoặc email"
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.identifier?.message}
+                    />
+                  )}
+                />
+              </div>
+              <div className="w-full flex flex-col gap-2">
+                <div className="text-SubheadSm text-gray-60">Mật khẩu</div>
+                <Controller
+                  name="password"
+                  control={control}
+                  render={({ field }) => (
+                    <Input
+                      type="password"
+                      customClassNames="h-[48px]"
+                      placeholder="Mật khẩu"
+                      value={field.value}
+                      onChange={field.onChange}
+                      error={errors.password?.message}
+                    />
+                  )}
+                />
+              </div>
 
-            <div>Lưu trạng thái đăng nhập</div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <CommonButton className="h-12" onClick={handleLogin}>
-            Đăng Nhập
-          </CommonButton>
-          <CommonButton
-            className="h-12"
-            variant="secondary"
-            onClick={handleForgotPassword}
-          >
-            Quên mật khẩu
-          </CommonButton>
+              <div className="flex flex-col gap-2 mt-2">
+                <CommonButton className="h-12" onClick={handleSubmit(onSubmit)}>
+                  Đăng Nhập
+                </CommonButton>
+                <CommonButton
+                  className="h-12"
+                  variant="secondary"
+                  onClick={handleForgotPassword}
+                >
+                  Quên mật khẩu
+                </CommonButton>
+              </div>
+            </form>
+          </FormProvider>
         </div>
       </div>
-    </div>
+    )
   );
 }

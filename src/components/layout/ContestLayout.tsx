@@ -2,7 +2,7 @@
 
 import { Nunito_Sans } from "next/font/google";
 import Image from "next/image";
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
   Drawer,
@@ -19,8 +19,6 @@ import {
 } from "../ui/tooltip";
 import { Button } from "../common/button/Button";
 import { useUserStore } from "@/store/UserStore";
-import { getOneContestEntry } from "@/requests/contestEntry";
-import { getContestSubmissionByContestEntry } from "@/requests/contestSubmit";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { Link as LinkToScroll } from "react-scroll";
 import { useCustomRouter } from "../common/router/CustomRouter";
@@ -65,29 +63,6 @@ const ContestLayout = ({ children }: ContestLayoutProps) => {
       return;
     }
     return;
-  };
-
-  // const handleRedirectToMyContest = async () => {
-  //   try {
-  //     if (!is_show_full) return;
-  //     const contestEntry = await getOneContestEntry(
-  //       useUserStore.getState().candidateNumber || ""
-  //     );
-  //     const contestSubmission = await getContestSubmissionByContestEntry(
-  //       contestEntry.id
-  //     );
-  //     if (contestSubmission.data.length === 0) {
-  //       return;
-  //     }
-  //     router.push(`/tong-hop-bai-du-thi/${contestSubmission.data[0].id}`);
-  //   } catch (err) {
-  //     console.error(err);
-  //   }
-  // };
-
-  const handleRedirectResultContest = () => {
-    if (!is_show_full) return;
-    // router.push("/ket-qua-vong-loai");
   };
 
   return (

@@ -15,7 +15,6 @@ import {
 import TopLoader from "nextjs-toploader";
 import Providers from "./providers";
 
-const inter = Inter({ subsets: ["latin"] });
 
 const delaGothicOne = localFont({
   src: ".././assets/fonts/DelaGothicOne-Regular.ttf",

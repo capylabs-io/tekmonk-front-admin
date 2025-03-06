@@ -1,14 +1,14 @@
 export const ROUTE = {
-  CONTEST_SUBMISSION: "/tong-hop-bai-du-thi",
+  MAIN: "/",
   LOGIN: "/dang-nhap",
-  ADMIN: "/quan-ly",
+  MANAGE_CLASS: "/quan-ly/quan-ly-lop-hoc",
   HOME: "/trang-chu",
-  NEWS: "/tin-tuc",
-  EVENTS: "/su-kien",
-  HIRING: "/tuyen-dung",
+  NEWS: "/quan-ly/tin-tuc",
+  EVENTS: "/quan-ly/su-kien",
+  HIRING: "/quan-ly/tuyen-dung",
 
   //Sub Route admin
-  MY_CLASS: "/lop-hoc-cua-toi",
-  ACCOUNT: "/quan-ly-tai-khoan",
-  COURSES: "/khoa-hoc",
+  MY_CLASS: "/quan-ly/lop-hoc-cua-toi",
+  ACCOUNT: "/quan-ly/quan-ly-tai-khoan",
+  COURSES: "/quan-ly/khoa-hoc",
 };

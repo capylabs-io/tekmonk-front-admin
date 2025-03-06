@@ -5,6 +5,7 @@ import { DeleteClassDialog } from "@/components/admin/dialogs/delete-class-dialo
 import StudentTablePagination from "@/components/admin/student-table-pagination";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
+import { useCustomRouter } from "@/components/common/router/CustomRouter";
 import {
   Table,
   TableBody,
@@ -13,13 +14,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ROUTE } from "@/contants/router";
 import { ReqDeleteClass, ReqGetClasses } from "@/requests/class";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { Class } from "@/types/common-types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Edit, PanelLeft, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import qs from "qs";
 import { useState } from "react";
 
@@ -38,7 +39,7 @@ const EmptyState = () => (
 );
 
 export default function Admin() {
-  const router = useRouter();
+  const router = useCustomRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
@@ -188,7 +189,7 @@ export default function Admin() {
                             <button
                               className="p-2 hover:bg-gray-100 rounded-full"
                               onClick={() =>
-                                router.push(`/quan-ly/admin/${item.id}`)
+                                router.push(`${ROUTE.MANAGE_CLASS}/${item.id}`)
                               }
                             >
                               <Edit className="h-4 w-4" />

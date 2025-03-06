@@ -1,15 +1,7 @@
 import tekdojoAxios from "./axios.config";
 import { BASE_URL } from "@/contants/api-url";
-
-type LoginBody = {
-  identifier: string;
-  password: string;
-  role: {
-    name: string;
-  };
-};
 // set up axios interceptor
-export const postLogin = async (body: LoginBody) => {
+export const postLogin = async (body: any) => {
   const response = await tekdojoAxios.post(
     `${BASE_URL}/custom-auth/login`,
     body
