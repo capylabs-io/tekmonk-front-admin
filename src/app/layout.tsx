@@ -14,7 +14,7 @@ import {
 
 import TopLoader from "nextjs-toploader";
 import Providers from "./providers";
-
+import { LoginGuard } from "@/components/hoc/login-guard";
 
 const delaGothicOne = localFont({
   src: ".././assets/fonts/DelaGothicOne-Regular.ttf",

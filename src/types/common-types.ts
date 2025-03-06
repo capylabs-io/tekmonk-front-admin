@@ -48,7 +48,7 @@ export type User = {
   createdAt: string;
   updatedAt: string;
   data: any | null;
-  user_role?: UserRole;
+  role?: UserRole;
 };
 
 export type TListCourse = {

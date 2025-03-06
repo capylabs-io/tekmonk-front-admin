@@ -14,6 +14,8 @@ import { useForm, FormProvider, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { postLogin } from "@/requests/login";
+import { ROUTE } from "@/contants/router";
+import { userInfo } from "os";
 
 // Define validation schema using zod
 const loginSchema = z.object({
@@ -72,15 +74,24 @@ export default function Login() {
         password: data.password,
       });
 
-      const roleName = get(resUserInfo, "role.name", "").toLowerCase();
+      const roleName = get(resUserInfo, ["role", "code"], "");
 
-      if (roleName === Role.STUDENT) {
-        success("Xong!", "Chúc mừng bạn đã đăng nhập thành công");
-        router.push("/");
-      } else {
-        useUserStore.getState().clear();
-        reset();
-        error("Lỗi", "Đăng nhập thất bại, vui lòng thử lại sau");
+      switch (roleName) {
+        case Role.TEACHER:
+          success("Xong!", "Chúc mừng bạn đã đăng nhập thành công");
+          router.push(ROUTE.MY_CLASS);
+          break;
+        case Role.CLASSMANAGEMENT:
+          success("Xong!", "Chúc mừng bạn đã đăng nhập thành công");
+          router.push(ROUTE.MANAGE_CLASS);
+          break;
+        case Role.MODERATOR:
+          success("Xong!", "Chúc mừng bạn đã đăng nhập thành công");
+          router.push(ROUTE.LOGIN);
+          break;
+        default:
+          error("Lỗi", "Đăng nhập thất bại, vui lòng thử lại sau");
+          break;
       }
     } catch (err) {
       const message = HandleReturnMessgaeErrorLogin(err);

@@ -132,11 +132,11 @@ export default function Admin() {
             Tạo lớp
           </CommonButton>
         </div>
-        <div className="p-4 flex-1">
+        <div className="p-4 flex-1 w-full">
           {classes && classes.meta.pagination.total === 0 ? (
             <EmptyState />
           ) : (
-            <div className="rounded-md border min-w-[800px]">
+            <div className="rounded-md border min-w-[800px] w-full">
               <Table>
                 <TableHeader>
                   <TableRow>

@@ -4,11 +4,8 @@ import React from "react";
 
 import { useLoadingStore } from "@/store/LoadingStore";
 
-export function Loading() {
-  const [isShowing, content] = useLoadingStore((state) => [
-    state.isShowing,
-    state.content,
-  ]);
+export function Loading({ content }: { content?: string }) {
+  const [isShowing] = useLoadingStore((state) => [state.isShowing]);
 
   return isShowing ? (
     <div className="fixed left-0 top-0 z-50 flex h-full w-full items-center justify-center bg-black/70 text-6xl">

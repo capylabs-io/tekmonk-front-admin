@@ -36,7 +36,7 @@ export default function Page() {
   });
 
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-6 space-y-6 w-full h-full">
       {/* Header Section */}
       <div className="flex items-center gap-3">
         <div className="p-2 bg-primary-10 rounded-lg">

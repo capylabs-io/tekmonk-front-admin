@@ -51,9 +51,6 @@ export const useUserStore = create<State & Actions>()(
           jwt: response.jwt,
           refreshToken: response.refreshToken,
           userInfo: response.user,
-          candidateNumber: response?.candidateNumber,
-          codeCombatId: response?.codeCombatId,
-          isSubmitted: response?.isSubmitted,
         });
         return response.user;
       },

@@ -9,12 +9,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Edit, PanelLeft, Trash2 } from "lucide-react";
-import Image from "next/image";
 
 import Loading from "@/app/loading";
 import StudentTablePagination from "@/components/admin/student-table-pagination";
 import { CommonCard } from "@/components/common/CommonCard";
-import { TimeConvert } from "@/components/common/TimeConvert";
 import { InputField } from "@/components/contest/InputField";
 import { InputImgUploadContest } from "@/components/contest/InputImgUploadContest";
 import { InputTags } from "@/components/contest/InputTags";

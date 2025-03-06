@@ -46,6 +46,7 @@ import { useMemo, useState } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
 import "react-quill/dist/quill.snow.css";
 import { z } from "zod";
+import { SplitRenderItem } from "@/components/common/SplitRenderItem";
 
 const newsSchema = z.object({
   title: z
@@ -329,9 +330,12 @@ export default function Page() {
                         <TableCell>
                           <div className="flex gap-1 flex-wrap">
                             {item.tags && (
-                              <div className="rounded-[4px] bg-gray-20 text-gray-95 text-BodyXs flex items-center h-6 px-2">
-                                {item.tags}
-                              </div>
+                              <SplitRenderItem
+                                items={item.tags.split(",")}
+                                className="rounded-[4px] bg-gray-20 text-gray-95 text-BodyXs flex items-center h-6 px-2"
+                                remainingItemsClassName="rounded-[4px] bg-gray-20 text-gray-95 text-BodyXs flex items-center h-6 px-2"
+                                tooltipContentClassName="rounded-[4px] bg-gray-20 text-gray-95 text-BodyXs flex items-center h-6 px-2"
+                              />
                             )}
                           </div>
                         </TableCell>

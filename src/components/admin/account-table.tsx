@@ -211,7 +211,7 @@ export const AccountTable = () => {
       className: user.className,
       parentEmail: user.parentEmail,
       blocked: user.blocked,
-      user_role: user.user_role || {
+      user_role: user.role || {
         code: activeTab,
       },
     };
@@ -227,7 +227,7 @@ export const AccountTable = () => {
       // Prepare data for API
       const {
         id,
-        user_role,
+        role: user_role,
         provider,
         password,
         resetPasswordToken,

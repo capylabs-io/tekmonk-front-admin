@@ -1,5 +1,6 @@
 "use client";
 
+import { Navbar } from "@/components/common/Navbar";
 import { LoginGuard } from "@/components/hoc/login-guard";
 
 export default function QuanLyLayout({
@@ -7,5 +8,14 @@ export default function QuanLyLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <LoginGuard>{children}</LoginGuard>;
+  return (
+    <div className="flex">
+      <LoginGuard>
+        <Navbar />
+        <div className="flex flex-1 h-screen overflow-y-auto border-gray-200 border">
+          {children}
+        </div>
+      </LoginGuard>
+    </div>
+  );
 }
