@@ -1,0 +1,23 @@
+[
+  {
+    "title": "Hackathon",
+    "month": "TH.11",
+    "day": "15",
+    "weekday": "Thứ 4",
+    "timeRange": "8:30 - 21:00"
+  },
+  {
+    "title": "Ngày nhà giáo Việt Nam",
+    "month": "TH.11",
+    "day": "20",
+    "weekday": "Chủ Nhật",
+    "timeRange": "CẢ NGÀY"
+  },
+  {
+    "title": "Lễ Giáng Sinh",
+    "month": "TH.12",
+    "day": "24",
+    "weekday": "Thứ 6",
+    "timeRange": "CẢ NGÀY"
+  }
+]

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://olympiad.tekmonk.edu.vn/sitemap.xml

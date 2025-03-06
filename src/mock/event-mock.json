@@ -1,0 +1,29 @@
+[
+  {
+    "title": "Hackathon",
+    "month": "TH.11",
+    "day": "15",
+    "weekday": "Thứ 4",
+    "timeRange": "8:30 - 21:00",
+    "createdAt": "",
+    "imageUrl": ""
+  },
+  {
+    "title": "Ngày nhà giáo Việt Nam",
+    "month": "TH.11",
+    "day": "20",
+    "weekday": "Chủ Nhật",
+    "timeRange": "CẢ NGÀY",
+    "createdAt": "",
+    "imageUrl": ""
+  },
+  {
+    "title": "Lễ Giáng Sinh",
+    "month": "TH.12",
+    "day": "24",
+    "weekday": "Thứ 6",
+    "timeRange": "CẢ NGÀY",
+    "createdAt": "",
+    "imageUrl": ""
+  }
+]

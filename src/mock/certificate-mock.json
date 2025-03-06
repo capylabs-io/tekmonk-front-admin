@@ -1,0 +1,38 @@
+[
+  {
+    "name": "Lập trình Python - Lớp Cơ bản",
+    "type": "Khoá học Code",
+    "mission": "10",
+    "progress": "10%",
+    "imageUrl": "/image/profile/certificate-logo.png",
+    "author": "TekMonk",
+    "createdAt": "20/11/2023"
+  },
+  {
+    "name": "Lập trình Python -Lớp Nâng Cao",
+    "type": "Khoá học Code",
+    "mission": "10",
+    "progress": "10%",
+    "imageUrl": "/image/profile/certificate-logo.png",
+    "author": "TekMonk",
+    "createdAt": "20/11/2023"
+  },
+  {
+    "name": "Lập trình Blockchain Game",
+    "type": "Khoá học Code",
+    "mission": "10",
+    "progress": "10%",
+    "imageUrl": "/image/profile/certificate-logo.png",
+    "author": "TekMonk",
+    "createdAt": "20/11/2023"
+  },
+  {
+    "name": "Lập trình Web - Lớp Cơ bản",
+    "type": "Khoá học Code",
+    "mission": "10",
+    "progress": "10%",
+    "imageUrl": "/image/profile/certificate-logo.png",
+    "author": "TekMonk",
+    "createdAt": "20/11/2023"
+  }
+]

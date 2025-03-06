@@ -1,0 +1,609 @@
+{
+  "posts": [
+    {
+      "id": "1",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "2",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "3",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "NextJs"]
+    },
+    {
+      "id": "4",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "5",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "6",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "7",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "8",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "9",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "10",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "11",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "12",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 18 ngày", "VueJs"]
+    },
+    {
+      "id": "13",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ VueJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "14",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "15",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "16",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "17",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "18",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "19",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "20",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "21",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "22",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 111 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "23",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 222 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    },
+    {
+      "id": "24",
+      "imageUrl": "/image/recruitment/recruitment-card-pic.png",
+      "title": "Giáo viên lập trình Frontend ngôn ngữ NextJs (2 năm kinh nghiệm)",
+      "description": "Mức lương: 333 tỷ",
+      "tags": ["Hà Nội", "Còn 24 ngày", "NextJs"]
+    }
+  ],
+  "events": [
+    {
+      "id": "1",
+      "imageUrl": "/image/event/event-pic-5.png",
+      "title": "Viewing party CKTG 2023 Đồng hành bởi Youtube Gaming",
+      "createdAt": "20/11/2023",
+      "month": "TH.11",
+      "day": "15",
+      "weekday": "Thứ 4",
+      "timeRange": "8:30 - 21:00"
+    },
+    {
+      "id": "2",
+      "imageUrl": "/image/event/event-pic-1.png",
+      "title": "Ngày hội Pizza Day của trường Tekmonk",
+      "createdAt": "19/11/2023",
+      "month": "TH.11",
+      "day": "20",
+      "weekday": "Chủ Nhật",
+      "timeRange": "CẢ NGÀY"
+    },
+    {
+      "id": "3",
+      "imageUrl": "/image/event/event-pic-2.png",
+      "title": "Ngày hội phát triển ứng dụng công nghệ cao",
+      "createdAt": "19/11/2023",
+      "month": "TH.11",
+      "day": "20",
+      "weekday": "Chủ Nhật",
+      "timeRange": "CẢ NGÀY"
+    },
+    {
+      "id": "4",
+      "imageUrl": "/image/event/event-pic-3.png",
+      "title": "Lễ hội cắm trại mùa Xuân",
+      "createdAt": "19/11/2023",
+      "month": "TH.11",
+      "day": "20",
+      "weekday": "Chủ Nhật",
+      "timeRange": "CẢ NGÀY"
+    },
+    {
+      "id": "5",
+      "imageUrl": "/image/event/event-pic-4.png",
+      "title": "Tiệc Noel và chào mừng năm mới của Teckmonk",
+      "createdAt": "19/11/2023",
+      "month": "TH.11",
+      "day": "20",
+      "weekday": "Chủ Nhật",
+      "timeRange": "CẢ NGÀY"
+    }
+  ],
+  "eventDetail": [
+    {
+      "id": "1",
+      "title": "Viewing party CKTG 2023 Đồng hành bởi Youtube Gaming",
+      "eventTime": "Chủ Nhật, 03/12/2023 (15:00 - 23:00)",
+      "eventVenue": "Nhà thi đấu Tây Hồ",
+      "address": "Số 101 Đ. Xuân La, Xuân La, District Tay Ho, Ha Noi City",
+      "month": "THÁNG 12",
+      "day": "03",
+      "weekday": "Chủ Nhật",
+      "content": ""
+    },
+    {
+      "id": "2",
+      "title": "Ngày hội Pizza",
+      "eventTime": "Chủ Nhật, 03/12/2023 (15:00 - 23:00)",
+      "eventVenue": "Nhà thi đấu Tây Hồ",
+      "address": "Số 101 Đ. Xuân La, Xuân La, District Tay Ho, Ha Noi City",
+      "month": "THÁNG 12",
+      "day": "03",
+      "weekday": "Chủ Nhật",
+      "content": ""
+    },
+    {
+      "id": "3",
+      "title": "Ngày hội phát triển",
+      "eventTime": "Chủ Nhật, 03/12/2023 (15:00 - 23:00)",
+      "eventVenue": "Nhà thi đấu Tây Hồ",
+      "address": "Số 101 Đ. Xuân La, Xuân La, District Tay Ho, Ha Noi City",
+      "month": "THÁNG 12",
+      "day": "03",
+      "weekday": "Chủ Nhật",
+      "content": ""
+    },
+    {
+      "id": "4",
+      "title": "Lễ hội cắm trại",
+      "eventTime": "Chủ Nhật, 03/12/2023 (15:00 - 23:00)",
+      "eventVenue": "Nhà thi đấu Tây Hồ",
+      "address": "Số 101 Đ. Xuân La, Xuân La, District Tay Ho, Ha Noi City",
+      "month": "THÁNG 12",
+      "day": "03",
+      "weekday": "Chủ Nhật",
+      "content": ""
+    },
+    {
+      "id": "5",
+      "title": "Tiệc Noel",
+      "eventTime": "Chủ Nhật, 03/12/2023 (15:00 - 23:00)",
+      "eventVenue": "Nhà thi đấu Tây Hồ",
+      "address": "Số 101 Đ. Xuân La, Xuân La, District Tay Ho, Ha Noi City",
+      "month": "THÁNG 12",
+      "day": "03",
+      "weekday": "Chủ Nhật",
+      "content": ""
+    }
+  ],
+  "achievements": [
+    {
+      "id": "1",
+      "name": "Học bá lập trình",
+      "imageUrl": "/image/mission/achievement1.png"
+    },
+    {
+      "id": "2",
+      "name": "Nhà sáng tạo Game",
+      "imageUrl": "/image/mission/achievement2.png"
+    },
+    {
+      "id": "3",
+      "name": "Bậc thầy sáng tạo",
+      "imageUrl": "/image/mission/achievement3.png"
+    },
+    {
+      "id": "4",
+      "name": "Pháp sư CSS",
+      "imageUrl": "/image/mission/achievement.png"
+    }
+  ],
+  "certificates": [
+    {
+      "id": 1,
+      "name": "Lập trình Python - Lớp Cơ bản",
+      "type": "Khoá học Code",
+      "mission": "10",
+      "progress": "10%",
+      "imageUrl": "/image/profile/certificate-logo.png",
+      "author": "TekMonk",
+      "createdAt": "20/11/2023"
+    },
+    {
+      "id": 2,
+      "name": "Lập trình Python -Lớp Nâng Cao",
+      "type": "Khoá học Code",
+      "mission": "10",
+      "progress": "10%",
+      "imageUrl": "/image/profile/certificate-logo.png",
+      "author": "TekMonk",
+      "createdAt": "20/11/2023"
+    },
+    {
+      "id": 3,
+      "name": "Lập trình Blockchain Game",
+      "type": "Khoá học Code",
+      "mission": "10",
+      "progress": "10%",
+      "imageUrl": "/image/profile/certificate-logo.png",
+      "author": "TekMonk",
+      "createdAt": "20/11/2023"
+    },
+    {
+      "id": 4,
+      "name": "Lập trình Web - Lớp Cơ bản",
+      "type": "Khoá học Code",
+      "mission": "10",
+      "progress": "10%",
+      "imageUrl": "/image/profile/certificate-logo.png",
+      "author": "TekMonk",
+      "createdAt": "20/11/2023"
+    }
+  ],
+  "projects": [
+    {
+      "id": 1,
+      "name": "INTO THE BREACH",
+      "author": {
+        "id": "1",
+        "username": "Henry Nguyen",
+        "userRank": "IV",
+        "specialName": "Bá Vương Học Đường"
+      },
+      "thumbnailUrl": "/image/user/profile-pic-2.png",
+      "imageUrls": [
+        "/image/project/project-pic-1.png",
+        "/image/project/project-pic-2.png",
+        "/image/project/project-pic-3.png"
+      ],
+      "createdAt": "11/02/2023",
+      "projectCategories": ["GAME", "2D", "TURN-BASED"],
+      "description": "Đây là một dự án game mà mình tự code trong 3 tháng bằng Unity dựa trên game Fortnite mà cháu hay chơi. Mong nhận được sự ủng hộ của mọi người",
+      "likeCount": "6200",
+      "commentCount": "61"
+    },
+
+    {
+      "id": 2,
+      "name": "Stardew Valley",
+      "author": {
+        "id": "1",
+        "username": "Henry Nguyen",
+        "userRank": "IV",
+        "specialName": "Bá Vương Học Đường"
+      },
+      "thumbnailUrl": "/image/project/project02.png",
+      "imageUrls": [
+        "/image/project/project-pic-1.png",
+        "/image/project/project-pic-2.png",
+        "/image/project/project-pic-3.png"
+      ],
+      "createdAt": "11/02/2023",
+      "projectCategories": ["2D", "TURN-BASED"],
+      "description": "Đây là một dự án game mà mình tự code trong 3 tháng bằng Unity dựa trên game Fortnite mà cháu hay chơi. Mong nhận được sự ủng hộ của mọi người",
+      "likeCount": "6200",
+      "commentCount": "61"
+    },
+
+    {
+      "id": 3,
+      "name": "Metal Slug Tactics",
+      "author": {
+        "id": "1",
+        "username": "Henry Nguyen",
+        "userRank": "IV",
+        "specialName": "Bá Vương Học Đường"
+      },
+      "thumbnailUrl": "/image/project/project01.png",
+      "imageUrls": [
+        "/image/project/project-pic-1.png",
+        "/image/project/project-pic-2.png",
+        "/image/project/project-pic-3.png"
+      ],
+      "createdAt": "24/07/2023",
+      "projectCategories": ["2D", "TURN-BASED"],
+      "description": "Đây là một dự án game mà mình tự code trong 3 tháng bằng Unity dựa trên game Fortnite mà cháu hay chơi. Mong nhận được sự ủng hộ của mọi người",
+      "likeCount": "6200",
+      "commentCount": "61"
+    },
+
+    {
+      "id": 4,
+      "name": "Pokemon Go",
+      "author": {
+        "id": "1",
+        "username": "Henry Nguyen",
+        "userRank": "IV",
+        "specialName": "Bá Vương Học Đường"
+      },
+      "thumbnailUrl": "/image/project/project03.png",
+      "imageUrls": [
+        "/image/project/project-pic-1.png",
+        "/image/project/project-pic-2.png",
+        "/image/project/project-pic-3.png"
+      ],
+      "createdAt": "11/02/2020",
+      "projectCategories": ["2D", "TURN-BASED"],
+      "description": "Đây là một dự án game mà mình tự code trong 3 tháng bằng Unity dựa trên game Fortnite mà cháu hay chơi. Mong nhận được sự ủng hộ của mọi người",
+      "likeCount": "6200",
+      "commentCount": "61"
+    },
+
+    {
+      "id": 5,
+      "name": "The Sims 4",
+      "author": {
+        "id": "1",
+        "username": "Henry Nguyen",
+        "userRank": "IV",
+        "specialName": "Bá Vương Học Đường"
+      },
+      "thumbnailUrl": "/image/project/project04.png",
+      "imageUrls": [
+        "/image/project/project-pic-1.png",
+        "/image/project/project-pic-2.png",
+        "/image/project/project-pic-3.png"
+      ],
+      "createdAt": "11/02/2019",
+      "projectCategories": ["2D", "TURN-BASED"],
+      "description": "Đây là một dự án game mà mình tự code trong 3 tháng bằng Unity dựa trên game Fortnite mà cháu hay chơi. Mong nhận được sự ủng hộ của mọi người",
+      "likeCount": "6200",
+      "commentCount": "61"
+    }
+  ],
+  "notifications": [
+    {
+      "id": 1,
+      "title": "đã để lại một bình luận trên bài đăng của bạn",
+      "createdAt": "1h"
+    },
+    { "id": 2, "title": "đã thích bài đăng của bạn", "createdAt": "2h" },
+    { "id": 3, "title": "đã thích bài đăng của bạn", "createdAt": "1w" },
+    {
+      "id": 4,
+      "title": "đã thích bài đăng của bạn",
+      "createdAt": "1w"
+    },
+    { "id": 5, "title": "đã thích bài đăng của bạn", "createdAt": "2w" }
+  ],
+  "leaderboardDatas": [
+    {
+      "user": {
+        "id": "1",
+        "username": "Nguyễn Thành Nam",
+        "userRankNumber": "IV",
+        "userRank": "emerald",
+        "specialName": "Đại Vương",
+        "imageURL": "/image/leaderboard/user1.png",
+        "twitterName": "thanhnam.nguyen"
+      },
+      "score": "10000"
+    },
+    {
+      "user": {
+        "id": "2",
+        "username": "Vương Linh Chi",
+        "userRankNumber": "IV",
+        "userRank": "emerald",
+        "specialName": "Bá Vương Học Đường",
+        "imageURL": "/image/leaderboard/user3.png",
+        "twitterName": "linhchi.vuong"
+      },
+      "score": "9999"
+    },
+    {
+      "user": {
+        "id": "3",
+        "username": "Nguyễn Thái Hoà",
+        "userRankNumber": "IV",
+        "userRank": "emerald",
+        "specialName": "Bá Vương Học Đường",
+        "imageURL": "/image/leaderboard/user1.png",
+        "twitterName": "thaihoa.nguyen"
+      },
+      "score": "9899"
+    }
+  ],
+  "avatarShops": [
+    {
+      "id": "1",
+      "image": "/image/shop/avatar-pic.png",
+      "title": "JUJUTSU GOJO",
+      "price": "750"
+    },
+    {
+      "id": "2",
+      "image": "/image/shop/avatar-pic-2.png",
+      "title": "KRILIN D7 BALLS",
+      "price": "750"
+    },
+    {
+      "id": "3",
+      "image": "/image/shop/avatar-pic-3.png",
+      "title": "MAGICIAN SCHOOL GIRL",
+      "price": "750"
+    },
+    {
+      "id": "4",
+      "image": "/image/shop/avatar-pic-1.png",
+      "title": "SAITAMA",
+      "price": "750"
+    }
+  ],
+  "backgroundShops": [
+    {
+      "id": 1,
+      "image": "/image/shop/background-pic-1.png",
+      "title": "GREENHOUSE OF CITY G...",
+      "price": "750"
+    },
+    {
+      "id": 2,
+      "image": "/image/shop/background-pic-2.png",
+      "title": "AHTOHOBOKA BUNNY",
+      "price": "500"
+    },
+    {
+      "id": 3,
+      "image": "/image/shop/background-pic-3.png",
+      "title": "NOODLE STALL-GRAND...",
+      "price": "500"
+    },
+    {
+      "id": 4,
+      "image": "/image/shop/background-pic-4.png",
+      "title": "MINI BAKERY",
+      "price": "500"
+    },
+    {
+      "id": 5,
+      "image": "/image/shop/background-pic-1.png",
+      "title": "GREENHOUSE OF CITY G...",
+      "price": "750"
+    },
+    {
+      "id": 6,
+      "image": "/image/shop/background-pic-2.png",
+      "title": "AHTOHOBOKA BUNNY",
+      "price": "500"
+    },
+    {
+      "id": 7,
+      "image": "/image/shop/background-pic-3.png",
+      "title": "NOODLE STALL-GRAND...",
+      "price": "500"
+    },
+    {
+      "id": 8,
+      "image": "/image/shop/background-pic-4.png",
+      "title": "MINI BAKERY",
+      "price": "500"
+    },
+    {
+      "id": 9,
+      "image": "/image/shop/background-pic-1.png",
+      "title": "GREENHOUSE OF CITY G...",
+      "price": "750"
+    },
+    {
+      "id": 10,
+      "image": "/image/shop/background-pic-2.png",
+      "title": "AHTOHOBOKA BUNNY",
+      "price": "500"
+    },
+    {
+      "id": 11,
+      "image": "/image/shop/background-pic-3.png",
+      "title": "NOODLE STALL-GRAND...",
+      "price": "500"
+    },
+    {
+      "id": 12,
+      "image": "/image/shop/background-pic-4.png",
+      "title": "MINI BAKERY",
+      "price": "500"
+    }
+  ]
+}

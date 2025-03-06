@@ -1,0 +1,130 @@
+/* Container styles */
+.date-range-picker-container {
+  position: relative;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Input wrapper styles */
+.date-range-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+/* Input field styles */
+.date-range-input {
+  width: 100%;
+  min-width: 280px; /* Ensure minimum width to fit the date range */
+  padding: 12px 16px;
+  font-size: 14px;
+  color: #333;
+  background-color: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  outline: none;
+  transition: border-color 0.2s;
+  padding-right: 40px; /* Space for the calendar icon */
+}
+
+.date-range-input:focus {
+  border-color: #a0aec0;
+}
+
+.date-range-input::placeholder {
+  color: #a0aec0;
+}
+
+/* Calendar icon styles */
+.date-range-calendar-icon {
+  position: absolute;
+  right: 12px;
+  width: 20px;
+  height: 20px;
+  color: #64748b;
+  cursor: pointer;
+}
+
+/* Hide the default react-datepicker input */
+.react-datepicker-wrapper,
+.react-datepicker__input-container {
+  position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Calendar popup styles */
+.date-range-popper {
+  z-index: 10;
+}
+
+.date-range-calendar {
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+    Arial, sans-serif;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Selected date styles */
+.react-datepicker__day--selected,
+.react-datepicker__day--in-selecting-range,
+.react-datepicker__day--in-range {
+  background-color: #3b82f6 !important;
+  color: white !important;
+  border-radius: 0.3rem;
+}
+
+.react-datepicker__day--keyboard-selected {
+  background-color: #bfdbfe !important;
+  color: #1e40af !important;
+}
+
+.react-datepicker__day:hover {
+  background-color: #dbeafe !important;
+  border-radius: 0.3rem;
+}
+
+/* Range start and end styles */
+.react-datepicker__day--range-start {
+  border-top-left-radius: 0.3rem !important;
+  border-bottom-left-radius: 0.3rem !important;
+}
+
+.react-datepicker__day--range-end {
+  border-top-right-radius: 0.3rem !important;
+  border-bottom-right-radius: 0.3rem !important;
+}
+
+/* Header styles */
+.react-datepicker__header {
+  background-color: #f8fafc !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+}
+
+.react-datepicker__current-month {
+  font-weight: 600 !important;
+  color: #334155 !important;
+}
+
+.react-datepicker__day-name {
+  color: #64748b !important;
+}
+
+/* Navigation styles */
+.react-datepicker__navigation {
+  top: 12px !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .date-range-input {
+    font-size: 13px;
+    padding: 10px 14px;
+    padding-right: 36px;
+  }
+}
