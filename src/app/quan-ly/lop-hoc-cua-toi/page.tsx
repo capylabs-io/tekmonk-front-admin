@@ -6,10 +6,14 @@ import { useCustomRouter } from "@/components/common/router/CustomRouter";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { ReqGetClasses } from "@/requests/class";
+import { useUserStore } from "@/store/UserStore";
+import { get } from "lodash";
+import { Role } from "@/contants/role";
 
 export default function Page() {
   const router = useCustomRouter();
   const [activeTab, setActiveTab] = useState("teaching");
+  const [userInfo] = useUserStore((state) => [state.userInfo]);
 
   /**
    * UseQuery
@@ -19,14 +23,32 @@ export default function Page() {
     queryFn: async () => {
       try {
         const now = new Date().toISOString();
-        const queryString = qs.stringify({
-          filters: {
-            endTime: {
-              [activeTab === "teaching" ? "$gt" : "$lte"]: now,
+        //query all if user role is admin
+        let queryString = "";
+        if (userInfo?.role?.code === Role.CLASSMANAGEMENT) {
+          queryString = qs.stringify({
+            filters: {
+              endTime: {
+                [activeTab === "teaching" ? "$gt" : "$lte"]: now,
+              },
             },
-          },
-          populate: "*",
-        });
+            populate: "*",
+          });
+        } else {
+          queryString = qs.stringify({
+            filters: {
+              endTime: {
+                [activeTab === "teaching" ? "$gt" : "$lte"]: now,
+              },
+              teacher: {
+                id: {
+                  $eq: get(userInfo, ["id"], ""),
+                },
+              },
+            },
+            populate: "*",
+          });
+        }
         return await ReqGetClasses(queryString);
       } catch (error) {
         console.log("failed to fetch class", error);

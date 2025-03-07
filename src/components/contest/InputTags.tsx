@@ -95,37 +95,51 @@ export const InputTags = ({
             )}
           </div>
 
-          <div className="w-full flex flex-col items-end">
-            <div className={classNames("min-h-[3rem] w-full rounded-xl border border-input bg-gray-00 px-3 py-2 text-sm", customClassNames)}>
-              <div className="flex flex-wrap gap-2">
-                {tags.map((tag, index) => (
-                  <div
-                    key={index}
-                    className="inline-flex items-center bg-gray-20 text-gray-95 rounded-md text-BodyXs"
-                  >
-                    <span className="px-2 py-1">{tag}</span>
-                    <button
-                      onClick={() => removeTag(tag)}
-                      className="px-2 py-1 rounded-r-md border-l border-gray-200 transition-colors"
+          <div className="w-full">
+            <div className="w-full flex flex-col items-end">
+              <div
+                className={classNames(
+                  "min-h-[3rem] w-full rounded-xl border border-input bg-gray-00 px-3 py-2 text-sm",
+                  customClassNames
+                )}
+              >
+                <div className="flex flex-wrap gap-2">
+                  {tags.map((tag, index) => (
+                    <div
+                      key={index}
+                      className="inline-flex items-center bg-gray-20 text-gray-95 rounded-md text-BodyXs"
                     >
-                      <X className="h-3 w-3 hover:text-primary-20" />
-                      <span className="sr-only">Remove {tag}</span>
-                    </button>
-                  </div>
-                ))}
-                <input
-                  type="text"
-                  value={inputValue}
-                  onChange={(e) => setInputValue(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className={classNames("flex-1 bg-transparent min-w-[120px] w-full text-base font-normal outline-none bg-grey-50 border-grey-300 mt-1 placeholder:text-base", customInputClassNames)}
-                  placeholder={tags.length > 0 ? " " : placeholder ? placeholder : "Nhập tags ..."}
-                />
+                      <span className="px-2 py-1">{tag}</span>
+                      <button
+                        onClick={() => removeTag(tag)}
+                        className="px-2 py-1 rounded-r-md border-l border-gray-200 transition-colors"
+                      >
+                        <X className="h-3 w-3 hover:text-primary-20" />
+                        <span className="sr-only">Remove {tag}</span>
+                      </button>
+                    </div>
+                  ))}
+                  <input
+                    type="text"
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    className={classNames(
+                      "flex-1 bg-transparent min-w-[120px] w-full text-base font-normal outline-none bg-grey-50 border-grey-300 mt-1 placeholder:text-base",
+                      customInputClassNames
+                    )}
+                    placeholder={
+                      tags.length > 0
+                        ? " "
+                        : placeholder
+                        ? placeholder
+                        : "Nhập tags ..."
+                    }
+                  />
+                </div>
               </div>
             </div>
-            {error && (
-              <div className="text-red-500 text-xs min-h-[48px]">{error}</div>
-            )}
+            {error && <div className="text-red-500 text-xs">{error}</div>}
           </div>
         </div>
       </div>

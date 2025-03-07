@@ -15,18 +15,19 @@ export const Navbar = () => {
   const router = useCustomRouter();
 
   /** UseStore */
-  const [clear, userInfo] = useUserStore((state) => [
-    state.clear,
-    state.userInfo,
-  ]);
+  const [userInfo] = useUserStore((state) => [state.userInfo]);
+  const userRole = get(userInfo, ["role", "name"], "");
 
   const handleRidirectHomePage = () => {
     router.push(ROUTE.MAIN);
   };
 
-  const handleLogout = () => {
-    router.push(ROUTE.LOGIN);
-    clear();
+  // Helper function to check if the current user has one of the allowed roles
+  const hasAccess = (allowedRoles: string[] | undefined) => {
+    // If no roles specified, show to everyone
+    if (!allowedRoles || allowedRoles.length === 0) return true;
+    // Otherwise, check if user's role is in the allowed roles
+    return allowedRoles.includes(userRole);
   };
 
   return (
@@ -48,12 +49,14 @@ export const Navbar = () => {
             active={usePathname().includes(ROUTE.ACCOUNT)}
             iconElement={<Home size={20} />}
             url={ROUTE.ACCOUNT}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])}
           />
           <MenuCard
             active={usePathname().includes(ROUTE.MY_CLASS)}
             title="Lớp của tôi"
             iconElement={<Bell size={20} />}
             url={ROUTE.MY_CLASS}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT, Role.TEACHER])}
           />
           {/* <MenuCard
               title="Phê duyệt"
@@ -66,6 +69,7 @@ export const Navbar = () => {
             active={usePathname().includes(ROUTE.MANAGE_CLASS)}
             url={ROUTE.MANAGE_CLASS}
             iconElement={<ShoppingCart size={20} />}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Example: only admin and class management can see this
           />
 
           <MenuCard
@@ -73,30 +77,34 @@ export const Navbar = () => {
             active={usePathname().includes(ROUTE.NEWS)}
             iconElement={<Newspaper size={20} />}
             url={ROUTE.NEWS}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Tuyển dụng"
             active={usePathname().includes(ROUTE.HIRING)}
             iconElement={<User size={20} />}
             url={ROUTE.HIRING}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Sự kiện"
             active={usePathname().includes(ROUTE.EVENTS)}
             iconElement={<User size={20} />}
             url={ROUTE.EVENTS}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Khóa học"
             active={usePathname().includes(ROUTE.COURSES)}
             iconElement={<User size={20} />}
             url={ROUTE.COURSES}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
         </div>
 
         <UserProfileLink
           userName={get(userInfo, ["username"], "")}
-          userRank={get(userInfo, ["role", "name"], "")}
+          userRank={userRole}
         />
       </div>
     </div>

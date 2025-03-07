@@ -8,7 +8,7 @@ import { CommonCard } from "@/components/common/CommonCard";
 import { ReqGetClassSessionDetail } from "@/requests/class-session-detail";
 import qs from "qs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ReqGetEnrollments } from "@/requests/enrollment";
+import { ReqGetEnrollments, ReqUpdateEnrollment } from "@/requests/enrollment";
 import tekdojoAxios from "@/requests/axios.config";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { ReqUpdateClassSession } from "@/requests/class-session";
@@ -31,8 +31,9 @@ export default function SessionDetailPage({
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const queryClient = useQueryClient();
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [initialAttendanceData, setInitialAttendanceData] = useState<any[]>([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
-  const [isReadOnly, setIsReadOnly] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
 
   /* UseStore */
   const [success, error] = useSnackbarStore((state) => [
@@ -114,11 +115,48 @@ export default function SessionDetailPage({
     },
   });
 
+  // Add updateAttendance mutation
+  const updateAttendanceMutation = useMutation({
+    mutationFn: async (data: any[]) => {
+      const updatePromises = data.map((record) => {
+        if (record.id) {
+          return tekdojoAxios.put(
+            `/class-session-student-details/${record.id}`,
+            {
+              data: {
+                attendance: record.attendance,
+                discuss: record.discuss,
+                homeworkDone: record.homeworkDone,
+                workSpeed: record.workSpeed,
+              },
+            }
+          );
+        }
+        return Promise.resolve();
+      });
+      return Promise.all(updatePromises);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["student-attendance", params.sessionId],
+      });
+      success("Xong", "Đã cập nhật dữ liệu điểm danh");
+      setHasChanges(false);
+    },
+    onError: (err) => {
+      console.error("Error updating attendance:", err);
+      error("Lỗi", "Có lỗi xảy ra khi cập nhật dữ liệu điểm danh");
+    },
+  });
+
   // Initialize attendance data and check if should be readonly
   useEffect(() => {
     if (studentAttendance?.data && studentAttendance.data.length > 0) {
       setAttendanceData(studentAttendance.data);
-      setIsReadOnly(true); // Set readonly if we have existing data
+      // Store the initial state to know which checkboxes were initially checked
+      setInitialAttendanceData(
+        JSON.parse(JSON.stringify(studentAttendance.data))
+      );
     } else if (studentList?.data) {
       // Create mock data from student list if no attendance data exists
       const mockData = studentList.data.map((student: any) => ({
@@ -131,20 +169,33 @@ export default function SessionDetailPage({
         class_session: params.sessionId,
       }));
       setAttendanceData(mockData);
-      setIsReadOnly(false);
+      setInitialAttendanceData(JSON.parse(JSON.stringify(mockData)));
     }
   }, [studentAttendance, studentList, params.sessionId]);
 
+  // Function to check if a checkbox was initially checked in the database
+  const isInitiallyChecked = (index: number, field: string) => {
+    return (
+      initialAttendanceData[index]?.id && initialAttendanceData[index][field]
+    );
+  };
+
   const handleCheckboxChange = (index: number, field: string) => {
-    if (isReadOnly) return; // Prevent changes if readonly
+    // If it was initially checked in the database, don't allow changes
+    if (isInitiallyChecked(index, field)) {
+      return;
+    }
+
     setAttendanceData((prev) => {
       const newData = [...prev];
       newData[index] = {
         ...newData[index],
-        [field]: !newData[index][field],
+        [field]: !newData[index][field], // Toggle the checkbox
       };
       return newData;
     });
+
+    setHasChanges(true);
   };
 
   const handleSaveConfirm = async () => {
@@ -155,9 +206,10 @@ export default function SessionDetailPage({
         await updateClassSessionMutation.mutateAsync();
       }
 
-      // Then handle attendance records
-      const promises = attendanceData.map((record) => {
-        if (record.id === null) {
+      // Handle new records
+      const newRecordsPromises = attendanceData
+        .filter((record) => record.id === null)
+        .map((record) => {
           return createAttendanceMutation.mutateAsync({
             data: {
               student: record.student.id,
@@ -168,12 +220,28 @@ export default function SessionDetailPage({
               workSpeed: record.workSpeed,
             },
           });
-        }
-      });
+        });
 
-      await Promise.all(promises);
+      // Handle existing records that have changes
+      const existingRecords = attendanceData.filter(
+        (record) => record.id !== null
+      );
+      if (existingRecords.length > 0) {
+        await updateAttendanceMutation.mutateAsync(existingRecords);
+      }
+
+      await Promise.all(newRecordsPromises);
       success("Xong", "Đã lưu dữ liệu điểm danh");
       setIsConfirmOpen(false);
+      setHasChanges(false);
+
+      // Update the initial data to match the current data after saving
+      setInitialAttendanceData(JSON.parse(JSON.stringify(attendanceData)));
+
+      // Refresh the data from the server to ensure we have the latest state
+      queryClient.invalidateQueries({
+        queryKey: ["student-attendance", params.sessionId],
+      });
     } catch (err) {
       console.error("Error saving attendance:", err);
       error("Lỗi", "Có lỗi xảy ra khi lưu dữ liệu điểm danh");
@@ -182,31 +250,32 @@ export default function SessionDetailPage({
 
   return (
     <>
-      <div className="">
-        <div className="flex items-center gap-4 p-4 border-b">
-          <CommonCard
-            size="small"
-            className="w-8 h-8 !rounded-[6px] flex items-center justify-center"
-          >
-            <PanelLeft width={17} height={17} />
-          </CommonCard>
+      <div className="w-full">
+        <div className="flex items-center justify-between gap-4 p-4 border-b">
           <div className="flex items-center justify-center">
+            <CommonCard
+              size="small"
+              className="w-8 h-8 !rounded-[6px] flex items-center justify-center"
+            >
+              <PanelLeft width={17} height={17} />
+            </CommonCard>
             <button
               onClick={() => router.back()}
               className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
             >
               <ArrowLeft className="w-6 h-6 text-gray-70" />
             </button>
-            <div className="text-SubheadLg text-gray-95">Buổi 1</div>
+            <div className="text-SubheadLg text-gray-95">
+              Thông tin buổi học
+            </div>
           </div>
-          {!isReadOnly && (
-            <CommonButton
-              onClick={() => setIsConfirmOpen(true)}
-              className="ml-auto h-9 w-[58px]"
-            >
-              Lưu
-            </CommonButton>
-          )}
+          <CommonButton
+            onClick={() => setIsConfirmOpen(true)}
+            className="ml-auto h-9 w-[58px]"
+            disabled={!hasChanges}
+          >
+            Lưu
+          </CommonButton>
         </div>
 
         <div className="space-y-6 p-4">
@@ -266,7 +335,7 @@ export default function SessionDetailPage({
                         onChange={() =>
                           handleCheckboxChange(index, "attendance")
                         }
-                        disabled={isReadOnly}
+                        disabled={isInitiallyChecked(index, "attendance")}
                         className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
                       />
                     </td>
@@ -275,7 +344,7 @@ export default function SessionDetailPage({
                         type="checkbox"
                         checked={item.discuss}
                         onChange={() => handleCheckboxChange(index, "discuss")}
-                        disabled={isReadOnly}
+                        disabled={isInitiallyChecked(index, "discuss")}
                         className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
                       />
                     </td>
@@ -286,7 +355,7 @@ export default function SessionDetailPage({
                         onChange={() =>
                           handleCheckboxChange(index, "homeworkDone")
                         }
-                        disabled={isReadOnly}
+                        disabled={isInitiallyChecked(index, "homeworkDone")}
                         className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
                       />
                     </td>
@@ -297,7 +366,7 @@ export default function SessionDetailPage({
                         onChange={() =>
                           handleCheckboxChange(index, "workSpeed")
                         }
-                        disabled={isReadOnly}
+                        disabled={isInitiallyChecked(index, "workSpeed")}
                         className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
                       />
                     </td>

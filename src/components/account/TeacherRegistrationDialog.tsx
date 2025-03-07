@@ -90,14 +90,14 @@ export const TeacherRegistrationDialog = ({
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
           <DialogTitle className="text-HeadingSm font-semibold text-gray-95">
-            Tạo tài khoản quản trị viên
+            Tạo tài khoản giáo viên
           </DialogTitle>
           <div className="text-BodyMd text-gray-60 mb-4">
             Mật khẩu mặc định là 123123 cho đến khi người dùng tự thay đổi
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+        <form className="space-y-4 p-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-[160px] text-SubheadMd">Tên tài khoản</div>
@@ -169,7 +169,6 @@ export const TeacherRegistrationDialog = ({
 
           <div className="flex justify-between items-center mt-6 border-t pt-4">
             <CommonButton
-              type="button"
               className="w-[83px] h-11"
               variant="secondary"
               onClick={handleClose}
@@ -177,9 +176,9 @@ export const TeacherRegistrationDialog = ({
               Thoát
             </CommonButton>
             <CommonButton
-              type="submit"
               className="h-11 w-[139px]"
               disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit)}
             >
               {isSubmitting ? "Đang xử lý..." : "Tạo tài khoản"}
             </CommonButton>

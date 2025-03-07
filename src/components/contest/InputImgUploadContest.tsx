@@ -76,45 +76,47 @@ export const InputImgUploadContest = ({
           <p className="text-bodySm text-gray-500">SVG, PNG, JPG</p>
         </div>
 
-        <div className="flex items-center flex-wrap h-16 space-y-2">
-          {file && fileUrl ? (
-            <ImgSubmitPreview
-              src={fileUrl}
-              key={file.name}
-              width={64}
-              height={64}
-              className="mr-2"
-              onRemove={removeImg}
-            />
-          ) : (
-            <div>
-              <div
-                className="rounded-lg p-8 flex items-center justify-center relative bg-gray-00 border cursor-pointer"
-                onClick={handleClick}
-              >
-                <ImagePlus size={24} className="absolute text-gray-500" />
-                <input
-                  type="file"
-                  name="file_input"
-                  className="hidden"
-                  ref={hiddenFileInput}
-                  accept={ALLOWED_FILE_TYPES.join(", ")}
-                  onChange={handleFileChange}
-                  onBlur={onBlur}
-                />
+        <div>
+          <div className="flex items-center flex-wrap h-16 space-y-2">
+            {file && fileUrl ? (
+              <ImgSubmitPreview
+                src={fileUrl}
+                key={file.name}
+                width={64}
+                height={64}
+                className="mr-2"
+                onRemove={removeImg}
+              />
+            ) : (
+              <div>
+                <div
+                  className="rounded-lg p-8 flex items-center justify-center relative bg-gray-00 border cursor-pointer"
+                  onClick={handleClick}
+                >
+                  <ImagePlus size={24} className="absolute text-gray-500" />
+                  <input
+                    type="file"
+                    name="file_input"
+                    className="hidden"
+                    ref={hiddenFileInput}
+                    accept={ALLOWED_FILE_TYPES.join(", ")}
+                    onChange={handleFileChange}
+                    onBlur={onBlur}
+                  />
+                </div>
+                {isExceedFileSize && (
+                  <>
+                    <p className="mt-2 self-start text-sm text-red-600 ">
+                      Ảnh không quá {MAX_IMAGE_SIZE} MB
+                    </p>
+                  </>
+                )}
               </div>
-              {isExceedFileSize && (
-                <>
-                  <p className="mt-2 self-start text-sm text-red-600 ">
-                    Ảnh không quá {MAX_IMAGE_SIZE} MB
-                  </p>
-                </>
-              )}
-            </div>
-          )}
+            )}
+          </div>
+          {error && <p className="mt-2 text-red-500 text-xs">{error}</p>}
         </div>
       </div>
-      {error && <p className="mt-2 self-start text-sm text-red-600">{error}</p>}
     </>
   );
 };

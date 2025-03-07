@@ -148,13 +148,6 @@ export type Media = {
   size: number;
 };
 
-export type UploadData = {
-  ref: string;
-  refId: string;
-  field: string;
-  files: File;
-};
-
 export type Contest = {
   id: string;
   name: string;
@@ -170,45 +163,11 @@ export type Contest = {
   groupStage?: ContestGroupStage;
 };
 
-export type ContestEntry = {
-  id: string;
-  candidateNumber: string;
-  groupMemberInfo: object | null;
-  user: User;
-  isContestStarted?: boolean;
-  startTime?: string;
-  endTime?: string;
-};
-
-export type ContestRegister = {
-  fullName: string;
-  schoolName: string;
-  studentAddress: string;
-  studentDob: string;
-  className: string;
-  schoolAddress: string;
-  parentName: string;
-  parentPhoneNumber: string;
-  email: string;
-  username: string;
-  password: string;
-  confirmPassword: string;
-  groupMemberInfo: object[];
-  contest_group_stage: string;
-};
-
 export type TimeLeft = {
   days: number;
   hours: number;
   minutes: number;
   seconds: number;
-};
-
-export type TProgressResult = {
-  name: string;
-  listSlug: { name: string; playtime: number }[];
-  currentLevel: number;
-  totalLevel: number;
 };
 
 export type TNews = {
@@ -282,3 +241,7 @@ export type ClassSessionDetail = {
   createdAt: string;
   updatedAt: string;
 };
+
+type ValuePiece = Date | null;
+
+export type DateValue = ValuePiece | [ValuePiece, ValuePiece];

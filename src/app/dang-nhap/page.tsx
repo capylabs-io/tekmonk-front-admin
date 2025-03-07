@@ -15,7 +15,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { postLogin } from "@/requests/login";
 import { ROUTE } from "@/contants/router";
-import { userInfo } from "os";
 
 // Define validation schema using zod
 const loginSchema = z.object({
@@ -28,11 +27,12 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
   const [isClient, setIsClient] = useState(false);
-  const [login] = useUserStore((state) => [state.login]);
+  const [login, clear] = useUserStore((state) => [state.login, state.clear]);
   const [show, hide] = useLoadingStore((state) => [state.show, state.hide]);
-  const [error, success] = useSnackbarStore((state) => [
+  const [error, success, warn] = useSnackbarStore((state) => [
     state.error,
     state.success,
+    state.warn,
   ]);
 
   const router = useCustomRouter();
@@ -88,6 +88,10 @@ export default function Login() {
         case Role.MODERATOR:
           success("Xong!", "Chúc mừng bạn đã đăng nhập thành công");
           router.push(ROUTE.LOGIN);
+          break;
+        case Role.STUDENT:
+          warn("Lỗi", "Bạn không có quyền truy cập vào hệ thống");
+          clear();
           break;
         default:
           error("Lỗi", "Đăng nhập thất bại, vui lòng thử lại sau");

@@ -97,7 +97,7 @@ export default function ClassDetailPage({
   };
 
   return (
-    <div className="">
+    <div className="w-full">
       {/* Header Section */}
       <div className="flex items-center gap-4 p-4 border-b ">
         <div className="flex items-center justify-center gap-4">

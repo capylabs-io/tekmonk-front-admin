@@ -15,8 +15,6 @@ import { Input } from "../common/Input";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { ReqGetUsers } from "@/requests/user";
-import { CommonTag } from "../common/CommonTag";
-import StudentTablePagination from "./student-table-pagination";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { ReqCreateClass } from "@/requests/class";
@@ -26,7 +24,10 @@ import { ReqCreateEnrollment } from "@/requests/enrollment";
 import { ReqCreateClassSession } from "@/requests/class-session";
 import { AddStudentToClass } from "./add-student-to-class";
 import DateRangePicker from "@/components/common/date-picker/DatePicker";
-import { Course } from "@/types/common-types";
+import { Course, DateValue } from "@/types/common-types";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 interface CreateClassDialogProps {
   open: boolean;
@@ -35,9 +36,74 @@ interface CreateClassDialogProps {
 
 type Step = 1 | 2;
 
-type ValuePiece = Date | null;
+// Step 1 validation schema
+const step1Schema = z.object({
+  courseId: z.string().min(1, "Vui lòng chọn khóa học"),
+  dateRange: z
+    .object({
+      startDate: z.date({
+        required_error: "Vui lòng chọn ngày bắt đầu",
+      }),
+      endDate: z.date({
+        required_error: "Vui lòng chọn ngày kết thúc",
+      }),
+    })
+    .refine(
+      (data) => {
+        // Ensure start date is not after end date
+        return data.startDate <= data.endDate;
+      },
+      {
+        message: "Ngày bắt đầu phải trước hoặc cùng ngày với ngày kết thúc",
+        path: ["startDate"],
+      }
+    )
+    .refine(
+      (data) => {
+        // Ensure start date is not in the past
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return data.startDate >= today;
+      },
+      {
+        message: "Ngày bắt đầu không thể là ngày trong quá khứ",
+        path: ["startDate"],
+      }
+    )
+    .refine(
+      (data) => {
+        // Ensure there's at least one day between start and end date
+        const startDate = new Date(data.startDate);
+        const endDate = new Date(data.endDate);
+        const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays >= 1;
+      },
+      {
+        message: "Khóa học phải kéo dài ít nhất 1 ngày",
+        path: ["endDate"],
+      }
+    ),
+  className: z.string().min(1, "Vui lòng nhập tên lớp"),
+  teacherId: z.string().min(1, "Vui lòng chọn giảng viên"),
+});
 
-type Value = ValuePiece | [ValuePiece, ValuePiece];
+// Step 2 validation schema
+const step2Schema = z.object({
+  selectedStudents: z
+    .array(z.string())
+    .min(1, "Vui lòng chọn ít nhất một học viên"),
+});
+
+// Combined schema for the entire form
+const formSchema = z.object({
+  ...step1Schema.shape,
+  ...step2Schema.shape,
+});
+
+type Step1FormValues = z.infer<typeof step1Schema>;
+type Step2FormValues = z.infer<typeof step2Schema>;
+type FormValues = z.infer<typeof formSchema>;
 
 export function CreateClassDialog({
   open,
@@ -45,17 +111,39 @@ export function CreateClassDialog({
 }: CreateClassDialogProps) {
   const [step, setStep] = useState<Step>(1);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [value, onChange] = useState<Value>([new Date(), new Date()]);
+  const [value, onChange] = useState<DateValue>([new Date(), new Date()]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemPerPage] = useState(10);
-  const [className, setClassName] = useState("");
-  const [courseId, setCourseId] = useState("");
-  const [teacherId, setTeacherId] = useState("");
-  const [numberClassSession, setNumberClassSession] = useState(1);
   const [teacherSearchQuery, setTeacherSearchQuery] = useState("");
   const [isTeacherDropdownOpen, setIsTeacherDropdownOpen] = useState(false);
   const [course, setCourse] = useState<Course | null>(null);
+
+  // React Hook Form setup for step 1
+  const step1Form = useForm<Step1FormValues>({
+    resolver: zodResolver(step1Schema),
+    defaultValues: {
+      courseId: "",
+      dateRange: {
+        startDate: new Date(),
+        endDate: new Date(),
+      },
+      className: "",
+      teacherId: "",
+    },
+  });
+
+  // React Hook Form setup for step 2
+  const step2Form = useForm<Step2FormValues>({
+    resolver: zodResolver(step2Schema),
+    defaultValues: {
+      selectedStudents: [],
+    },
+  });
+
+  // Update form values when selectedStudents changes
+  useEffect(() => {
+    step2Form.setValue("selectedStudents", selectedStudents);
+  }, [selectedStudents, step2Form]);
 
   //Use Store
   const [show, hide] = useLoadingStore((state) => [state.show, state.hide]);
@@ -77,7 +165,7 @@ export function CreateClassDialog({
   });
 
   const { data: teacherList } = useQuery({
-    queryKey: ["teacherList"],
+    queryKey: ["teacherList", currentPage, itemsPerPage],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
@@ -122,43 +210,15 @@ export function CreateClassDialog({
   /**
    * Function fetching
    */
-  const handleCreateClass = async () => {
-    if (step == 1) return;
+  const handleCreateClass = async (formData: FormValues) => {
     try {
-      /**
-       * Class (startTime, endTime, className, teacherId)
-       * Enrollments (userId, classId)[]
-       */
       show();
 
-      // Validate required fields
-      if (!className) {
-        error("Lỗi", "Vui lòng nhập tên lớp");
-        return;
-      }
-
-      if (!courseId) {
-        error("Lỗi", "Vui lòng chọn khóa học");
-        return;
-      }
-      if (!course) {
-        error("Lỗi", "Khóa học không tồn tại");
-        return;
-      }
-
-      if (!teacherId) {
-        error("Lỗi", "Vui lòng chọn giảng viên");
-        return;
-      }
-
-      if (!value || !Array.isArray(value) || !value[0] || !value[1]) {
-        error("Lỗi", "Vui lòng chọn thời gian bắt đầu và kết thúc");
-        return;
-      }
+      const { courseId, dateRange, className, teacherId } = formData;
 
       // Format dates
-      const startTime = value[0].toISOString();
-      const endTime = value[1].toISOString();
+      const startTime = dateRange.startDate.toISOString();
+      const endTime = dateRange.endDate.toISOString();
 
       // Create class data
       const classData = {
@@ -175,7 +235,7 @@ export function CreateClassDialog({
       const newClass = await ReqCreateClass(classData);
 
       //create enrollment
-      const enrollmentData = selectedStudents.map((studentId) => ({
+      const enrollmentData = formData.selectedStudents.map((studentId) => ({
         student: Number(studentId),
         class: newClass.data.id,
       }));
@@ -184,9 +244,10 @@ export function CreateClassDialog({
       //create new Class session with numberClassSession
       await ReqCreateClassSession({
         class: newClass.data.id,
-        numberClassSession: numberClassSession,
+        numberClassSession: course?.numberSession || 0,
       });
       success("Thành công", "Tạo mới lớp học thành công");
+      onOpenChange(false);
     } catch (err) {
       console.error("Error creating class:", err);
       error("Lỗi", "Có lỗi xảy ra khi tạo mới lớp học, vui lòng thử lại sau");
@@ -208,25 +269,49 @@ export function CreateClassDialog({
 
   const handleNext = async () => {
     if (step === 1) {
-      setStep(2);
+      const isValid = await step1Form.trigger();
+      if (isValid) {
+        setStep(2);
+      }
     } else {
-      // Handle form submission
-      console.log("Form submitted");
-      await handleCreateClass();
-      onOpenChange(false);
+      // Handle form submission for step 2
+      const step2Valid = await step2Form.trigger();
+      if (step2Valid) {
+        const step1Data = step1Form.getValues();
+        const step2Data = step2Form.getValues();
+
+        // Combine data from both steps
+        const formData = {
+          ...step1Data,
+          ...step2Data,
+        };
+
+        await handleCreateClass(formData);
+      }
     }
   };
 
   useEffect(() => {
+    const courseId = step1Form.watch("courseId");
     if (courseId) {
-      const course = courseList?.data?.find(
+      const selectedCourse = courseList?.data?.find(
         (course) => course.id.toString() === courseId
       );
-      if (course) {
-        setCourse(course);
+      if (selectedCourse) {
+        setCourse(selectedCourse);
       }
     }
-  }, [courseId]);
+  }, [step1Form.watch("courseId"), courseList?.data]);
+
+  // Reset form when dialog is closed
+  useEffect(() => {
+    if (!open) {
+      step1Form.reset();
+      step2Form.reset();
+      setSelectedStudents([]);
+      setStep(1);
+    }
+  }, [open, step1Form, step2Form]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -246,26 +331,48 @@ export function CreateClassDialog({
         </DialogHeader>
 
         {step === 1 ? (
-          <div className="space-y-4 w-full ">
+          <form
+            className="space-y-4 w-full"
+            onSubmit={(e) => e.preventDefault()}
+          >
             <div className="flex items-start justify-center">
               <div className="text-SubheadMd text-gray-60 w-[160px]">
                 Khóa học
               </div>
-              <select
-                className="flex-1 w-full p-2 border border-gray-300 rounded-md"
-                value={courseId}
-                onChange={(e) => setCourseId(e.target.value)}
-              >
-                <option value="">Chọn khóa</option>
-                {courseList?.data?.map((course) => (
-                  <option
-                    key={course.id.toString()}
-                    value={course.id.toString()}
-                  >
-                    {course.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex-1">
+                <Controller
+                  name="courseId"
+                  control={step1Form.control}
+                  render={({ field }) => (
+                    <select
+                      className={`flex-1 w-full p-2 border ${
+                        step1Form.formState.errors.courseId
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md`}
+                      {...field}
+                      onChange={(e) => {
+                        field.onChange(e);
+                      }}
+                    >
+                      <option value="">Chọn khóa</option>
+                      {courseList?.data?.map((course) => (
+                        <option
+                          key={course.id.toString()}
+                          value={course.id.toString()}
+                        >
+                          {course.name}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                />
+                {step1Form.formState.errors.courseId && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {step1Form.formState.errors.courseId.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-start justify-center">
@@ -273,11 +380,30 @@ export function CreateClassDialog({
                 Thời gian bắt đầu - kết thúc
               </div>
               <div className="flex-1 items-center gap-2">
-                <DateRangePicker
-                  onChange={(dateRange) => {
-                    onChange([dateRange.startDate, dateRange.endDate]);
-                  }}
+                <Controller
+                  name="dateRange"
+                  control={step1Form.control}
+                  render={({ field }) => (
+                    <DateRangePicker
+                      onChange={(dateRange) => {
+                        field.onChange(dateRange);
+                        onChange([dateRange.startDate, dateRange.endDate]);
+                      }}
+                    />
+                  )}
                 />
+                {step1Form.formState.errors.dateRange && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {typeof step1Form.formState.errors.dateRange.message ===
+                    "string"
+                      ? step1Form.formState.errors.dateRange.message
+                      : step1Form.formState.errors.dateRange?.startDate
+                          ?.message ||
+                        step1Form.formState.errors.dateRange?.endDate
+                          ?.message ||
+                        "Vui lòng chọn thời gian bắt đầu và kết thúc hợp lệ"}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -292,127 +418,175 @@ export function CreateClassDialog({
                 customClassNames="flex-1 border-gray-300 focus:ring-purple-500 focus:border-transparent"
               />
             </div>
+
             <div className="flex items-start justify-center w-full">
               <div className="text-SubheadMd text-gray-60 w-[160px] ">
                 Tên lớp
               </div>
-              <Input
-                placeholder="Nhập thông tin"
-                type="text"
-                value={className}
-                onChange={(e) => setClassName(e)}
-                customClassNames="flex-1 border-gray-300 focus:ring-purple-500 focus:border-transparent"
-              />
+              <div className="flex-1">
+                <Controller
+                  name="className"
+                  control={step1Form.control}
+                  render={({ field }) => (
+                    <Input
+                      placeholder="Nhập thông tin"
+                      type="text"
+                      value={field.value}
+                      onChange={(e) => field.onChange(e)}
+                      customClassNames={`flex-1 border-${
+                        step1Form.formState.errors.className
+                          ? "red-500"
+                          : "gray-300"
+                      } focus:ring-purple-500 focus:border-transparent`}
+                    />
+                  )}
+                />
+                {step1Form.formState.errors.className && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {step1Form.formState.errors.className.message}
+                  </p>
+                )}
+              </div>
             </div>
 
             <div className="flex items-start justify-center">
               <div className="text-SubheadMd text-gray-60 w-[160px] cursor-pointer">
                 Giảng viên
               </div>
-              {teacherId === "" ? (
-                <div className="flex-1 relative">
-                  <div
-                    id="teacher-input"
-                    onClick={() => setIsTeacherDropdownOpen(true)}
-                  >
-                    <Input
-                      isSearch={true}
-                      placeholder="Chọn giảng viên"
-                      type="text"
-                      value={teacherSearchQuery}
-                      onChange={(value) => {
-                        setTeacherSearchQuery(value);
-                        setIsTeacherDropdownOpen(true);
-                      }}
-                      customClassNames="flex-1 !w-[464px] border-gray-300 focus:ring-purple-500 focus:border-transparent cursor-pointer"
-                    />
-                  </div>
-                  {isTeacherDropdownOpen && (
-                    <div
-                      id="teacher-dropdown"
-                      className="absolute z-50 w-[464px] bg-white shadow-lg rounded-md border mt-1"
-                    >
-                      <div className="w-full">
-                        <div className="max-h-[300px] overflow-y-auto">
-                          {teacherList?.data?.filter((teacher) =>
-                            teacher.username
-                              .toLowerCase()
-                              .includes(teacherSearchQuery.toLowerCase())
-                          ).length === 0 ? (
-                            <div className="py-6 text-center text-sm text-gray-500">
-                              Không tìm thấy giảng viên
-                            </div>
-                          ) : (
-                            <div className="py-2">
-                              {teacherList?.data
-                                ?.filter((teacher) =>
-                                  teacher.username
-                                    .toLowerCase()
-                                    .includes(teacherSearchQuery.toLowerCase())
-                                )
-                                .map((teacher) => (
-                                  <div
-                                    key={teacher.id}
-                                    className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-100"
-                                    onClick={() => {
-                                      setTeacherId(teacher.id.toString());
-                                      setTeacherSearchQuery(teacher.username);
-                                      setIsTeacherDropdownOpen(false);
-                                    }}
-                                  >
-                                    <div className="flex-1">
-                                      <div className="font-medium">
-                                        {teacher.username}
-                                      </div>
-                                      <div className="text-sm text-gray-500">
-                                        {teacher.email}
-                                      </div>
+              <div className="flex-1 relative">
+                <Controller
+                  name="teacherId"
+                  control={step1Form.control}
+                  render={({ field }) => (
+                    <>
+                      {!field.value ? (
+                        <div>
+                          <div
+                            id="teacher-input"
+                            onClick={() => setIsTeacherDropdownOpen(true)}
+                          >
+                            <Input
+                              isSearch={true}
+                              placeholder="Chọn giảng viên"
+                              type="text"
+                              value={teacherSearchQuery}
+                              onChange={(value) => {
+                                setTeacherSearchQuery(value);
+                                setIsTeacherDropdownOpen(true);
+                              }}
+                              customClassNames={`flex-1 !w-[464px] border-${
+                                step1Form.formState.errors.teacherId
+                                  ? "red-500"
+                                  : "gray-300"
+                              } focus:ring-purple-500 focus:border-transparent cursor-pointer`}
+                            />
+                          </div>
+                          {isTeacherDropdownOpen && (
+                            <div
+                              id="teacher-dropdown"
+                              className="absolute z-50 w-[464px] bg-white shadow-lg rounded-md border mt-1"
+                            >
+                              <div className="w-full">
+                                <div className="max-h-[300px] overflow-y-auto">
+                                  {teacherList?.data?.filter((teacher) =>
+                                    teacher.username
+                                      .toLowerCase()
+                                      .includes(
+                                        teacherSearchQuery.toLowerCase()
+                                      )
+                                  ).length === 0 ? (
+                                    <div className="py-6 text-center text-sm text-gray-500">
+                                      Không tìm thấy giảng viên
                                     </div>
-                                    {teacherId === teacher.id.toString() && (
-                                      <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
-                                    )}
-                                  </div>
-                                ))}
+                                  ) : (
+                                    <div className="py-2">
+                                      {teacherList?.data
+                                        ?.filter((teacher) =>
+                                          teacher.username
+                                            .toLowerCase()
+                                            .includes(
+                                              teacherSearchQuery.toLowerCase()
+                                            )
+                                        )
+                                        .map((teacher) => (
+                                          <div
+                                            key={teacher.id}
+                                            className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-100"
+                                            onClick={() => {
+                                              field.onChange(
+                                                teacher.id.toString()
+                                              );
+                                              setTeacherSearchQuery(
+                                                teacher.username
+                                              );
+                                              setIsTeacherDropdownOpen(false);
+                                            }}
+                                          >
+                                            <div className="flex-1">
+                                              <div className="font-medium">
+                                                {teacher.username}
+                                              </div>
+                                              <div className="text-sm text-gray-500">
+                                                {teacher.email}
+                                              </div>
+                                            </div>
+                                            {field.value ===
+                                              teacher.id.toString() && (
+                                              <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
+                                            )}
+                                          </div>
+                                        ))}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
                             </div>
                           )}
                         </div>
-                      </div>
-                    </div>
+                      ) : (
+                        <div className="flex items-center gap-2 w-[464px]">
+                          <div className="flex-1 p-2 bg-primary-60 rounded-md text-gray-00">
+                            {teacherList?.data?.find(
+                              (teacher) => teacher.id.toString() === field.value
+                            )?.username || ""}
+                          </div>
+                          <button
+                            onClick={() => {
+                              field.onChange("");
+                              setTeacherSearchQuery("");
+                            }}
+                            className="text-gray-500 hover:text-gray-700"
+                          >
+                            x
+                          </button>
+                        </div>
+                      )}
+                    </>
                   )}
-                  {!teacherId && (
-                    <p className="text-sm text-red-500 mt-1">
-                      Vui lòng chọn giảng viên
-                    </p>
-                  )}
-                </div>
-              ) : (
-                <div className="flex items-center gap-2 w-[464px]">
-                  <div className="flex-1 p-2 bg-primary-60 rounded-md text-gray-00">
-                    {teacherList?.data?.find(
-                      (teacher) => teacher.id.toString() === teacherId
-                    )?.username || ""}
-                  </div>
-                  <button
-                    onClick={() => {
-                      setTeacherId("");
-                      setTeacherSearchQuery("");
-                    }}
-                    className="text-gray-500 hover:text-gray-700"
-                  >
-                    x
-                  </button>
-                </div>
-              )}
+                />
+                {step1Form.formState.errors.teacherId && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {step1Form.formState.errors.teacherId.message}
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          </form>
         ) : (
           /**
            * This is step 2 of create class and add student and teacher
            */
-          <AddStudentToClass
-            selectedStudents={selectedStudents}
-            setSelectedStudents={setSelectedStudents}
-          />
+          <form onSubmit={(e) => e.preventDefault()}>
+            <AddStudentToClass
+              selectedStudents={selectedStudents}
+              setSelectedStudents={setSelectedStudents}
+            />
+            {step2Form.formState.errors.selectedStudents && (
+              <p className="text-red-500 text-sm mt-2">
+                {step2Form.formState.errors.selectedStudents.message}
+              </p>
+            )}
+          </form>
         )}
 
         <div className="flex justify-between gap-3 mt-8 ">
