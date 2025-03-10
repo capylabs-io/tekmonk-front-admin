@@ -1,13 +1,12 @@
 "use client";
 
 import { CreateClassDialog } from "@/components/admin/CreateClassDialog";
-import { DeleteClassDialog } from "@/components/admin/dialogs/delete-class-dialog";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
 import { useCustomRouter } from "@/components/common/router/CustomRouter";
 import { ReqDeleteClass } from "@/requests/class";
-import { ReqGetCourses } from "@/requests/course";
+import { ReqCreateCourse, ReqGetCourses } from "@/requests/course";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { Class } from "@/types/common-types";
@@ -24,6 +23,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import qs from "qs";
+import { CreateCourseDialog } from "@/components/admin/dialogs/create-course-dialog";
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12">
     <div
@@ -58,12 +59,36 @@ export default function Courses() {
     queryKey: ["course"],
     queryFn: async () => {
       try {
-        return await ReqGetCourses();
+        const queryString = qs.stringify({
+          pagination: {
+            page,
+            pageSize: totalPage,
+          },
+        });
+        return await ReqGetCourses(queryString);
       } catch (err) {
         error("Lỗi", "Không thể lấy thông tin lớp học");
       }
     },
     refetchOnWindowFocus: false,
+  });
+
+  const { mutate: createCourseMutation, isPending: isCreating } = useMutation({
+    mutationFn: (data: any) => {
+      return ReqCreateCourse(data);
+    },
+    onSuccess: () => {
+      success("Thành công", "Đã tạo khóa học thành công");
+      refetch();
+    },
+    onError: (err) => {
+      console.error("Error creating course:", err);
+      error("Lỗi", "Có lỗi xảy ra khi tạo khóa học");
+    },
+    onSettled: () => {
+      hide();
+      setIsDialogOpen(false);
+    },
   });
 
   const { mutate: deleteClassMutation, isPending: isDeleting } = useMutation({
@@ -105,86 +130,53 @@ export default function Courses() {
     show();
     deleteClassMutation(classToDelete.id);
   };
-  const mockData = [
-    {
-      id: 1,
-      name: 'Khoá học dạy làm giàu cho trẻ nhỏ từ 7- 17 tuổi',
-      numberSession: 1,
-      description: 'Code Scratch',
-      code: 'A1-23',
-    },
-    {
-      id: 2,
-      name: 'Khoá học dạy làm giàu cho trẻ nhỏ từ 7- 17 tuổi',
-      numberSession: 1,
-      description: 'Robotic',
-      code: 'A1-23',
-    },
-    {
-      id: 3,
-      name: 'Khoá học dạy làm giàu cho trẻ nhỏ từ 7- 17 tuổi',
-      numberSession: 1,
-      description: 'Code Unity',
-      code: 'A1-23',
-    },
 
-  ]
-  const columns: ColumnDef<any>[] =
-    [
-      {
-        header: 'STT',
-        cell: ({ row }) => <span>{row.index + 1}</span>,
-
-      },
-      {
-        header: 'Mã',
-        cell: ({ row }) => (
-          <div >
-            {row.original.code}
-          </div>
-        ),
-      },
-      {
-        header: 'Tên khoá',
-        cell: ({ row }) => <span>{row.original.code}</span>,
-      },
-      {
-        header: 'Loại',
-        cell: ({ row }) => (
-          <span>
-            {get(row, 'original.description', '')}
-          </span>
-        ),
-      },
-      {
-        id: 'action',
-        header: '',
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsDialogOpen(true)
-                // Add edit handler here
-              }}
-            >
-              <Edit className="h-4 w-4" color="#7C6C80" />
-            </button>
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full"
-              onClick={(e) => {
-                e.stopPropagation();
-                setDeleteDialogOpen(true)
-                // Add edit handler here
-              }}
-            >
-              <Trash2 className="h-4 w-4" color="#7C6C80" />
-            </button>
-          </div>
-        ),
-      },
-    ]
+  const columns: ColumnDef<any>[] = [
+    {
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      header: "Mã",
+      cell: ({ row }) => <div>{row.original.code}</div>,
+    },
+    {
+      header: "Tên khoá",
+      cell: ({ row }) => <span>{row.original.name}</span>,
+    },
+    {
+      header: "Loại",
+      cell: ({ row }) => <span>{get(row, "original.type", "")}</span>,
+    },
+    {
+      id: "action",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsDialogOpen(true);
+              // Add edit handler here
+            }}
+          >
+            <Edit className="h-4 w-4" color="#7C6C80" />
+          </button>
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              setDeleteDialogOpen(true);
+              // Add edit handler here
+            }}
+          >
+            <Trash2 className="h-4 w-4" color="#7C6C80" />
+          </button>
+        </div>
+      ),
+    },
+  ];
   return (
     <>
       <div className="w-full h-full border-r border-gray-20 overflow-y-auto">
@@ -200,20 +192,26 @@ export default function Courses() {
               <div className="text-SubheadLg text-gray-95">Khóa học</div>
             </div>
           </div>
-          <CommonButton variant="primary" className="h-9 !w-max px-6" onClick={handleOpenDialog}>
+          <CommonButton
+            variant="primary"
+            className="h-9 !w-max px-6"
+            onClick={handleOpenDialog}
+          >
             Tạo khóa học
           </CommonButton>
         </div>
         <div className="p-4">
-          <CommonTable
-            data={mockData}
-            isLoading={false}
-            columns={columns}
-            page={page}
-            totalPage={totalPage}
-            totalDocs={totalDocs}
-            onPageChange={setPage}
-          />
+          {classes && (
+            <CommonTable
+              data={classes?.data}
+              isLoading={false}
+              columns={columns}
+              page={page}
+              totalPage={totalPage}
+              totalDocs={totalDocs}
+              onPageChange={setPage}
+            />
+          )}
         </div>
       </div>
       <Dialog
@@ -226,13 +224,11 @@ export default function Courses() {
       >
         <DialogContent className="max-w-[500px] max-h-full bg-gray-00 overflow-y-auto">
           <DialogHeader>
-            <DialogTitle className="text-xl">
-              Xoá khoá học
-            </DialogTitle>
+            <DialogTitle className="text-xl">Xoá khoá học</DialogTitle>
             <DialogDescription>
               <div className="text-gray-95 text-BodySm">
-                Khoá học sau khi bị xoá sẽ không còn tồn tại trên hệ thống. Bạn có
-                muốn xoá khoá học này không?
+                Khoá học sau khi bị xoá sẽ không còn tồn tại trên hệ thống. Bạn
+                có muốn xoá khoá học này không?
               </div>
             </DialogDescription>
           </DialogHeader>
@@ -258,12 +254,16 @@ export default function Courses() {
             >
               Từ chối
             </CommonButton>
-
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <CreateClassDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />
-
+      <div>
+        <CreateCourseDialog
+          open={isDialogOpen}
+          onOpenChange={setIsDialogOpen}
+          onSubmit={createCourseMutation}
+        />
+      </div>
     </>
   );
 }
