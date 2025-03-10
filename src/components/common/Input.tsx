@@ -95,7 +95,9 @@ export const Input = ({
           )} */}
         </div>
       </div>
-      {error && <p className="mt-2 self-start text-sm text-red-600">{error}</p>}
+      {error && (
+        <p className="mt-2 self-start text-BodySm text-red-600">{error}</p>
+      )}
     </>
   );
 };

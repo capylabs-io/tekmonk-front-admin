@@ -4,12 +4,15 @@ import { TeacherList } from "@/components/admin/teacher-list";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonRadioCheck } from "@/components/common/CommonRadioCheck";
 import { useCustomRouter } from "@/components/common/router/CustomRouter";
+import { Tabs } from "@/components/new/tabs";
 import { cn } from "@/lib/utils";
 import { ReqGetClasses } from "@/requests/class";
 import { ReqGetClassSessions } from "@/requests/class-session";
+import { ReqGetCourses } from "@/requests/course";
 import { ReqGetEnrollments } from "@/requests/enrollment";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, PanelLeft } from "lucide-react";
+import Image from "next/image";
 import qs from "qs";
 import { useState } from "react";
 
@@ -19,9 +22,19 @@ export default function ClassDetailPage({
   params: { id: string };
 }) {
   const router = useCustomRouter();
-  const [activeTab, setActiveTab] = useState("progress");
+  const [activeTab, setActiveTab] = useState<{ id: string; label: string }>({
+    id: "progress",
+    label: "Tiến trình",
+  });
 
   const [currentPageStudent, setCurrentPageStudent] = useState(1);
+
+  const tabs = [
+    { id: "progress", label: "Tiến trình" },
+    { id: "students", label: "Danh sách học viên" },
+    { id: "teacher", label: "Giảng viên" },
+    { id: "info", label: "Thông tin khóa học" },
+  ];
 
   /**
    * UseQuery
@@ -120,30 +133,15 @@ export default function ClassDetailPage({
       </div>
 
       {/* Tab Navigation */}
-      <div className="flex gap-4 border-b border-gray-20 h-9">
-        {[
-          { id: "progress", label: "Tiến trình" },
-          { id: "students", label: "Danh sách học viên" },
-          { id: "teacher", label: "Giảng viên" },
-          { id: "info", label: "Thông tin khóa học" },
-        ].map((tab) => (
-          <div
-            key={tab.id}
-            className={cn(
-              "px-5 py-1 cursor-pointer text-SubheadSm",
-              activeTab === tab.id
-                ? "text-gray-95 border-b-4 border-primary-60"
-                : "text-gray-50"
-            )}
-            onClick={() => setActiveTab(tab.id)}
-          >
-            {tab.label}
-          </div>
-        ))}
-      </div>
+      <Tabs
+        tabs={tabs}
+        currentTab={activeTab}
+        setCurrentTab={setActiveTab}
+        className="max-w-[550px]"
+      />
 
       {/* Content Section */}
-      {activeTab === "progress" && (
+      {activeTab.id === "progress" && (
         <div className="space-y-6 p-4">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             {classSession &&
@@ -172,7 +170,7 @@ export default function ClassDetailPage({
       )}
 
       {/* Students List Section */}
-      {activeTab === "students" && StudentData && (
+      {activeTab.id === "students" && StudentData && (
         <StudentList
           data={StudentData}
           currentPage={currentPageStudent}
@@ -181,8 +179,31 @@ export default function ClassDetailPage({
       )}
 
       {/* Teacher List Section */}
-      {activeTab === "teacher" && classData && (
+      {activeTab.id === "teacher" && classData && (
         <TeacherList data={classData.data[0]} />
+      )}
+
+      {/* Info */}
+      {activeTab.id === "info" && classData && (
+        <div className="p-6 flex gap-4">
+          <Image
+            alt="course Image"
+            src={
+              classData.data[0].course?.thumbnail || "/placeholder-image.jpg"
+            }
+            width={400}
+            height={300}
+            className="w-full h-full object-cover rounded-xl"
+          />
+          <div className="flex flex-col gap-2">
+            <span className="text-SubheadLg text-gray-95">
+              {classData.data[0].course?.name}
+            </span>
+            <span className="text-BodyMd text-gray-95">
+              {classData.data[0].course?.description}
+            </span>
+          </div>
+        </div>
       )}
     </div>
   );

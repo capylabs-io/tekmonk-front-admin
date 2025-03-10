@@ -47,6 +47,7 @@ export type User = {
   resetPasswordExpires: string | null;
   createdAt: string;
   updatedAt: string;
+  avatar?: string;
   data: any | null;
   role?: UserRole;
 };
@@ -228,6 +229,7 @@ export type Course = {
   name: string;
   numberSession: number;
   description?: string;
+  thumbnail?: string;
 };
 
 export type ClassSessionDetail = {

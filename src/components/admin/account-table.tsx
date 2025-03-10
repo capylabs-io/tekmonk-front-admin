@@ -211,11 +211,12 @@ export const AccountTable = () => {
       className: user.className,
       parentEmail: user.parentEmail,
       blocked: user.blocked,
+      avatar: user.avatar,
       user_role: user.role || {
         code: activeTab,
       },
     };
-    setEditingUser(editableUser as User);
+    setEditingUser(editableUser as unknown as User);
     setEditDialogOpen(true);
   };
 

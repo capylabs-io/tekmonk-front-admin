@@ -35,8 +35,7 @@ export const RoleGuard = ({ children, allowedRoles }: RoleGuardProps) => {
     // Only perform the authorization check if we have user info
     if (!allowedRoles.includes(userInfo?.role?.code as Role)) {
       warn("Lỗi", "Bạn không có quyền truy cập vào trang này");
-      clear();
-      router.push(ROUTE.LOGIN);
+      router.push(ROUTE.UNAUTHORIZED);
     } else {
       setIsAuthorized(true);
     }
