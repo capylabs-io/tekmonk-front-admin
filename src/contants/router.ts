@@ -1,5 +1,6 @@
 export const ROUTE = {
   MAIN: "/",
+  UNAUTHORIZED: "/unauthorized",
   LOGIN: "/dang-nhap",
   MANAGE_CLASS: "/quan-ly/quan-ly-lop-hoc",
   HOME: "/trang-chu",

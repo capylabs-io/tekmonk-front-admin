@@ -47,42 +47,13 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import "react-quill/dist/quill.snow.css";
 import { z } from "zod";
 import { SplitRenderItem } from "@/components/common/SplitRenderItem";
-
-const newsSchema = z.object({
-  title: z
-    .string({ required_error: "Tên bài viết không được để trống" })
-    .min(1, "Tên bài viết phải có ít nhất 1 ký tự"),
-  tags: z.string().optional(),
-  image: z.any(),
-  content: z.string().min(1, "Mô tả không được để trống"),
-});
-
-const modules = {
-  toolbar: [
-    [{ list: "ordered" }, { list: "bullet" }],
-    ["bold", "italic", "underline"],
-    [{ header: [1, 2, 3, false] }],
-    ["link", "image"],
-  ],
-};
-
-const formats = [
-  "list",
-  "bullet",
-  "ordered",
-  "bold",
-  "italic",
-  "underline",
-  "header",
-  "link",
-  "image",
-];
+import { newsSchema } from "@/validation/news";
+import { quillFormats, quillModules } from "@/contants/config/react-quill";
+import { Tabs } from "@/components/new/tabs";
+import { AdminHeader } from "@/components/new/admin-header";
+import { NewsDialogManager } from "@/components/new/news-dialog-manager";
 
 export default function Page() {
-  const ReactQuill = useMemo(
-    () => dynamic(() => import("react-quill"), { ssr: false }),
-    []
-  );
   const [toggleNewsDialog, setToggleNewsDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentNews, setCurrentNews] = useState<TNews | null>(null);
@@ -100,7 +71,10 @@ export default function Page() {
 
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
-  const [activeTab, setActiveTab] = useState("public");
+  const [activeTab, setActiveTab] = useState<{ id: string; label: string }>({
+    id: "public",
+    label: "Tin tức",
+  });
 
   const tabs = [
     { id: "public", label: "Tin tức" },
@@ -117,7 +91,7 @@ export default function Page() {
 
   const { data, isLoading, isError } = useQuery({
     refetchOnWindowFocus: false,
-    queryKey: ["news", page, limit, activeTab],
+    queryKey: ["news", page, limit, activeTab.id],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
@@ -127,7 +101,7 @@ export default function Page() {
           },
           filters: {
             type: "news",
-            status: activeTab,
+            status: activeTab.id,
           },
           sort: ["id:asc"],
           populate: "*",
@@ -253,47 +227,21 @@ export default function Page() {
 
   return (
     <div className="w-full h-full border-r border-gray-20 overflow-y-auto">
-      <div className="w-full h-auto min-h-[68px] flex flex-col sm:flex-row items-start sm:items-center justify-between px-2 border-b border-gray-20">
-        <div className="text-SubheadLg text-gray-95 mb-2 sm:mb-0 flex items-center justify-center gap-2">
-          <CommonCard
-            size="small"
-            className="w-8 h-8 !rounded-[6px] flex items-center justify-center"
-          >
-            <PanelLeft width={17} height={17} />
-          </CommonCard>
-          Tin tức
-        </div>
-        <CommonButton
-          className="h-9 w-full sm:w-[120px] text-gray-00"
-          variant="primary"
-          onClick={() => {
-            reset();
-            setToggleNewsDialog(true);
-          }}
-        >
-          <div className="text-SubheadSm">Tạo bài viết</div>
-        </CommonButton>
-      </div>
+      <AdminHeader
+        title="Tin tức"
+        buttonTitle="Tạo bài viết"
+        onClickButton={() => {
+          reset();
+          setToggleNewsDialog(true);
+        }}
+      />
       <div className="w-full flex flex-col border-y border-gray-20 py-2">
-        <div className="h-9 w-[265px] border-t border-x border-gray-20 rounded-t-lg flex items-center justify-center text-gray-95 gap-3">
-          {tabs.map((tab) => (
-            <div
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "w-full h-full flex items-center justify-center rounded-t-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 cursor-pointer",
-                activeTab === tab.id
-                  ? "bg-[#C840B8] text-white"
-                  : "text-gray-600 hover:text-gray-900"
-              )}
-              role="tab"
-              aria-selected={activeTab === tab.id}
-              aria-controls={`${tab.id}-panel`}
-            >
-              {tab.label}
-            </div>
-          ))}
-        </div>
+        <Tabs
+          tabs={tabs}
+          currentTab={activeTab}
+          setCurrentTab={setActiveTab}
+          className="w-[265px]"
+        />
         <div className=" flex-1 border-t border-gray-20">
           <div className="w-full overflow-auto">
             <div className="">
@@ -374,139 +322,44 @@ export default function Page() {
           </div>
         </div>
         <div className="w-full flex items-center justify-center">
-          <StudentTablePagination
-            showDetails={true}
-            totalItems={10}
-            currentPage={page}
-            itemsPerPage={limit}
-            onPageChange={(page) => setPage(page)}
-            onItemsPerPageChange={(itemsPerPage) => setLimit(itemsPerPage)}
-            className=""
-            showEllipsisThreshold={7}
-          />
+          {data && (
+            <StudentTablePagination
+              showDetails={true}
+              totalItems={data?.meta.pagination.total}
+              currentPage={page}
+              itemsPerPage={limit}
+              onPageChange={(page) => setPage(page)}
+              onItemsPerPageChange={(itemsPerPage) => setLimit(itemsPerPage)}
+              className=""
+              showEllipsisThreshold={7}
+            />
+          )}
         </div>
-        <FormProvider {...methods}>
-          <Dialog
-            open={toggleNewsDialog}
-            onOpenChange={(open) => {
-              if (!open) {
-                setIsEditing(false);
-                setCurrentNews(null);
-                reset({
-                  title: "",
-                  tags: "",
-                  image: null,
-                  content: "",
-                });
-                setToggleNewsDialog(false);
-              }
-            }}
-          >
-            <DialogContent className="sm:max-w-[800px] max-h-full bg-gray-00 overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle className="text-xl">
-                  {isEditing ? "Chỉnh sửa bài viết" : "Tạo bài viết mới"}
-                </DialogTitle>
-              </DialogHeader>
-              <Controller
-                control={control}
-                name="title"
-                render={({ field: { value, onChange }, fieldState }) => (
-                  <InputField
-                    value={value}
-                    onChange={onChange}
-                    title="Tiêu đề"
-                    type="text"
-                    error={fieldState && fieldState.error?.message}
-                    placeholder="Nhập tiêu đề bài viết"
-                  />
-                )}
-              />
-              {/* news image */}
-              <InputImgUploadContest
-                title="Đăng tải ảnh bìa"
-                value={getValues("image")}
-                onChange={handleImageUpload}
-                customClassNames="mt-b "
-              />
+        <NewsDialogManager
+          type="news"
+          isOpen={toggleNewsDialog}
+          onClose={() => {
+            setToggleNewsDialog(false);
+          }}
+          onSubmit={(data, status) => {
+            if ((data as any).uploadedImage) {
+              setValue("image", (data as any).uploadedImage);
+            }
 
-              <Controller
-                control={control}
-                name="tags"
-                render={({ field: { value, onChange }, fieldState }) => (
-                  <InputTags
-                    value={value}
-                    error={fieldState?.error?.message}
-                    onValueChange={(tagsString) => {
-                      onChange(tagsString);
-                    }}
-                    tooltipContent="Vui lòng nhập tag và ấn Enter"
-                  />
-                )}
-              />
+            setValue("title", data.title);
+            setValue("tags", data.tags);
+            setValue("content", data.content);
 
-              <Controller
-                control={control}
-                name="content"
-                render={({ field: { value, onChange }, fieldState }) => (
-                  <ReactQuill
-                    theme="snow"
-                    className="w-full rounded-xl bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear"
-                    value={value}
-                    onChange={onChange}
-                    placeholder="Nội dung bài viết"
-                    modules={modules}
-                    formats={formats}
-                  />
-                )}
-              />
-
-              {/* Dialog Footer */}
-              <DialogFooter className="flex items-center justify-between sm:justify-between">
-                <CommonButton
-                  variant="secondary"
-                  className="h-[48px]"
-                  childrenClassName="text-SubheadMd"
-                  onClick={() => {
-                    setToggleNewsDialog(false);
-                    setIsEditing(false);
-                    reset();
-                  }}
-                >
-                  Thoát
-                </CommonButton>
-                <div className="flex items-center gap-2">
-                  {isEditing && (
-                    <CommonButton
-                      variant="secondary"
-                      className="h-[48px]"
-                      childrenClassName="!text-[#AD3C34]"
-                      onClick={() => handleMoveToTrash(null)}
-                    >
-                      Xoá
-                    </CommonButton>
-                  )}
-                  <CommonButton
-                    variant="secondary"
-                    className="h-[48px]"
-                    onClick={() => handleNewsSubmit("draft")}
-                  >
-                    {isEditing ? "Đưa về bản nháp" : "Lưu bản nháp"}
-                  </CommonButton>
-                  <CommonButton
-                    className="text-white h-[48px] w-[133px]"
-                    onClick={() => {
-                      setIsEditing(false);
-                      handleNewsSubmit("public");
-                    }}
-                  >
-                    {isEditing ? "Cập nhật" : "Đăng dự án"}
-                  </CommonButton>
-                </div>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </FormProvider>
+            handleNewsSubmit(status);
+          }}
+          onDelete={(id) => {
+            if (id && currentNews) {
+              handleMoveToTrash(currentNews);
+            }
+          }}
+          initialData={currentNews}
+          isEditing={isEditing}
+        />
       </div>
     </div>
   );
