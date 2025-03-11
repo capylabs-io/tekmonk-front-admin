@@ -47,13 +47,13 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import "react-quill/dist/quill.snow.css";
 import { z } from "zod";
 import { SplitRenderItem } from "@/components/common/SplitRenderItem";
-import { newsSchema } from "@/validation/news";
+import { eventSchema, newsSchema } from "@/validation/news";
 import { quillFormats, quillModules } from "@/contants/config/react-quill";
 import { Tabs } from "@/components/new/tabs";
 import { AdminHeader } from "@/components/new/admin-header";
 import { NewsDialogManager } from "@/components/new/news-dialog-manager";
 
-export default function Page() {
+export default function News() {
   const [toggleNewsDialog, setToggleNewsDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentNews, setCurrentNews] = useState<TNews | null>(null);
@@ -340,25 +340,12 @@ export default function Page() {
           isOpen={toggleNewsDialog}
           onClose={() => {
             setToggleNewsDialog(false);
-          }}
-          onSubmit={(data, status) => {
-            if ((data as any).uploadedImage) {
-              setValue("image", (data as any).uploadedImage);
-            }
-
-            setValue("title", data.title);
-            setValue("tags", data.tags);
-            setValue("content", data.content);
-
-            handleNewsSubmit(status);
-          }}
-          onDelete={(id) => {
-            if (id && currentNews) {
-              handleMoveToTrash(currentNews);
-            }
+            setIsEditing(false);
+            setCurrentNews(null);
           }}
           initialData={currentNews}
           isEditing={isEditing}
+          schema={newsSchema}
         />
       </div>
     </div>

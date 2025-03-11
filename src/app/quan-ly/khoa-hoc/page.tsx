@@ -13,7 +13,7 @@ import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Edit, PanelLeft, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { get } from "lodash";
 import {
@@ -25,9 +25,44 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import qs from "qs";
-import { CreateCourseDialog } from "@/components/admin/dialogs/create-course-dialog";
+import dynamic from "next/dynamic";
+import { Suspense } from "react";
+
+// Dynamically import the dialog component with SSR disabled and loading state
+const CreateCourseDialog = dynamic(
+  () =>
+    import("@/components/admin/dialogs/create-course-dialog").then(
+      (mod) => mod.CreateCourseDialog
+    ),
+  {
+    ssr: false,
+    loading: () => <div>Loading...</div>,
+  }
+);
+
+// Simple loading component
+const LoadingState = () => (
+  <div className="flex items-center justify-center h-screen">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+  </div>
+);
+
+const EmptyState = () => (
+  <div className="flex flex-col items-center justify-center py-12">
+    <div
+      className="w-[300px] h-[200px] bg-contain bg-no-repeat bg-center"
+      style={{ backgroundImage: "url('/admin/empty-data.png')" }}
+    />
+    <p className="text-gray-500 mt-4">Không có dữ liệu</p>
+    <p className="text-gray-500">Tạo tài khoản mới cho học viên để bắt đầu</p>
+    <button className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700">
+      Tạo tài khoản
+    </button>
+  </div>
+);
 
 export default function Courses() {
+  // All state declarations
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [courseToEdit, setCourseToEdit] = useState<any | null>(null);
@@ -35,8 +70,8 @@ export default function Courses() {
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const [totalPage, setTotalPage] = useState(10);
-  const [totalDocs, setTotalDocs] = useState(100);
+  const [isMounted, setIsMounted] = useState(false);
+
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
     state.error,
@@ -61,6 +96,7 @@ export default function Courses() {
       }
     },
     refetchOnWindowFocus: false,
+    enabled: isMounted, // Only run query when component is mounted
   });
 
   const { mutate: createCourseMutation, isPending: isCreating } = useMutation({
@@ -120,6 +156,12 @@ export default function Courses() {
     },
   });
 
+  // Effect hooks
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  // Handler functions
   const handleOpenCreateDialog = () => {
     setDialogMode("create");
     setCourseToEdit(null);
@@ -139,7 +181,6 @@ export default function Courses() {
 
   const handleConfirmDelete = () => {
     if (!courseToDelete) return;
-
     show();
     deleteCourseMutation(courseToDelete.id);
   };
@@ -197,6 +238,11 @@ export default function Courses() {
       ),
     },
   ];
+
+  if (!isMounted) {
+    return <LoadingState />;
+  }
+
   return (
     <>
       <div className="w-full h-full border-r border-gray-20 overflow-y-auto">
@@ -278,15 +324,17 @@ export default function Courses() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      <div>
-        <CreateCourseDialog
-          open={isDialogOpen}
-          onOpenChange={setIsDialogOpen}
-          onSubmit={handleFormSubmit}
-          courseToEdit={courseToEdit}
-          mode={dialogMode}
-        />
-      </div>
+      <Suspense fallback={<div>Loading...</div>}>
+        {isMounted && (
+          <CreateCourseDialog
+            open={isDialogOpen}
+            onOpenChange={setIsDialogOpen}
+            onSubmit={handleFormSubmit}
+            courseToEdit={courseToEdit}
+            mode={dialogMode}
+          />
+        )}
+      </Suspense>
     </>
   );
 }

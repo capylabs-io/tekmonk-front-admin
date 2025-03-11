@@ -26,8 +26,9 @@ import "react-quill/dist/quill.snow.css";
 import { NewsDialogManager } from "@/components/new/news-dialog-manager";
 import { AdminHeader } from "@/components/new/admin-header";
 import { Tabs } from "@/components/new/tabs";
+import { eventSchema } from "@/validation/news";
 
-export default function Page() {
+export default function Event() {
   const [toggleNewsDialog, setToggleNewsDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentNews, setCurrentNews] = useState<TNews | null>(null);
@@ -91,6 +92,7 @@ export default function Page() {
         title="Sự kiện"
         buttonTitle="Tạo sự kiện"
         onClickButton={() => {
+          console.log("open dialog");
           setCurrentNews(null);
           setIsEditing(false);
           setToggleNewsDialog(true);
@@ -203,8 +205,7 @@ export default function Page() {
           }}
           initialData={currentNews}
           isEditing={isEditing}
-          standalone={true}
-          queryKey={["event", page.toString(), limit.toString(), activeTab.id]}
+          schema={eventSchema}
         />
       </div>
     </div>

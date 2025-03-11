@@ -5,10 +5,14 @@ export const eventSchema = z.object({
     .string({ required_error: "Tên bài viết không được để trống" })
     .min(1, "Tên bài viết phải có ít nhất 1 ký tự"),
   tags: z.string().optional(),
-  image: z.any(),
+  image: z
+    .any()
+    .refine((val) => val !== null && val !== undefined && val !== "", {
+      message: "Ảnh bìa là bắt buộc",
+    }),
   content: z.string().min(1, "Mô tả không được để trống"),
-  startTime: z.date().optional(),
-  endTime: z.date().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
 });
 
 export const newsSchema = z.object({
@@ -16,7 +20,11 @@ export const newsSchema = z.object({
     .string({ required_error: "Tên bài viết không được để trống" })
     .min(1, "Tên bài viết phải có ít nhất 1 ký tự"),
   tags: z.string().optional(),
-  image: z.any(),
+  image: z
+    .any()
+    .refine((val) => val !== null && val !== undefined && val !== "", {
+      message: "Ảnh bìa là bắt buộc",
+    }),
   content: z.string().min(1, "Mô tả không được để trống"),
 });
 
@@ -26,8 +34,12 @@ export const hiringSchema = z.object({
     .min(1, "Tên bài viết phải có ít nhất 1 ký tự"),
   tags: z.string().optional(),
   salary: z.string().min(1, "Mức lương không được để trống"),
-  image: z.any(),
+  image: z
+    .any()
+    .refine((val) => val !== null && val !== undefined && val !== "", {
+      message: "Ảnh bìa là bắt buộc",
+    }),
   content: z.string().min(1, "Mô tả không được để trống"),
-  startTime: z.date().optional(),
-  endTime: z.date().optional(),
+  startTime: z.string().optional(),
+  endTime: z.string().optional(),
 });
