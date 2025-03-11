@@ -190,22 +190,6 @@ const DateRangePicker = ({
     }
   };
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        containerRef.current &&
-        !containerRef.current.contains(event.target as Node)
-      ) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   // Determine placeholder based on mode
   const displayPlaceholder = mode === "single" ? "DD / MM / YYYY" : placeholder;
 

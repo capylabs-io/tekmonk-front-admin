@@ -385,7 +385,7 @@ export const NewsDialogManager = ({
           )}
 
           {/* Date fields for event and hiring types */}
-          {(type === "event" || type === "hiring") && (
+          {type !== "news" && (
             <div className="flex w-full">
               <div className="text-sm font-medium mb-2 w-1/4">
                 Thời gian diễn ra

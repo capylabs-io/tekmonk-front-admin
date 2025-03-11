@@ -188,25 +188,6 @@ export function CreateClassDialog({
     refetchOnWindowFocus: false,
   });
 
-  // Add this useEffect to handle clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      const dropdown = document.getElementById("teacher-dropdown");
-      const input = document.getElementById("teacher-input");
-      if (
-        dropdown &&
-        input &&
-        !dropdown.contains(event.target as Node) &&
-        !input.contains(event.target as Node)
-      ) {
-        setIsTeacherDropdownOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   /**
    * Function fetching
    */

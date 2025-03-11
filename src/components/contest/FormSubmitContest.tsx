@@ -7,33 +7,22 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/common/Dialog";
-import { DataContestSubmission } from "@/types/contestSubmit";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { InputField } from "@/components/contest/InputField";
-import {
-  createContestSubmission,
-  getContestSubmissionByContestEntry,
-  uploadAssets,
-  uploadSource,
-  uploadThumbnail,
-} from "@/requests/contestSubmit";
+
 import { InputFileUploadContest } from "@/components/contest/InputFileUploadContest";
 import { InputImgUploadContest } from "@/components/contest/InputImgUploadContest";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { InputMulImgUploadContest } from "./InputMulImgUploadContest";
 import { useRouter } from "next/navigation";
 import { useUserStore } from "@/store/UserStore";
-import {
-  getContestGroupStageByCandidateNumber,
-  getOneContestEntry,
-} from "@/requests/contestEntry";
+
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { DialogFooter, DialogHeader } from "../ui/dialog";
-import { getProgress } from "@/requests/code-combat";
 import { get } from "lodash";
 import { InputTags } from "./InputTags";
 import { ContestGroupStage } from "@/types/common-types";
@@ -105,12 +94,12 @@ const FormSubmitContest = React.forwardRef<
       if (!codeCombatId || !candidateNumber) {
         return;
       }
-      const data = await getContestGroupStageByCandidateNumber(candidateNumber);
-      if (!data) {
-        return;
-      }
-      setContestGroupStage(data);
-      const res = await getProgress(codeCombatId, Number(get(data, "id", 0)));
+      // const data = await getContestGroupStageByCandidateNumber(candidateNumber);
+      // if (!data) {
+      //   return;
+      // }
+      // setContestGroupStage(data);
+      // const res = await getProgress(codeCombatId, Number(get(data, "id", 0)));
       // if (res) {
       //   setProgress(res);
       // }
@@ -119,86 +108,16 @@ const FormSubmitContest = React.forwardRef<
     }
   };
   const isExistContestSubmission = async () => {
-    const contestEntry = await getOneContestEntry(
-      useUserStore.getState().candidateNumber || ""
-    );
-    const contestSubmission = await getContestSubmissionByContestEntry(
-      contestEntry.id
-    );
-    return contestSubmission.data.length > 0;
+    // const contestEntry = await getOneContestEntry(
+    //   useUserStore.getState().candidateNumber || ""
+    // );
+    // const contestSubmission = await getContestSubmissionByContestEntry(
+    //   contestEntry.id
+    // );
+    // return contestSubmission.data.length > 0;
   };
 
-  const onSubmit = async (data: any) => {
-    try {
-      if (!projectFile) {
-        warn("Không thành công", "Vui lòng tải lên file dự án!");
-        closeDialog();
-        return;
-      }
-
-      if (projectFile && projectFile.size > SIZE_FILE_LIMIT * 1024 * 1024) {
-        warn(
-          "Không thành công",
-          `Dung lượng file dự án không được vượt quá ${SIZE_FILE_LIMIT}MB!`
-        );
-        closeDialog();
-        return;
-      }
-
-      if (await isExistContestSubmission()) {
-        warn("Không thành công", "Bạn đã nộp bài thi rồi!");
-        closeDialog();
-        return;
-      }
-
-      // warn("Warning", "Vui lòng chờ trong giây lát...\n không load lại trình duyệt");
-      closeDialog();
-      useLoadingStore.getState().show();
-
-      const tags = data.tags.split(",").map((tag: string) => tag.trim());
-
-      const contestEntry = await getOneContestEntry(
-        useUserStore.getState().candidateNumber || ""
-      );
-
-      const contestObj: DataContestSubmission = {
-        title: canSubmitZipFile ? data.title : fullNameUser || "",
-        description: data.description,
-        tags: { data: tags },
-        url: data.url,
-        contest_entry: contestEntry.id,
-        classIndex: get(contestGroupStage, "id", ""),
-        memberId: codeCombatId != "" ? codeCombatId : null,
-        data: null,
-      };
-
-      const result = await createContestSubmission(contestObj);
-
-      const uploadPromises = [];
-
-      if (projectFile) {
-        uploadPromises.push(uploadSource(result.id, projectFile));
-      }
-
-      if (thumbnail) {
-        uploadPromises.push(uploadThumbnail(result.id, thumbnail));
-      }
-
-      uploadPromises.push(
-        ...imgProject.map((img) => uploadAssets(result.id, img))
-      );
-
-      await Promise.all(uploadPromises);
-
-      success("Xong", "Nộp bài thi thành công!");
-      useUserStore.setState({ isSubmitted: true });
-      router.push("/");
-    } catch (err) {
-      error("Lỗi", "Có lỗi xảy ra khi nộp bài thi");
-    } finally {
-      useLoadingStore.getState().hide();
-    }
-  };
+  const onSubmit = async (data: any) => {};
 
   const closeDialog = () => {
     // warn("Warning", "Bạn đã nộp bài thi rồi!");

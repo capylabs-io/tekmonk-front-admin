@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   DEFAULT_DOCS_PER_PAGE,
   DOCS_PER_PAGE_OPTIONS,
@@ -193,14 +192,12 @@ export const CommonTable = ({
 
   const handleNextPage = () => {
     if (!isLastPage) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       manualPagination ? onPageChange!(page! + 1) : table.nextPage();
     }
   };
 
   const handlePrevPage = () => {
     if (!isFirstPage) {
-      // eslint-disable-next-line @typescript-eslint/no-unused-expressions
       manualPagination ? onPageChange!(page! - 1) : table.previousPage();
     }
   };
@@ -210,7 +207,6 @@ export const CommonTable = ({
 
   const handleRowClick = (row: any) => {
     onRowClick?.(row);
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     onSelect && onSelect?.(row.original);
   };
 
@@ -219,7 +215,6 @@ export const CommonTable = ({
     // setPagination({ ...pagination, pageSize: Number(value) || 10 });
   };
   useEffect(() => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     selectedRow && setRowSelection(selectedRow ?? {});
   }, [selectedRow]);
 

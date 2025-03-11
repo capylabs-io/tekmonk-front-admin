@@ -27,6 +27,7 @@ import qs from "qs";
 import { useState } from "react";
 import { NewsDialogManager } from "@/components/new/news-dialog-manager";
 import { Tabs } from "@/components/new/tabs";
+import { eventSchema, hiringSchema } from "@/validation/news";
 
 // Define extended TNews type with uploadedImage property
 type TNewsWithUpload = TNews & {
@@ -35,7 +36,7 @@ type TNewsWithUpload = TNews & {
   salary?: string;
 };
 
-export default function Page() {
+export default function Hiring() {
   const [toggleHiringDialog, setToggleHiringDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentHiring, setCurrentHiring] = useState<TNews | null>(null);
@@ -228,8 +229,7 @@ export default function Page() {
           }}
           initialData={currentHiring}
           isEditing={isEditing}
-          standalone={true}
-          queryKey={["hiring", page.toString(), limit.toString(), activeTab.id]}
+          schema={hiringSchema}
         />
       </div>
     </div>

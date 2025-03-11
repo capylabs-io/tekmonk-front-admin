@@ -17,6 +17,7 @@ export const CommonButton = ({
   variant = "primary",
   disabled,
   children,
+
   ...props
 }: ButtonProps) => {
   return (

@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { quillFormats } from "@/contants/config/react-quill";
 import { quillModules } from "@/contants/config/react-quill";
-import { useMemo, useEffect } from "react";
+import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 import {
   useForm,
@@ -21,8 +21,15 @@ import {
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { courseSchema } from "@/validation/course";
-import { ReqCreateCourse } from "@/requests/course";
 import { useSnackbarStore } from "@/store/SnackbarStore";
+
+// Dynamically import ReactQuill with SSR disabled
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full max-w-[600px] min-h-[200px] bg-gray-100 rounded-xl animate-pulse" />
+  ),
+});
 
 type Props = {
   open: boolean;
@@ -40,13 +47,13 @@ const CourseFormFields = () => {
     control,
     formState: { errors },
   } = useFormContext<CourseFormValues>();
+  const [isMounted, setIsMounted] = useState(false);
 
-  const ReactQuill = useMemo(
-    () => dynamic(() => import("react-quill"), { ssr: false }),
-    []
-  );
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-  return (
+  const formContent = (
     <div className="space-y-6">
       {/* Course Name Field */}
       <div className="flex flex-col gap-2">
@@ -99,15 +106,17 @@ const CourseFormFields = () => {
               control={control}
               render={({ field }) => (
                 <div className="flex flex-col gap-2">
-                  <ReactQuill
-                    theme="snow"
-                    className="w-full max-w-[600px] rounded-xl bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear overflow-auto"
-                    placeholder="Nhập mô tả khóa học"
-                    modules={quillModules}
-                    formats={quillFormats}
-                    value={field.value}
-                    onChange={field.onChange}
-                  />
+                  {isMounted && (
+                    <ReactQuill
+                      theme="snow"
+                      className="w-full max-w-[600px] rounded-xl bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear overflow-auto"
+                      placeholder="Nhập mô tả khóa học"
+                      modules={quillModules}
+                      formats={quillFormats}
+                      value={field.value}
+                      onChange={field.onChange}
+                    />
+                  )}
                   {errors.description && (
                     <p className="text-red-500 text-BodySm">
                       {errors.description.message}
@@ -142,6 +151,8 @@ const CourseFormFields = () => {
       </div>
     </div>
   );
+
+  return formContent;
 };
 
 export const CreateCourseDialog = ({
@@ -155,6 +166,8 @@ export const CreateCourseDialog = ({
     state.success,
     state.error,
   ]);
+  const [isMounted, setIsMounted] = useState(false);
+
   const methods = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),
     defaultValues: {
@@ -171,7 +184,10 @@ export const CreateCourseDialog = ({
     formState: { isSubmitting },
   } = methods;
 
-  // Reset form when dialog closes or when courseToEdit changes
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   useEffect(() => {
     if (courseToEdit && mode === "edit") {
       reset(courseToEdit);
@@ -185,7 +201,6 @@ export const CreateCourseDialog = ({
     }
   }, [courseToEdit, reset, mode]);
 
-  // Reset form when dialog closes
   const handleDialogChange = (open: boolean) => {
     if (!open) {
       reset();
@@ -193,7 +208,7 @@ export const CreateCourseDialog = ({
     onOpenChange(open);
   };
 
-  return (
+  const dialogContent = (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
@@ -235,4 +250,10 @@ export const CreateCourseDialog = ({
       </DialogContent>
     </Dialog>
   );
+
+  if (!isMounted) {
+    return null;
+  }
+
+  return dialogContent;
 };

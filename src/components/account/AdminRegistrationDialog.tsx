@@ -102,7 +102,7 @@ export const AdminRegistrationDialog = ({
           </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 p-4">
+        <form className="space-y-4 p-4">
           <div className="space-y-4">
             <div className="flex items-center gap-2">
               <div className="w-[160px] text-SubheadMd">Tên tài khoản</div>
@@ -174,7 +174,6 @@ export const AdminRegistrationDialog = ({
 
           <div className="flex justify-between items-center mt-6 border-t pt-4">
             <CommonButton
-              type="button"
               className="w-[83px] h-11"
               variant="secondary"
               onClick={handleClose}
@@ -182,9 +181,9 @@ export const AdminRegistrationDialog = ({
               Thoát
             </CommonButton>
             <CommonButton
-              type="submit"
               className="h-11 w-[139px]"
               disabled={isSubmitting}
+              onClick={handleSubmit(onSubmit)}
             >
               {isSubmitting ? "Đang xử lý..." : "Đăng ký"}
             </CommonButton>
