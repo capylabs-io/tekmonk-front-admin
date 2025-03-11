@@ -804,7 +804,7 @@ export const NewsDialogManager = ({
               <div className="flex flex-col gap-1">
                 <ReactQuill
                   theme="snow"
-                  className="w-full rounded-xl bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear"
+                  className="w-full rounded-xl bg-grey-50 outline-none !text-[20px] max-h-[200px] transition-all ease-linear"
                   value={value}
                   onChange={onChange}
                   placeholder="Nội dung bài viết"
@@ -821,7 +821,7 @@ export const NewsDialogManager = ({
           />
 
           {/* Dialog Footer */}
-          <DialogFooter className="flex items-center justify-between sm:justify-between">
+          <DialogFooter className=" mt-6 flex items-center justify-between sm:justify-between">
             <CommonButton
               variant="secondary"
               className="h-[48px]"

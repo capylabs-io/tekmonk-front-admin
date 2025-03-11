@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { quillFormats } from "@/contants/config/react-quill";
 import { quillModules } from "@/contants/config/react-quill";
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import dynamic from "next/dynamic";
 import {
   useForm,
@@ -28,6 +28,8 @@ type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CourseFormValues) => void;
+  courseToEdit?: CourseFormValues | null;
+  mode?: "create" | "edit";
 };
 
 type CourseFormValues = z.infer<typeof courseSchema>;
@@ -48,8 +50,10 @@ const CourseFormFields = () => {
     <div className="space-y-6">
       {/* Course Name Field */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <div className="w-[160px] text-SubheadMd">Tên khoá học</div>
+        <div className="flex items-start gap-2">
+          <div className="w-[160px] text-SubheadMd text-gray-60">
+            Tên khoá học
+          </div>
           <Controller
             name="name"
             control={control}
@@ -66,26 +70,24 @@ const CourseFormFields = () => {
           />
         </div>
       </div>
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <div className="w-[160px] text-SubheadMd">Số buổi học</div>
-          <Controller
-            name="numberSession"
-            control={control}
-            render={({ field: { value, onChange, ...restField } }) => (
-              <Input
-                {...restField}
-                id="numberSession"
-                type="number"
-                value={value?.toString() || ""}
-                onChange={(e) => onChange(Number(e) || 0)}
-                placeholder="Nhập số buổi học"
-                customClassNames="flex-1"
-                error={errors.numberSession?.message}
-              />
-            )}
-          />
-        </div>
+      <div className="flex items-start gap-2">
+        <div className="w-[160px] text-SubheadMd text-gray-60">Số buổi học</div>
+        <Controller
+          name="numberSession"
+          control={control}
+          render={({ field: { value, onChange, ...restField } }) => (
+            <Input
+              {...restField}
+              id="numberSession"
+              type="number"
+              value={value?.toString() || ""}
+              onChange={(e) => onChange(Number(e) || 0)}
+              placeholder="Nhập số buổi học"
+              customClassNames="flex-1"
+              error={errors.numberSession?.message}
+            />
+          )}
+        />
       </div>
 
       {/* Description Field */}
@@ -99,7 +101,7 @@ const CourseFormFields = () => {
                 <div className="flex flex-col gap-2">
                   <ReactQuill
                     theme="snow"
-                    className="w-full rounded-xl bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear"
+                    className="w-full max-w-[600px] rounded-xl bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear overflow-auto"
                     placeholder="Nhập mô tả khóa học"
                     modules={quillModules}
                     formats={quillFormats}
@@ -120,8 +122,8 @@ const CourseFormFields = () => {
 
       {/* Category Field */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <div className="w-[160px] text-SubheadMd">Loại</div>
+        <div className="flex items-start gap-2">
+          <div className="w-[160px] text-SubheadMd text-gray-60">Loại</div>
           <Controller
             name="type"
             control={control}
@@ -142,7 +144,13 @@ const CourseFormFields = () => {
   );
 };
 
-export const CreateCourseDialog = ({ open, onOpenChange, onSubmit }: Props) => {
+export const CreateCourseDialog = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  courseToEdit,
+  mode = "create",
+}: Props) => {
   const [success, error] = useSnackbarStore((state) => [
     state.success,
     state.error,
@@ -153,6 +161,7 @@ export const CreateCourseDialog = ({ open, onOpenChange, onSubmit }: Props) => {
       name: "",
       description: "",
       type: "",
+      numberSession: 0,
     },
   });
 
@@ -161,6 +170,20 @@ export const CreateCourseDialog = ({ open, onOpenChange, onSubmit }: Props) => {
     reset,
     formState: { isSubmitting },
   } = methods;
+
+  // Reset form when dialog closes or when courseToEdit changes
+  useEffect(() => {
+    if (courseToEdit && mode === "edit") {
+      reset(courseToEdit);
+    } else if (!courseToEdit && mode === "create") {
+      reset({
+        name: "",
+        description: "",
+        type: "",
+        numberSession: 0,
+      });
+    }
+  }, [courseToEdit, reset, mode]);
 
   // Reset form when dialog closes
   const handleDialogChange = (open: boolean) => {
@@ -175,7 +198,7 @@ export const CreateCourseDialog = ({ open, onOpenChange, onSubmit }: Props) => {
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
           <DialogTitle className="text-HeadingSm font-semibold text-gray-95">
-            Tạo khóa học mới
+            {mode === "create" ? "Tạo khóa học mới" : "Chỉnh sửa khóa học"}
           </DialogTitle>
           <div className="text-BodyMd text-gray-60 mb-4">
             Vui lòng điền đầy đủ thông tin khóa học
@@ -187,23 +210,25 @@ export const CreateCourseDialog = ({ open, onOpenChange, onSubmit }: Props) => {
             <CourseFormFields />
 
             <div className="flex justify-between items-center mt-6 border-t pt-4">
-              <div className="flex gap-2">
-                <CommonButton
-                  variant="secondary"
-                  className="h-11"
-                  onClick={() => handleDialogChange(false)}
-                  disabled={isSubmitting}
-                >
-                  Hủy
-                </CommonButton>
-                <CommonButton
-                  className="h-11 w-[139px]"
-                  disabled={isSubmitting}
-                  onClick={handleSubmit(onSubmit)}
-                >
-                  {isSubmitting ? "Đang tạo..." : "Tạo"}
-                </CommonButton>
-              </div>
+              <CommonButton
+                variant="secondary"
+                className="h-11"
+                onClick={() => handleDialogChange(false)}
+                disabled={isSubmitting}
+              >
+                Thoát
+              </CommonButton>
+              <CommonButton
+                className="h-11 w-[139px]"
+                disabled={isSubmitting}
+                onClick={handleSubmit(onSubmit)}
+              >
+                {isSubmitting
+                  ? "Đang xử lý..."
+                  : mode === "create"
+                  ? "Tạo"
+                  : "Cập nhật"}
+              </CommonButton>
             </div>
           </form>
         </FormProvider>

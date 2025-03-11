@@ -408,7 +408,7 @@ export function CreateClassDialog({
             </div>
 
             <div className="flex items-start justify-center w-full">
-              <div className="text-SubheadMd text-gray-60 w-[160px] ">
+              <div className="text-SubheadMd text-gray-60 w-[160px]">
                 Số buổi học
               </div>
               <Input
@@ -499,7 +499,7 @@ export function CreateClassDialog({
                                       Không tìm thấy giảng viên
                                     </div>
                                   ) : (
-                                    <div className="py-2">
+                                    <div className="py-2 max-h-[200px] overflow-auto">
                                       {teacherList?.data
                                         ?.filter((teacher) =>
                                           teacher.username

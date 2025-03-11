@@ -1,15 +1,16 @@
 "use client";
 
-import { CreateClassDialog } from "@/components/admin/CreateClassDialog";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
-import { useCustomRouter } from "@/components/common/router/CustomRouter";
-import { ReqDeleteClass } from "@/requests/class";
-import { ReqCreateCourse, ReqGetCourses } from "@/requests/course";
+import {
+  ReqCreateCourse,
+  ReqGetCourses,
+  ReqUpdateCourse,
+  ReqDeleteCourse,
+} from "@/requests/course";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
-import { Class } from "@/types/common-types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Edit, PanelLeft, Trash2 } from "lucide-react";
 import { useState } from "react";
@@ -25,26 +26,15 @@ import {
 } from "@/components/ui/dialog";
 import qs from "qs";
 import { CreateCourseDialog } from "@/components/admin/dialogs/create-course-dialog";
-const EmptyState = () => (
-  <div className="flex flex-col items-center justify-center py-12">
-    <div
-      className="w-[300px] h-[200px] bg-contain bg-no-repeat bg-center"
-      style={{ backgroundImage: "url('/admin/empty-data.png')" }}
-    />
-    <p className="text-gray-500 mt-4">Không có dữ liệu</p>
-    <p className="text-gray-500">Tạo tài khoản mới cho học viên để bắt đầu</p>
-    <button className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700">
-      Tạo tài khoản
-    </button>
-  </div>
-);
 
 export default function Courses() {
-  const router = useCustomRouter();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [classToDelete, setClassToDelete] = useState<Class | null>(null);
+  const [courseToEdit, setCourseToEdit] = useState<any | null>(null);
+  const [courseToDelete, setCourseToDelete] = useState<any | null>(null);
+  const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [totalPage, setTotalPage] = useState(10);
   const [totalDocs, setTotalDocs] = useState(100);
   /* UseStore */
@@ -55,19 +45,19 @@ export default function Courses() {
   const { show, hide } = useLoadingStore();
 
   /* UseQuery */
-  const { data: classes, refetch } = useQuery({
-    queryKey: ["course"],
+  const { data: courses, refetch } = useQuery({
+    queryKey: ["course", page, pageSize],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
           pagination: {
             page,
-            pageSize: totalPage,
+            pageSize: pageSize,
           },
         });
         return await ReqGetCourses(queryString);
       } catch (err) {
-        error("Lỗi", "Không thể lấy thông tin lớp học");
+        error("Lỗi", "Không thể lấy thông tin khóa học");
       }
     },
     refetchOnWindowFocus: false,
@@ -91,44 +81,76 @@ export default function Courses() {
     },
   });
 
-  const { mutate: deleteClassMutation, isPending: isDeleting } = useMutation({
-    mutationFn: (id: number) => {
-      return ReqDeleteClass(id);
+  const { mutate: updateCourseMutation, isPending: isUpdating } = useMutation({
+    mutationFn: (data: any) => {
+      const { id, ...dataUpdate } = data;
+      return ReqUpdateCourse(id.toString(), dataUpdate);
     },
     onSuccess: () => {
-      success("Thành công", "Đã xóa lớp học thành công");
+      success("Thành công", "Đã cập nhật khóa học thành công");
       refetch();
     },
     onError: (err) => {
-      console.error("Error deleting class:", err);
-      error("Lỗi", "Có lỗi xảy ra khi xóa lớp học");
+      console.error("Error updating course:", err);
+      error("Lỗi", "Có lỗi xảy ra khi cập nhật khóa học");
+    },
+    onSettled: () => {
+      hide();
+      setIsDialogOpen(false);
+      setCourseToEdit(null);
+    },
+  });
+
+  const { mutate: deleteCourseMutation, isPending: isDeleting } = useMutation({
+    mutationFn: (id: number) => {
+      return ReqDeleteCourse(id.toString());
+    },
+    onSuccess: () => {
+      success("Thành công", "Đã xóa khóa học thành công");
+      refetch();
+    },
+    onError: (err) => {
+      console.error("Error deleting course:", err);
+      error("Lỗi", "Có lỗi xảy ra khi xóa khóa học");
     },
     onSettled: () => {
       hide();
       setDeleteDialogOpen(false);
-      setClassToDelete(null);
+      setCourseToDelete(null);
     },
   });
 
-  const handleOpenDialog = () => {
+  const handleOpenCreateDialog = () => {
+    setDialogMode("create");
+    setCourseToEdit(null);
     setIsDialogOpen(true);
   };
 
-  // const handleItemsPerPageChange = (newItemsPerPage: number) => {
-  //   setItemsPerPage(newItemsPerPage);
-  //   setCurrentPage(1);
-  // };
+  const handleOpenEditDialog = (course: any) => {
+    setDialogMode("edit");
+    setCourseToEdit(course);
+    setIsDialogOpen(true);
+  };
 
-  const handleDeleteClass = (classData: Class) => {
-    setClassToDelete(classData);
+  const handleDeleteCourse = (course: any) => {
+    setCourseToDelete(course);
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
-    if (!classToDelete) return;
+    if (!courseToDelete) return;
 
     show();
-    deleteClassMutation(classToDelete.id);
+    deleteCourseMutation(courseToDelete.id);
+  };
+
+  const handleFormSubmit = (data: any) => {
+    show();
+    if (dialogMode === "create") {
+      createCourseMutation(data);
+    } else {
+      updateCourseMutation({ ...data, id: courseToEdit?.id });
+    }
   };
 
   const columns: ColumnDef<any>[] = [
@@ -157,8 +179,7 @@ export default function Courses() {
             className="p-2 hover:bg-gray-100 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
-              setIsDialogOpen(true);
-              // Add edit handler here
+              handleOpenEditDialog(row.original);
             }}
           >
             <Edit className="h-4 w-4" color="#7C6C80" />
@@ -167,8 +188,7 @@ export default function Courses() {
             className="p-2 hover:bg-gray-100 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
-              setDeleteDialogOpen(true);
-              // Add edit handler here
+              handleDeleteCourse(row.original);
             }}
           >
             <Trash2 className="h-4 w-4" color="#7C6C80" />
@@ -195,21 +215,23 @@ export default function Courses() {
           <CommonButton
             variant="primary"
             className="h-9 !w-max px-6"
-            onClick={handleOpenDialog}
+            onClick={handleOpenCreateDialog}
           >
             Tạo khóa học
           </CommonButton>
         </div>
         <div className="p-4">
-          {classes && (
+          {courses && (
             <CommonTable
-              data={classes?.data}
+              data={courses?.data}
               isLoading={false}
               columns={columns}
               page={page}
-              totalPage={totalPage}
-              totalDocs={totalDocs}
+              totalPage={courses.meta.pagination.pageCount}
+              totalDocs={courses.meta.pagination.total}
               onPageChange={setPage}
+              docsPerPage={pageSize}
+              onPageSizeChange={setPageSize}
             />
           )}
         </div>
@@ -248,11 +270,10 @@ export default function Courses() {
               variant="primary"
               className="h-[48px]"
               childrenClassName="text-SubheadMd"
-              onClick={() => {
-                setDeleteDialogOpen(false);
-              }}
+              onClick={handleConfirmDelete}
+              disabled={isDeleting}
             >
-              Từ chối
+              {isDeleting ? "Đang xóa..." : "Xóa"}
             </CommonButton>
           </DialogFooter>
         </DialogContent>
@@ -261,7 +282,9 @@ export default function Courses() {
         <CreateCourseDialog
           open={isDialogOpen}
           onOpenChange={setIsDialogOpen}
-          onSubmit={createCourseMutation}
+          onSubmit={handleFormSubmit}
+          courseToEdit={courseToEdit}
+          mode={dialogMode}
         />
       </div>
     </>

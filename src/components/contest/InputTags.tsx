@@ -125,7 +125,7 @@ export const InputTags = ({
                     onChange={(e) => setInputValue(e.target.value)}
                     onKeyDown={handleKeyDown}
                     className={classNames(
-                      "flex-1 bg-transparent min-w-[120px] w-full text-base font-normal outline-none bg-grey-50 border-grey-300 mt-1 placeholder:text-base",
+                      "flex-1 bg-transparent min-w-[120px] w-full text-base font-normal outline-none bg-grey-50 border-grey-300 mt-1 placeholder:text-gray-70 placeholder:text-BodyMd",
                       customInputClassNames
                     )}
                     placeholder={

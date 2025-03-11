@@ -1,4 +1,5 @@
 "use client";
+import { cn } from "@/lib/utils";
 import classNames from "classnames";
 import { Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
@@ -47,7 +48,7 @@ export const Input = ({
     setshowPassword((prev) => !prev);
   };
   return (
-    <>
+    <div className={cn("flex flex-col w-full flex-1", customClassNames)}>
       <div
         className={classNames(
           BASE_CLASS,
@@ -88,16 +89,14 @@ export const Input = ({
             readOnly={readOnly}
             {...props}
           />
-          {/* {type === "password" && (
+          {type === "password" && (
             <button type="button" onClick={handleShowPassword}>
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
-          )} */}
+          )}
         </div>
       </div>
-      {error && (
-        <p className="mt-2 self-start text-BodySm text-red-600">{error}</p>
-      )}
-    </>
+      {error && <p className="mt-2 text-BodySm text-red-600">{error}</p>}
+    </div>
   );
 };

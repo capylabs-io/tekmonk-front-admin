@@ -1,6 +1,8 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import "react-quill/dist/quill.snow.css";
+
 const queryClient = new QueryClient();
 
 type Props = {

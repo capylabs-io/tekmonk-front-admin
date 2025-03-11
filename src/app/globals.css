@@ -49,11 +49,12 @@
 
 /* quill editor */
 .ql-editor {
-  @apply text-BodyMd font-normal not-italic;
+  @apply text-BodyMd font-normal not-italic overflow-auto;
 }
 
 .ql-viewer {
-  @apply text-BodyMd font-normal not-italic;
+  max-width: 100% !important;
+  @apply text-BodyMd font-normal not-italic overflow-auto;
 }
 
 .ql-viewer * {
@@ -69,7 +70,7 @@
   font-style: normal !important;
   color: #9ca3af !important;
   border: none !important;
-  @apply text-lg font-normal outline-none;
+  @apply text-lg font-normal outline-none rounded-xl border border-grey-300 bg-grey-50 overflow-auto;
 }
 
 .ql-editor[contenteditable="true"]:focus::before,
@@ -78,12 +79,13 @@
 }
 
 .ql-toolbar {
-  border: none !important;
+  @apply border-t border-gray-300 rounded-t-xl;
 }
 
 .ql-container {
-  border: none !important;
   min-height: 150px !important;
+  max-height: 200px;
+  @apply border-b border-gray-300 rounded-b-xl overflow-auto;
 }
 
 .ql-editor ul {
