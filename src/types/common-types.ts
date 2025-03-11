@@ -49,7 +49,7 @@ export type User = {
   updatedAt: string;
   avatar?: string;
   data: any | null;
-  role?: UserRole;
+  user_role?: UserRole;
 };
 
 export type TListCourse = {

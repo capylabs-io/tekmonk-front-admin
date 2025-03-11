@@ -36,11 +36,11 @@ export default function Unauthorized() {
       router.push(ROUTE.LOGIN);
       return;
     }
-    if (userInfo?.role?.code === Role.CLASSMANAGEMENT) {
+    if (userInfo?.user_role?.code === Role.CLASSMANAGEMENT) {
       setMyUrl(ROUTE.MANAGE_CLASS);
       router.push(ROUTE.MANAGE_CLASS);
       return;
-    } else if (userInfo?.role?.code === Role.TEACHER) {
+    } else if (userInfo?.user_role?.code === Role.TEACHER) {
       setMyUrl(ROUTE.MY_CLASS);
       return;
     } else {

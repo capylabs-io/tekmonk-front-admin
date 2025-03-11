@@ -25,7 +25,7 @@ export default function Page() {
         const now = new Date().toISOString();
         //query all if user role is admin
         let queryString = "";
-        if (userInfo?.role?.code === Role.CLASSMANAGEMENT) {
+        if (userInfo?.user_role?.code === Role.CLASSMANAGEMENT) {
           queryString = qs.stringify({
             filters: {
               endTime: {
