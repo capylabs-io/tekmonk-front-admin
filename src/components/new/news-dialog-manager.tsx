@@ -103,7 +103,7 @@ export const NewsDialogManager = ({
         title: initialData.title || "",
         tags: initialData.tags || "",
         content: initialData.content || "",
-        image: initialData.image || "",
+        image: initialData.image || "existing-image",
         salary: initialData.salary || "",
         startTime: initialData.startTime || new Date().toISOString(),
         endTime: initialData.endTime || new Date().toISOString(),
@@ -270,7 +270,7 @@ export const NewsDialogManager = ({
     console.log("file", file as any);
     setUploadedImage(file);
     // Update the form value for validation
-    setValue("image", file, {
+    setValue("image", file || (initialData?.image ? "existing-image" : ""), {
       shouldValidate: true,
       shouldDirty: true,
       shouldTouch: true,
@@ -331,14 +331,7 @@ export const NewsDialogManager = ({
             value={uploadedImage}
             onChange={handleImageUpload}
             customClassNames="mt-b"
-            error={
-              (methods.formState.errors.image?.message as string) ||
-              (!uploadedImage &&
-              !initialData?.image &&
-              methods.formState.isSubmitted
-                ? "Vui lòng tải lên ảnh bìa"
-                : undefined)
-            }
+            error={methods.formState.errors.image?.message as string}
           />
 
           <Controller

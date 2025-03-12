@@ -74,7 +74,7 @@ export default function Login() {
         password: data.password,
       });
 
-      const roleName = get(resUserInfo, ["role", "code"], "");
+      const roleName = get(resUserInfo, ["user_role", "code"], "");
 
       switch (roleName) {
         case Role.TEACHER:
@@ -113,7 +113,7 @@ export default function Login() {
     isClient && (
       <div className="mx-auto min-h-[calc(100vh-64px)] flex justify-center items-center p-2">
         <div
-          className="w-[368px] min-h-[430px] mx-auto flex flex-col gap-6 border border-gray-20 p-6 bg-gray-00 rounded-2xl"
+          className="w-[368px] min-h-[370px] mx-auto flex flex-col gap-6 border border-gray-20 p-6 bg-gray-00 rounded-2xl"
           style={{
             boxShadow: "0px 4px 0px #DDD0DD",
           }}
@@ -166,13 +166,6 @@ export default function Login() {
               <div className="flex flex-col gap-2 mt-2">
                 <CommonButton className="h-12" onClick={handleSubmit(onSubmit)}>
                   Đăng Nhập
-                </CommonButton>
-                <CommonButton
-                  className="h-12"
-                  variant="secondary"
-                  onClick={handleForgotPassword}
-                >
-                  Quên mật khẩu
                 </CommonButton>
               </div>
             </form>

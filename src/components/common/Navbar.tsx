@@ -16,7 +16,7 @@ export const Navbar = () => {
 
   /** UseStore */
   const [userInfo] = useUserStore((state) => [state.userInfo]);
-  const userRole = get(userInfo, ["role", "name"], "");
+  const userRole = get(userInfo, ["user_role", "code"], "");
 
   const handleRidirectHomePage = () => {
     router.push(ROUTE.MAIN);

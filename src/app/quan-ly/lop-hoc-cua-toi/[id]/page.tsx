@@ -193,7 +193,7 @@ export default function ClassDetailPage({
             }
             width={400}
             height={300}
-            className="w-full h-full object-cover rounded-xl"
+            className=" object-cover rounded-xl border border-gray-20"
           />
           <div className="flex flex-col gap-2">
             <span className="text-SubheadLg text-gray-95">

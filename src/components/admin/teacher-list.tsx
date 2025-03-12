@@ -31,10 +31,10 @@ export const TeacherList = ({ data }: { data: Class }) => {
           <h3
             className={cn(
               "text-xl font-semibold text-gray-900",
-              !data.teacher?.fullName && "text-gray-500"
+              !data.teacher?.username && "text-gray-500"
             )}
           >
-            {data.teacher?.fullName || "Teacher Name Not Available"}
+            {data.teacher?.username || "Teacher Name Not Available"}
           </h3>
           <div className="grid grid-cols-1 gap-1.5 text-sm">
             <div className="flex items-center gap-2 text-gray-700">
