@@ -2,6 +2,7 @@
 import classNames from "classnames";
 import { ReactNode } from "react";
 import { useCustomRouter } from "../common/router/CustomRouter";
+import { useNavbarStore } from "@/store/navbar-store";
 
 type Props = {
   title: string;
@@ -25,8 +26,13 @@ export const MenuCard = ({
   hidden = false,
 }: Props) => {
   const router = useCustomRouter();
+  const [isExpand, setIsExpand] = useNavbarStore((state) => [
+    state.isExpand,
+    state.setIsExpand,
+  ]);
   const handleOnClick = () => {
     if (disabled) return;
+    setIsExpand(!isExpand);
     url && router.push(url);
   };
 
@@ -45,7 +51,11 @@ export const MenuCard = ({
       aria-disabled={disabled}
     >
       {iconElement}
-      {title && <span className="xl:block hidden">{title}</span>}
+      {title && (
+        <span className={`${isExpand ? "block" : "hidden"} xl:block`}>
+          {title}
+        </span>
+      )}
     </div>
   );
 };

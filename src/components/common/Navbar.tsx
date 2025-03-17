@@ -10,12 +10,18 @@ import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
 import { get } from "lodash";
 import { Role } from "@/contants/role";
+import { useNavbarStore } from "@/store/navbar-store";
 
 export const Navbar = () => {
   const router = useCustomRouter();
 
   /** UseStore */
   const [userInfo] = useUserStore((state) => [state.userInfo]);
+  const [isExpand, setIsExpand] = useNavbarStore((state) => [
+    state.isExpand,
+    state.setIsExpand,
+  ]);
+
   const userRole = get(userInfo, ["user_role", "code"], "");
 
   const handleRidirectHomePage = () => {
