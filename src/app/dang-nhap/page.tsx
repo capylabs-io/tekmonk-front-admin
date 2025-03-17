@@ -83,7 +83,7 @@ export default function Login() {
           break;
         case Role.CLASSMANAGEMENT:
           success("Xong!", "Chúc mừng bạn đã đăng nhập thành công");
-          router.push(ROUTE.MANAGE_CLASS);
+          router.push(ROUTE.ACCOUNT);
           break;
         case Role.MODERATOR:
           success("Xong!", "Chúc mừng bạn đã đăng nhập thành công");
