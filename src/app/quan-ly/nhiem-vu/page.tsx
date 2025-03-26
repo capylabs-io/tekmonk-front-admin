@@ -1,7 +1,7 @@
 "use client";
 
 import { CommonButton } from "@/components/common/button/CommonButton";
-import { Edit, PanelLeft, Trash2 } from "lucide-react";
+import { Edit, PanelLeft } from "lucide-react";
 import {
   Tabs,
   TabsContent,
@@ -15,7 +15,10 @@ import { ColumnDef } from "@tanstack/react-table";
 import { AchievementFormData } from "@/components/achievement/CreateAchievementModal";
 import { Input } from "@/components/common/Input";
 import { useMemo, useState } from "react";
-import { CreateMissionModal, MisionFormData } from "@/components/mission/CreateMissionModal";
+import {
+  CreateMissionModal,
+  MisionFormData,
+} from "@/components/mission/CreateMissionModal";
 import { useMission } from "@/hooks/useMission";
 import { getMission, postMission, updateMission } from "@/requests/mission";
 import { useSnackbarStore } from "@/store/SnackbarStore";
@@ -24,26 +27,34 @@ import { Mission, MissionType } from "@/types/mission";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 
-
 export default function Page() {
-  const { totalPage,
+  const {
+    totalPage,
     totalDocs,
     limit,
     page,
     isOpenCreateModal,
     setLimit,
     setPage,
-    setIsOpenCreateModal } = useMission()
+    setIsOpenCreateModal,
+  } = useMission();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [textSearch, setTextSearch] = useState("");
   const handleSearch = () => {
     setSearchQuery(textSearch);
   };
-  const [isEditing, setIsEditing] = useState(false)
-  const [currentMissionSelected, setCurrentMissionSelected] = useState<Mission>()
-  const [showSuccess, showError] = useSnackbarStore((state) => [state.success, state.error])
-  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide])
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentMissionSelected, setCurrentMissionSelected] =
+    useState<Mission>();
+  const [showSuccess, showError] = useSnackbarStore((state) => [
+    state.success,
+    state.error,
+  ]);
+  const [showLoading, hideLoading] = useLoadingStore((state) => [
+    state.show,
+    state.hide,
+  ]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemPerPage] = useState(10);
   const { data: missionList, refetch: refetchMissionList } = useQuery({
@@ -51,7 +62,7 @@ export default function Page() {
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
-          populate: ["class", 'teacher'],
+          populate: ["class", "teacher"],
           pagination: {
             page: currentPage,
             pageSize: itemsPerPage,
@@ -66,84 +77,86 @@ export default function Page() {
   });
   const handlePostMission = async (data: MisionFormData) => {
     try {
-      showLoading()
+      showLoading();
       if (currentMissionSelected) {
-        const res = await updateMission(currentMissionSelected.id || 0, data)
+        const res = await updateMission(currentMissionSelected.id || 0, data);
         if (res) {
-          showSuccess('Cập nhật', 'Nhiệm vụ cập nhật thành công!')
+          showSuccess("Cập nhật", "Nhiệm vụ cập nhật thành công!");
         }
       } else {
-        const res = await postMission(data)
+        const res = await postMission(data);
         if (res) {
-          showSuccess('Tạo mới', 'Nhiệm vụ tạo mới thành công!')
+          showSuccess("Tạo mới", "Nhiệm vụ tạo mới thành công!");
         }
       }
     } catch (error) {
-      console.log('error', error);
+      console.log("error", error);
       if (currentMissionSelected) {
-        showError('Cập nhật', 'Nhiệm vụ cập nhật thất bại!')
+        showError("Cập nhật", "Nhiệm vụ cập nhật thất bại!");
       } else {
-        showError('Tạo mới', 'Nhiệm vụ tạo mới thất bại!')
+        showError("Tạo mới", "Nhiệm vụ tạo mới thất bại!");
       }
     } finally {
-      hideLoading()
-      refetchMissionList()
+      hideLoading();
+      refetchMissionList();
     }
-  }
+  };
   const systemMissionList = useMemo(() => {
-    return missionList ? missionList.filter((mission: Mission) => mission.type = MissionType.EVERY_SESSION) : []
-  }, [missionList])
+    return missionList
+      ? missionList.data.filter(
+          (mission: Mission) => mission.type === MissionType.EVERY_SESSION
+        )
+      : [];
+  }, [missionList]);
   const customMissionList = useMemo(() => {
-    return missionList ? missionList.filter((mission: Mission) => mission.type = MissionType.MANUAL) : []
-  }, [missionList])
-  const columns: ColumnDef<AchievementFormData>[] =
-    [
-      {
-        header: 'STT',
-        cell: ({ row }) => <span>{row.index + 1}</span>,
-
-      },
-      {
-        header: 'Tên nhiệm vụ',
-        cell: ({ row }) => (
-          <div className="bg-center bg-no-repeat bg-cover h-[80px] rounded-xl w-[130px]"
-            style={{
-              backgroundImage: `url(${row.original?.icon})`
-            }}>
-
-          </div>
-        ),
-      },
-      {
-        header: 'Thuộc khoá học',
-        cell: ({ row }) => <span>{row.original.title}</span>,
-      },
-      {
-        header: 'Trạng thái',
-        cell: ({ row }) => <div>
-          {
-            row.original.type
-          }
-        </div>
-      },
-      {
-        id: 'action',
-        header: '',
-        cell: ({ row }) => {
-          return (
-            <div className="flex gap-2">
-              <button
-                className="p-2 hover:bg-gray-100 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsEditing((prev) => prev = true)
-                  setIsOpenCreateModal(true)
-                  // Add edit handler here
-                }}
-              >
-                <Edit className="h-4 w-4" color="#7C6C80" />
-              </button>
-              {/* <button
+    return missionList
+      ? missionList.data.filter(
+          (mission: Mission) => mission.type === MissionType.MANUAL
+        )
+      : [];
+  }, [missionList]);
+  const columns: ColumnDef<AchievementFormData>[] = [
+    {
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      header: "Tên nhiệm vụ",
+      cell: ({ row }) => (
+        <div
+          className="bg-center bg-no-repeat bg-cover h-[80px] rounded-xl w-[130px]"
+          style={{
+            backgroundImage: `url(${row.original?.icon})`,
+          }}
+        ></div>
+      ),
+    },
+    {
+      header: "Thuộc khoá học",
+      cell: ({ row }) => <span>{row.original.title}</span>,
+    },
+    {
+      header: "Trạng thái",
+      cell: ({ row }) => <div>{row.original.type}</div>,
+    },
+    {
+      id: "action",
+      header: "",
+      cell: ({ row }) => {
+        return (
+          <div className="flex gap-2">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsEditing((prev) => (prev = true));
+                setIsOpenCreateModal(true);
+                // Add edit handler here
+              }}
+            >
+              <Edit className="h-4 w-4" color="#7C6C80" />
+            </button>
+            {/* <button
                 className="p-2 hover:bg-gray-100 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -152,12 +165,11 @@ export default function Page() {
               >
                 <Trash2 className="h-4 w-4" color="#7C6C80" />
               </button> */}
-            </div>
-          );
-        },
+          </div>
+        );
       },
-    ]
-
+    },
+  ];
 
   return (
     <>
@@ -180,7 +192,10 @@ export default function Page() {
             <TabsTrigger value="system">Thuộc hệ thống</TabsTrigger>
             <TabsTrigger value="outside">Cấu hình ngoài</TabsTrigger>
           </TabsList>
-          <TabsContent value="system" className="overflow-y-auto !h-[calc(100%-40px)] p-4">
+          <TabsContent
+            value="system"
+            className="overflow-y-auto !h-[calc(100%-40px)] p-4"
+          >
             <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto">
               <div className="flex justify-between items-center">
                 <Input
@@ -211,7 +226,10 @@ export default function Page() {
               />
             </div>
           </TabsContent>
-          <TabsContent value="outside" className="overflow-y-auto !h-[calc(100%-40px)] p-4">
+          <TabsContent
+            value="outside"
+            className="overflow-y-auto !h-[calc(100%-40px)] p-4"
+          >
             <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto">
               <div className="flex justify-between items-center">
                 <Input
@@ -250,9 +268,15 @@ export default function Page() {
             </div>
           </TabsContent>
         </Tabs>
-
       </div>
-      <CreateMissionModal isEdit={isEditing} open={isOpenCreateModal} onOpenChange={(value) => { setIsOpenCreateModal(value) }} onSubmit={handlePostMission} />
+      <CreateMissionModal
+        isEdit={isEditing}
+        open={isOpenCreateModal}
+        onOpenChange={(value) => {
+          setIsOpenCreateModal(value);
+        }}
+        onSubmit={handlePostMission}
+      />
     </>
   );
 }

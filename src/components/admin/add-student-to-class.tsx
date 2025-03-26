@@ -60,6 +60,7 @@ export const AddStudentToClass = ({
     },
     refetchOnWindowFocus: false,
   });
+  console.log("studentList", studentList);
 
   /** Handle Function */
   const handleStudentSelect = (studentId: string) => {
@@ -69,27 +70,31 @@ export const AddStudentToClass = ({
         : [...prev, studentId]
     );
   };
-  const filteredStudents = get(studentList, 'data.data', [])
-    ? get(studentList, 'data.data', [])?.filter((student: User) =>
-      student.username.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+  const filteredStudents = get(studentList, "data.data", [])
+    ? get(studentList, "data.data", [])?.filter((student: User) =>
+        student.username.toLowerCase().includes(searchQuery.toLowerCase())
+      )
     : [];
   return (
     <div>
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2 rounded-md min-h-[48px]">
           {selectedStudents.map((selectedId) => {
-            const student = get(studentList, "data?.data", []) && get(studentList, "data.data", []).find(
-              (s: User) => s.id.toString() === selectedId
-            );
+            const student =
+              get(studentList, "data?.data", []) &&
+              get(studentList, "data.data", []).find(
+                (s: User) => s.id.toString() === selectedId
+              );
             return student ? (
               <CommonTag
-                key={get(student, 'id')}
+                key={get(student, "id")}
                 className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-sm flex items-center gap-1"
               >
-                {get(student, 'username')}
+                {get(student, "username")}
                 <button
-                  onClick={() => handleStudentSelect(get(student, 'id', 0).toString())}
+                  onClick={() =>
+                    handleStudentSelect(get(student, "id", 0).toString())
+                  }
                   className="text-gray-500 hover:text-gray-700 ml-1"
                 >
                   ×

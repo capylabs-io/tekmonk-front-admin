@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowLeft, ArrowDown, ArrowUp, PanelLeft } from "lucide-react";
+import { ArrowLeft, PanelLeft } from "lucide-react";
 import { useState, useEffect, useMemo } from "react";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { useCustomRouter } from "@/components/common/router/CustomRouter";
@@ -8,7 +8,7 @@ import { CommonCard } from "@/components/common/CommonCard";
 import { ReqGetClassSessionDetail } from "@/requests/class-session-detail";
 import qs from "qs";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ReqGetEnrollments, ReqUpdateEnrollment } from "@/requests/enrollment";
+import { ReqGetEnrollments } from "@/requests/enrollment";
 import tekdojoAxios from "@/requests/axios.config";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { ReqUpdateClassSession } from "@/requests/class-session";
@@ -20,13 +20,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { ReqGetCourseMissions } from "@/requests/course-mission";
 import { useClassStore } from "@/store/class-store";
 import { get } from "lodash";
 import { CommonTable } from "@/components/common/CommonTable";
-import { CourseMission } from "@/types/course";
 import { useLoadingStore } from "@/store/LoadingStore";
 
 export default function SessionDetailPage({
@@ -35,13 +33,12 @@ export default function SessionDetailPage({
   params: { id: string; sessionId: string };
 }) {
   const router = useCustomRouter();
-  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const queryClient = useQueryClient();
   const [attendanceData, setAttendanceData] = useState<any[]>([]);
   const [initialAttendanceData, setInitialAttendanceData] = useState<any[]>([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-  const [currentClass] = useClassStore((state) => [state.currentClass])
+  const [currentClass] = useClassStore((state) => [state.currentClass]);
   const [totalPage, setTotalPage] = useState(10);
   const [totalDocs, setTotalDocs] = useState(100);
   const [limit, setLimit] = useState(10);
@@ -51,30 +48,34 @@ export default function SessionDetailPage({
     state.success,
     state.error,
   ]);
-  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide]);
+  const [showLoading, hideLoading] = useLoadingStore((state) => [
+    state.show,
+    state.hide,
+  ]);
 
-  const { data: studentAttendance, refetch: refetchStudentAttendance } = useQuery({
-    queryKey: ["student-attendance", params.sessionId],
-    queryFn: async () => {
-      try {
-        const queryString = qs.stringify({
-          filters: {
-            class_session: {
-              id: {
-                $eq: params.sessionId,
+  const { data: studentAttendance, refetch: refetchStudentAttendance } =
+    useQuery({
+      queryKey: ["student-attendance", params.sessionId],
+      queryFn: async () => {
+        try {
+          const queryString = qs.stringify({
+            filters: {
+              class_session: {
+                id: {
+                  $eq: params.sessionId,
+                },
               },
             },
-          },
-          populate: "*",
-        });
-        return await ReqGetClassSessionDetail(queryString);
-      } catch (error) {
-        console.log(error);
-        return { data: [] };
-      }
-    },
-    refetchOnWindowFocus: false,
-  });
+            populate: "*",
+          });
+          return await ReqGetClassSessionDetail(queryString);
+        } catch (error) {
+          console.log(error);
+          return { data: [] };
+        }
+      },
+      refetchOnWindowFocus: false,
+    });
 
   const { data: studentList } = useQuery({
     queryKey: ["student-list", params.id],
@@ -133,10 +134,12 @@ export default function SessionDetailPage({
   });
   const classMissionList = useMemo(() => {
     if (!courseMissionList) {
-      return []
+      return [];
     }
-    return courseMissionList.data.filter((item) => item.mission.type === 'EverySession')
-  }, [courseMissionList])
+    return courseMissionList.data.filter(
+      (item) => item.mission.type === "EverySession"
+    );
+  }, [courseMissionList]);
 
   // Add updateClassSession mutation
   const updateClassSessionMutation = useMutation({
@@ -154,17 +157,25 @@ export default function SessionDetailPage({
     },
   });
 
-
   // Initialize attendance data and check if should be readonly
   useEffect(() => {
     if (studentAttendance?.data && studentAttendance.data.length > 0) {
       // Merge attendance records by student.id
       const mergedAttendance = studentAttendance.data.reduce((acc, record) => {
-        const studentId = record.student.id;
-        const existingRecord = acc.find((item) => item.student.id === studentId);
+        const studentId = record.student?.id;
+        const existingRecord = acc.find(
+          (item) => item.student.id === studentId
+        );
 
         const missionKey = `mission${record.mission?.id}`;
-        const missionStatus = record.mission ? { [missionKey]: true } : {};
+
+        // If the mission exists in the record, mark it as checked and disabled
+        const missionStatus = record.mission
+          ? {
+              [missionKey]: true,
+              [`${missionKey}_disable`]: true,
+            }
+          : {};
 
         if (existingRecord) {
           // Merge missions into the existing record
@@ -184,31 +195,73 @@ export default function SessionDetailPage({
         return acc;
       }, [] as any[]);
 
-      setAttendanceData(mergedAttendance);
-      setInitialAttendanceData(JSON.parse(JSON.stringify(mergedAttendance)));
+      // Get the list of student IDs from backend records
+      const recordedStudentIds = mergedAttendance.map(
+        (record) => record.student?.id
+      );
+
+      // If we have a student list, find students that aren't in the attendance records
+      if (studentList?.data) {
+        // Filter student list to get students not already in attendance records
+        const missingStudents = studentList.data
+          .filter(
+            (student: any) => !recordedStudentIds.includes(student.student?.id)
+          )
+          .map((student: any) => ({
+            id: null,
+            student: student.student,
+            class_session: params.sessionId,
+            // Initialize all missions as unchecked and enabled for new students
+            ...classMissionList.reduce((acc, mission) => {
+              const missionKey = `mission${mission.mission.id}`;
+              return {
+                ...acc,
+                [missionKey]: false,
+                [`${missionKey}_disable`]: false,
+              };
+            }, {}),
+          }));
+
+        // Combine recorded attendance with missing students
+        const combinedData = [...mergedAttendance, ...missingStudents];
+
+        setAttendanceData(combinedData);
+        setInitialAttendanceData(JSON.parse(JSON.stringify(combinedData)));
+      } else {
+        setAttendanceData(mergedAttendance);
+        setInitialAttendanceData(JSON.parse(JSON.stringify(mergedAttendance)));
+      }
     } else if (studentList?.data) {
       // If no attendance data exists, create mock data from student list
       const mockData = studentList.data.map((student: any) => ({
         id: null,
         student: student.student,
         class_session: params.sessionId,
+        // Initialize all missions as unchecked and enabled
+        ...classMissionList.reduce((acc, mission) => {
+          const missionKey = `mission${mission.mission.id}`;
+          return {
+            ...acc,
+            [missionKey]: false,
+            [`${missionKey}_disable`]: false,
+          };
+        }, {}),
       }));
 
       setAttendanceData(mockData);
       setInitialAttendanceData(JSON.parse(JSON.stringify(mockData)));
     }
-  }, [studentAttendance, studentList, params.sessionId]);
+  }, [studentAttendance, studentList, params.sessionId, classMissionList]);
 
-  // Function to check if a checkbox was initially checked in the database
-  const isInitiallyChecked = (index: number, field: string) => {
-    return (
-      initialAttendanceData[index]?.id && initialAttendanceData[index][field]
-    );
+  // Function to check if a checkbox should be disabled
+  const isCheckboxDisabled = (index: number, field: string) => {
+    // Check if the specific mission is disabled
+    return initialAttendanceData[index]?.[`${field}_disable`] === true;
   };
 
   const handleCheckboxChange = (index: number, field: string) => {
-    // If it was initially checked in the database, don't allow changes
-    if (isInitiallyChecked(index, field)) {
+    // If checkbox is disabled for this specific mission, don't allow changes
+    if (isCheckboxDisabled(index, field)) {
       return;
     }
 
@@ -226,32 +279,52 @@ export default function SessionDetailPage({
 
   const handleSaveConfirm = async () => {
     try {
-      showLoading()
+      showLoading();
       // First, update class session status if there are new records
       const hasNewRecords = attendanceData.some((record) => record.id === null);
       if (hasNewRecords) {
         await updateClassSessionMutation.mutateAsync();
       }
 
-      // Handle new records
-      const newRecordsPromises = attendanceData
-        .filter((record) => record.id === null)
-        .flatMap((record) => {
-          return Object.keys(record)
-            .filter((key) => key.startsWith("mission") && record[key] === true)
-            .map((missionKey) => {
-              const missionId = parseInt(missionKey.replace("mission", ""), 10);
-              return createAttendanceMutation.mutateAsync({
-                data: {
-                  student: record.student.id,
-                  class_session: params.sessionId,
-                  mission: missionId,
-                },
-              });
-            });
-        });
+      // Get all checkbox changes that need to be saved
+      const newRecordsPromises = [];
 
-      await Promise.all(newRecordsPromises);
+      // Process each record
+      for (const record of attendanceData) {
+        // Get mission keys that are checked
+        const checkedMissions = Object.keys(record).filter(
+          (key) =>
+            key.startsWith("mission") &&
+            !key.includes("_disable") &&
+            record[key] === true
+        );
+
+        // For each checked mission, determine if it's new and needs to be created
+        for (const missionKey of checkedMissions) {
+          // Skip if this mission is already in the database (has disable flag)
+          if (record[`${missionKey}_disable`] === true) {
+            continue;
+          }
+
+          // This is a new checked mission, create it
+          const missionId = parseInt(missionKey.replace("mission", ""), 10);
+          newRecordsPromises.push(
+            createAttendanceMutation.mutateAsync({
+              data: {
+                student: record.student.id,
+                class_session: params.sessionId,
+                mission: missionId,
+              },
+            })
+          );
+        }
+      }
+
+      // Wait for all create operations to complete
+      if (newRecordsPromises.length > 0) {
+        await Promise.all(newRecordsPromises);
+      }
+
       success("Xong", "Đã lưu dữ liệu điểm danh");
       setIsConfirmOpen(false);
       setHasChanges(false);
@@ -263,36 +336,38 @@ export default function SessionDetailPage({
       queryClient.invalidateQueries({
         queryKey: ["student-attendance", params.sessionId],
       });
+
+      // Refetch to get updated data
+      refetchStudentAttendance();
     } catch (err) {
       console.error("Error saving attendance:", err);
       error("Lỗi", "Có lỗi xảy ra khi lưu dữ liệu điểm danh");
     } finally {
-      hideLoading()
-      refetchStudentAttendance()
+      hideLoading();
     }
   };
   const missionColumns: ColumnDef<any>[] = useMemo(() => {
     return classMissionList
       .map((item) => {
-        if (!item.mission.id) return null
-        const title = "mission" + item.mission.id
+        if (!item.mission.id) return null;
+        const title = "mission" + item.mission.id;
         return {
           header: item.mission.title || "Nhiệm vụ",
-          cell: ({ row }) => (
+          cell: ({ row }: { row: any }) => (
             <span>
               <input
                 type="checkbox"
                 checked={!!row.original[title]}
                 onChange={() => handleCheckboxChange(row.index, title)}
-                disabled={isInitiallyChecked(row.index, title)}
+                disabled={isCheckboxDisabled(row.index, title)}
                 className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
               />
             </span>
           ),
-        }
+        };
       })
-      .filter(Boolean) as ColumnDef<any>[]
-  }, [classMissionList])
+      .filter(Boolean) as ColumnDef<any>[];
+  }, [classMissionList]);
   // console.log('classMissionList', classMissionList);
   // Base columns
   const baseColumns: ColumnDef<any>[] = [
@@ -308,12 +383,12 @@ export default function SessionDetailPage({
       header: "Mã học viên",
       cell: ({ row }) => <span>{row.original.student?.id}</span>,
     },
-  ]
+  ];
 
   // Combine base columns with dynamic mission columns
   const columns = useMemo(() => {
-    return [...baseColumns, ...missionColumns]
-  }, [missionColumns])
+    return [...baseColumns, ...missionColumns];
+  }, [missionColumns]);
   return (
     <>
       <div className="w-full">
@@ -346,7 +421,7 @@ export default function SessionDetailPage({
 
         <div className="space-y-6 p-4">
           <CommonTable
-            data={attendanceData || [] as any[]}
+            data={attendanceData || ([] as any[])}
             isLoading={false}
             columns={[...columns]}
             page={page}
