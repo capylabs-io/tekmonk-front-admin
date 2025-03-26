@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowLeft, ArrowDown, ArrowUp, PanelLeft } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { useCustomRouter } from "@/components/common/router/CustomRouter";
 import { CommonCard } from "@/components/common/CommonCard";
@@ -21,6 +21,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { ColumnDef } from "@tanstack/react-table";
+import { ReqGetCourseMissions } from "@/requests/course-mission";
+import { useClassStore } from "@/store/class-store";
+import { get } from "lodash";
+import { CommonTable } from "@/components/common/CommonTable";
+import { CourseMission } from "@/types/course";
+import { useLoadingStore } from "@/store/LoadingStore";
 
 export default function SessionDetailPage({
   params,
@@ -34,14 +41,19 @@ export default function SessionDetailPage({
   const [initialAttendanceData, setInitialAttendanceData] = useState<any[]>([]);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
-
+  const [currentClass] = useClassStore((state) => [state.currentClass])
+  const [totalPage, setTotalPage] = useState(10);
+  const [totalDocs, setTotalDocs] = useState(100);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   /* UseStore */
   const [success, error] = useSnackbarStore((state) => [
     state.success,
     state.error,
   ]);
+  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide]);
 
-  const { data: studentAttendance } = useQuery({
+  const { data: studentAttendance, refetch: refetchStudentAttendance } = useQuery({
     queryKey: ["student-attendance", params.sessionId],
     queryFn: async () => {
       try {
@@ -86,7 +98,28 @@ export default function SessionDetailPage({
     },
     refetchOnWindowFocus: false,
   });
-
+  const { data: courseMissionList } = useQuery({
+    queryKey: ["course-mission", get(currentClass, ["course", "id"], 0)],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          filters: {
+            course: {
+              id: {
+                $eq: get(currentClass, ["course", "id"], 0),
+              },
+            },
+          },
+          populate: "*",
+        });
+        return await ReqGetCourseMissions(queryString);
+      } catch (error) {
+        console.log("Error fetching course mission list:", error);
+        return { data: [] };
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
   // Create mutation for creating new attendance records
   const createAttendanceMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -98,6 +131,12 @@ export default function SessionDetailPage({
       });
     },
   });
+  const classMissionList = useMemo(() => {
+    if (!courseMissionList) {
+      return []
+    }
+    return courseMissionList.data.filter((item) => item.mission.type === 'EverySession')
+  }, [courseMissionList])
 
   // Add updateClassSession mutation
   const updateClassSessionMutation = useMutation({
@@ -115,59 +154,46 @@ export default function SessionDetailPage({
     },
   });
 
-  // Add updateAttendance mutation
-  const updateAttendanceMutation = useMutation({
-    mutationFn: async (data: any[]) => {
-      const updatePromises = data.map((record) => {
-        if (record.id) {
-          return tekdojoAxios.put(
-            `/class-session-student-details/${record.id}`,
-            {
-              data: {
-                attendance: record.attendance,
-                discuss: record.discuss,
-                homeworkDone: record.homeworkDone,
-                workSpeed: record.workSpeed,
-              },
-            }
-          );
-        }
-        return Promise.resolve();
-      });
-      return Promise.all(updatePromises);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["student-attendance", params.sessionId],
-      });
-      success("Xong", "Đã cập nhật dữ liệu điểm danh");
-      setHasChanges(false);
-    },
-    onError: (err) => {
-      console.error("Error updating attendance:", err);
-      error("Lỗi", "Có lỗi xảy ra khi cập nhật dữ liệu điểm danh");
-    },
-  });
 
   // Initialize attendance data and check if should be readonly
   useEffect(() => {
     if (studentAttendance?.data && studentAttendance.data.length > 0) {
-      setAttendanceData(studentAttendance.data);
-      // Store the initial state to know which checkboxes were initially checked
-      setInitialAttendanceData(
-        JSON.parse(JSON.stringify(studentAttendance.data))
-      );
+      // Merge attendance records by student.id
+      const mergedAttendance = studentAttendance.data.reduce((acc, record) => {
+        const studentId = record.student.id;
+        const existingRecord = acc.find((item) => item.student.id === studentId);
+
+        const missionKey = `mission${record.mission?.id}`;
+        const missionStatus = record.mission ? { [missionKey]: true } : {};
+
+        if (existingRecord) {
+          // Merge missions into the existing record
+          Object.assign(existingRecord, missionStatus);
+        } else {
+          // Create a new record with mission data
+          acc.push({
+            id: record.id,
+            student: record.student,
+            class_session: record.class_session,
+            ...missionStatus,
+            createdAt: record.createdAt,
+            updatedAt: record.updatedAt,
+          });
+        }
+
+        return acc;
+      }, [] as any[]);
+
+      setAttendanceData(mergedAttendance);
+      setInitialAttendanceData(JSON.parse(JSON.stringify(mergedAttendance)));
     } else if (studentList?.data) {
-      // Create mock data from student list if no attendance data exists
+      // If no attendance data exists, create mock data from student list
       const mockData = studentList.data.map((student: any) => ({
         id: null,
         student: student.student,
-        attendance: false,
-        discuss: false,
-        homeworkDone: false,
-        workSpeed: false,
         class_session: params.sessionId,
       }));
+
       setAttendanceData(mockData);
       setInitialAttendanceData(JSON.parse(JSON.stringify(mockData)));
     }
@@ -200,6 +226,7 @@ export default function SessionDetailPage({
 
   const handleSaveConfirm = async () => {
     try {
+      showLoading()
       // First, update class session status if there are new records
       const hasNewRecords = attendanceData.some((record) => record.id === null);
       if (hasNewRecords) {
@@ -209,26 +236,20 @@ export default function SessionDetailPage({
       // Handle new records
       const newRecordsPromises = attendanceData
         .filter((record) => record.id === null)
-        .map((record) => {
-          return createAttendanceMutation.mutateAsync({
-            data: {
-              student: record.student.id,
-              class_session: params.sessionId,
-              attendance: record.attendance,
-              discuss: record.discuss,
-              homeworkDone: record.homeworkDone,
-              workSpeed: record.workSpeed,
-            },
-          });
+        .flatMap((record) => {
+          return Object.keys(record)
+            .filter((key) => key.startsWith("mission") && record[key] === true)
+            .map((missionKey) => {
+              const missionId = parseInt(missionKey.replace("mission", ""), 10);
+              return createAttendanceMutation.mutateAsync({
+                data: {
+                  student: record.student.id,
+                  class_session: params.sessionId,
+                  mission: missionId,
+                },
+              });
+            });
         });
-
-      // Handle existing records that have changes
-      const existingRecords = attendanceData.filter(
-        (record) => record.id !== null
-      );
-      if (existingRecords.length > 0) {
-        await updateAttendanceMutation.mutateAsync(existingRecords);
-      }
 
       await Promise.all(newRecordsPromises);
       success("Xong", "Đã lưu dữ liệu điểm danh");
@@ -245,9 +266,54 @@ export default function SessionDetailPage({
     } catch (err) {
       console.error("Error saving attendance:", err);
       error("Lỗi", "Có lỗi xảy ra khi lưu dữ liệu điểm danh");
+    } finally {
+      hideLoading()
+      refetchStudentAttendance()
     }
   };
+  const missionColumns: ColumnDef<any>[] = useMemo(() => {
+    return classMissionList
+      .map((item) => {
+        if (!item.mission.id) return null
+        const title = "mission" + item.mission.id
+        return {
+          header: item.mission.title || "Nhiệm vụ",
+          cell: ({ row }) => (
+            <span>
+              <input
+                type="checkbox"
+                checked={!!row.original[title]}
+                onChange={() => handleCheckboxChange(row.index, title)}
+                disabled={isInitiallyChecked(row.index, title)}
+                className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
+              />
+            </span>
+          ),
+        }
+      })
+      .filter(Boolean) as ColumnDef<any>[]
+  }, [classMissionList])
+  // console.log('classMissionList', classMissionList);
+  // Base columns
+  const baseColumns: ColumnDef<any>[] = [
+    {
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      header: "Tên học viên",
+      cell: ({ row }) => <span>{row.original.student?.fullName}</span>,
+    },
+    {
+      header: "Mã học viên",
+      cell: ({ row }) => <span>{row.original.student?.id}</span>,
+    },
+  ]
 
+  // Combine base columns with dynamic mission columns
+  const columns = useMemo(() => {
+    return [...baseColumns, ...missionColumns]
+  }, [missionColumns])
   return (
     <>
       <div className="w-full">
@@ -279,102 +345,17 @@ export default function SessionDetailPage({
         </div>
 
         <div className="space-y-6 p-4">
-          <div className="overflow-x-auto bg-white rounded-lg border border-gray-20">
-            <table className="w-full rounded-lg">
-              <thead>
-                <tr className="text-SubheadSm text-gray-95">
-                  <th className="py-4 text-center cursor-pointer select-none">
-                    <div className="flex items-center gap-2 text-SubheadSm text-gray-95 justify-center">
-                      STT
-                      {sortDirection === "asc" ? (
-                        <ArrowUp className="w-4 h-4" />
-                      ) : (
-                        <ArrowDown className="w-4 h-4" />
-                      )}
-                    </div>
-                  </th>
-                  <th className="py-4 px-6 text-left text-SubheadSm text-gray-95">
-                    Tên học viên
-                  </th>
-                  <th className="py-4 px-6 text-left text-SubheadSm text-gray-95">
-                    Mã học viên
-                  </th>
-                  <th className="py-4 px-6 text-center text-SubheadSm text-gray-95">
-                    Điểm danh
-                  </th>
-                  <th className="py-4 px-6 text-center text-SubheadSm text-gray-95">
-                    Phát biểu
-                  </th>
-                  <th className="py-4 px-6 text-center text-SubheadSm text-gray-95">
-                    Bài tập
-                  </th>
-                  <th className="py-4 px-6 text-center text-SubheadSm text-gray-95">
-                    Tốc độ
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {attendanceData.map((item, index) => (
-                  <tr
-                    key={item.student?.id || index}
-                    className="border-t border-gray-100"
-                  >
-                    <td className="py-4 px-6 text-BodySm text-gray-95 text-right">
-                      {index + 1}
-                    </td>
-                    <td className="py-4 px-6 text-BodySm text-gray-95 ">
-                      {item.student?.fullName}
-                    </td>
-                    <td className="py-4 px-6 text-BodySm text-gray-95">
-                      {item.student?.id}
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <input
-                        type="checkbox"
-                        checked={item.attendance}
-                        onChange={() =>
-                          handleCheckboxChange(index, "attendance")
-                        }
-                        disabled={isInitiallyChecked(index, "attendance")}
-                        className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
-                      />
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <input
-                        type="checkbox"
-                        checked={item.discuss}
-                        onChange={() => handleCheckboxChange(index, "discuss")}
-                        disabled={isInitiallyChecked(index, "discuss")}
-                        className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
-                      />
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <input
-                        type="checkbox"
-                        checked={item.homeworkDone}
-                        onChange={() =>
-                          handleCheckboxChange(index, "homeworkDone")
-                        }
-                        disabled={isInitiallyChecked(index, "homeworkDone")}
-                        className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
-                      />
-                    </td>
-                    <td className="py-4 px-6 text-center">
-                      <input
-                        type="checkbox"
-                        checked={item.workSpeed}
-                        onChange={() =>
-                          handleCheckboxChange(index, "workSpeed")
-                        }
-                        disabled={isInitiallyChecked(index, "workSpeed")}
-                        className="w-4 h-4 accent-primary-50 rounded border-gray-300 disabled:opacity-50"
-                      />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <CommonTable
+            data={attendanceData || [] as any[]}
+            isLoading={false}
+            columns={[...columns]}
+            page={page}
+            totalPage={totalPage}
+            totalDocs={totalDocs}
+            onPageChange={setPage}
+            docsPerPage={limit}
+            onPageSizeChange={setLimit}
+          />
         </div>
       </div>
 

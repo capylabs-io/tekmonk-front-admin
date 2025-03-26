@@ -1,3 +1,5 @@
+import { Mission } from "./mission";
+
 export type Event = {
   title: string;
   day: string;
@@ -236,10 +238,7 @@ export type ClassSessionDetail = {
   id: number;
   class_session?: ClassSession;
   student?: User;
-  attendance: boolean;
-  discuss: boolean;
-  homeworkDone: boolean;
-  workSpeed: boolean;
+  mission?: Mission
   createdAt: string;
   updatedAt: string;
 };

@@ -12,4 +12,8 @@ export const ROUTE = {
   MY_CLASS: "/quan-ly/lop-hoc-cua-toi",
   ACCOUNT: "/quan-ly/quan-ly-tai-khoan",
   COURSES: "/quan-ly/khoa-hoc",
+  VERIFIED: "/quan-ly/phe-duyet",
+  ACHIEVEMENT: "/quan-ly/thanh-tich",
+  MISSION: "/quan-ly/nhiem-vu",
+  CERTIFICATE: "/quan-ly/chung-chi",
 };

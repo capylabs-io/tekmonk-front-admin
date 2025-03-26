@@ -39,16 +39,19 @@ type Props = {
   mode?: "create" | "edit";
 };
 
+type FormProps = {
+  onClickSearchCertificate: () => void
+};
+
 type CourseFormValues = z.infer<typeof courseSchema>;
 
 // Form Fields Component
-const CourseFormFields = () => {
+const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
   const {
     control,
     formState: { errors },
   } = useFormContext<CourseFormValues>();
   const [isMounted, setIsMounted] = useState(false);
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -77,25 +80,7 @@ const CourseFormFields = () => {
           />
         </div>
       </div>
-      <div className="flex items-start gap-2">
-        <div className="w-[160px] text-SubheadMd text-gray-60">Số buổi học</div>
-        <Controller
-          name="numberSession"
-          control={control}
-          render={({ field: { value, onChange, ...restField } }) => (
-            <Input
-              {...restField}
-              id="numberSession"
-              type="number"
-              value={value?.toString() || ""}
-              onChange={(e) => onChange(Number(e) || 0)}
-              placeholder="Nhập số buổi học"
-              customClassNames="flex-1"
-              error={errors.numberSession?.message}
-            />
-          )}
-        />
-      </div>
+
 
       {/* Description Field */}
       <div className="flex flex-col gap-2">
@@ -128,7 +113,25 @@ const CourseFormFields = () => {
           </div>
         </div>
       </div>
-
+      <div className="flex items-start gap-2">
+        <div className="w-[160px] text-SubheadMd text-gray-60">Số buổi học</div>
+        <Controller
+          name="numberSession"
+          control={control}
+          render={({ field: { value, onChange, ...restField } }) => (
+            <Input
+              {...restField}
+              id="numberSession"
+              type="number"
+              value={value?.toString() || ""}
+              onChange={(e) => onChange(Number(e) || 0)}
+              placeholder="Nhập số buổi học"
+              customClassNames="flex-1"
+              error={errors.numberSession?.message}
+            />
+          )}
+        />
+      </div>
       {/* Category Field */}
       <div className="flex flex-col gap-2">
         <div className="flex items-start gap-2">
@@ -149,6 +152,31 @@ const CourseFormFields = () => {
           />
         </div>
       </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-start gap-2">
+          <div className="w-[160px] text-SubheadMd text-gray-60">Chứng chỉ của khoá học</div>
+          <Input
+            isSearch={true}
+            type="text"
+            placeholder="Chọn chứng chỉ"
+            onClick={onClickSearchCertificate}
+            customClassNames="w-full cursor-pointer"
+            customInputClassNames="w-full pl-8"
+          />
+        </div>
+      </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-start gap-2">
+          <div className="w-[160px] text-SubheadMd text-gray-60">Nhiệm vụ của khoá học</div>
+          <Input
+            isSearch={true}
+            type="text"
+            placeholder="Chọn nhiệm vụ"
+            customClassNames="w-full"
+            customInputClassNames="w-full pl-8"
+          />
+        </div>
+      </div>
     </div>
   );
 
@@ -166,7 +194,9 @@ export const CreateCourseDialog = ({
     state.success,
     state.error,
   ]);
+  const [searchQuery, setSearchQuery] = useState("");
   const [isMounted, setIsMounted] = useState(false);
+  const [openListCertificate, setOpenListCertificate] = useState(false)
 
   const methods = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),
@@ -207,7 +237,61 @@ export const CreateCourseDialog = ({
     }
     onOpenChange(open);
   };
+  const handleCertificateSelect = () => {
 
+  }
+  // const handleStudentSelect = (studentId: string) => {
+  //   setSelectedStudents((prev: string[]) =>
+  //     prev.includes(studentId)
+  //       ? prev.filter((id: string) => id !== studentId)
+  //       : [...prev, studentId]
+  //   );
+  // };
+  // const filteredStudents = studentList?.data?.length
+  //   ? studentList.data?.filter((student) =>
+  //     student.username.toLowerCase().includes(searchQuery.toLowerCase())
+  //   )
+  //   : [];
+
+  const listCertificateContent = (
+    <>
+      <div className="relative">
+        <Input
+          isSearch={true}
+          type="text"
+          placeholder="Tìm kiếm chứng chỉ"
+          value={searchQuery}
+          onChange={(value) => setSearchQuery(value)}
+          customClassNames="w-full"
+          customInputClassNames="w-full pl-8"
+        />
+      </div>
+
+      <div className="border rounded-md overflow-hidden">
+        {/* <div className="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar">
+          {filteredStudents.map((student) => (
+            <div
+              key={student.id}
+              className="flex items-center justify-between p-3 hover:bg-primary-10 border-b last:border-b-0"
+            >
+              <div>
+                <div className="font-medium text-sm text-gray-900">
+                  {student.username}
+                </div>
+                <div className="text-sm text-gray-500">{student.email}</div>
+              </div>
+              <input
+                type="checkbox"
+                checked={selectedStudents.includes(student.id.toString())}
+                onChange={() => handleStudentSelect(student.id.toString())}
+                className="h-4 w-4 rounded cursor-pointer border-gray-300 text-purple-600 focus:ring-purple-500"
+              />
+            </div>
+          ))}
+        </div> */}
+      </div>
+    </>
+  )
   const dialogContent = (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="w-[680px] bg-white">
@@ -222,7 +306,7 @@ export const CreateCourseDialog = ({
 
         <FormProvider {...methods}>
           <form className="space-y-4 p-4">
-            <CourseFormFields />
+            <CourseFormFields onClickSearchCertificate={() => { setOpenListCertificate(true) }} />
 
             <div className="flex justify-between items-center mt-6 border-t pt-4">
               <CommonButton
@@ -241,8 +325,8 @@ export const CreateCourseDialog = ({
                 {isSubmitting
                   ? "Đang xử lý..."
                   : mode === "create"
-                  ? "Tạo"
-                  : "Cập nhật"}
+                    ? "Tạo"
+                    : "Cập nhật"}
               </CommonButton>
             </div>
           </form>

@@ -4,7 +4,7 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Bell, Home, Newspaper, ShoppingCart, User } from "lucide-react";
+import { Bell, Goal, Home, Newspaper, ShoppingCart, User } from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
@@ -105,6 +105,32 @@ export const Navbar = () => {
             iconElement={<User size={20} />}
             url={ROUTE.COURSES}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
+          />
+          <MenuCard
+            title="Phê duyệt"
+            active={usePathname().includes(ROUTE.VERIFIED)}
+            iconElement={<Goal size={20} />}
+            url={ROUTE.VERIFIED}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
+          />
+          <MenuCard
+            title="Thành tích"
+            active={usePathname().includes(ROUTE.ACHIEVEMENT)}
+            iconElement={<Goal size={20} />}
+            url={ROUTE.ACHIEVEMENT}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
+          />
+          <MenuCard
+            title="Nhiệm vụ"
+            active={usePathname().includes(ROUTE.MISSION)}
+            iconElement={<Goal size={20} />}
+            url={ROUTE.MISSION}
+          />
+          <MenuCard
+            title="Chứng chỉ"
+            active={usePathname().includes(ROUTE.CERTIFICATE)}
+            iconElement={<Goal size={20} />}
+            url={ROUTE.CERTIFICATE}
           />
         </div>
 

@@ -63,18 +63,23 @@ export default function Login() {
 
     try {
       // Call the login API
-      await postLogin({
-        identifier: data.identifier,
-        password: data.password,
-        rememberMe: data.rememberMe,
-      });
-
-      const resUserInfo = await login({
+      const res = await postLogin({
         identifier: data.identifier,
         password: data.password,
       });
+      if (res) {
+        useUserStore.setState({
+          jwt: res.jwt,
+          refreshToken: res.refreshToken,
+          userInfo: res.user,
+        })
+      }
+      // const resUserInfo = await login({
+      //   identifier: data.identifier,
+      //   password: data.password,
+      // });
 
-      const roleName = get(resUserInfo, ["user_role", "code"], "");
+      const roleName = get(res, ["user", "user_role", "code"], "");
 
       switch (roleName) {
         case Role.TEACHER:

@@ -29,7 +29,7 @@ import {
 } from "@/requests/news";
 
 type Props = {
-  type: "news" | "event" | "hiring";
+  type: "news" | "event" | "hiring"
   isOpen?: boolean;
   onClose?: () => void;
   onDelete?: (id: string | null) => void;

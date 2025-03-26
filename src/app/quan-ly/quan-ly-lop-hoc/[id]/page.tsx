@@ -721,7 +721,7 @@ export default function ClassDetail() {
                   onClick={handleAddStudents}
                   disabled={selectedStudents.length === 0}
                 >
-                  Thêm vào lớp
+                  Thêm vào lớp 
                 </CommonButton>
               </div>
             </div>

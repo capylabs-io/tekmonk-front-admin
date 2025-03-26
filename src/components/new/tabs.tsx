@@ -40,7 +40,7 @@ export const Tabs = ({
           key={index}
           onClick={() => handleSetActiveTab(tab)}
           className={cn(
-            "w-full h-full flex items-center justify-center rounded-t-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 cursor-pointer",
+            "w-max h-full flex items-center justify-center rounded-t-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 cursor-pointer",
             currentTab.id === tab.id
               ? "border-b-4 border-primary-60 text-primary-95"
               : "text-gray-600 hover:text-gray-900"

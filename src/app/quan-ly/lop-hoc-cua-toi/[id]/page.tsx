@@ -1,20 +1,29 @@
 "use client";
 import StudentList from "@/components/admin/student-list";
 import { TeacherList } from "@/components/admin/teacher-list";
+import { SelectStudentListDialog } from "@/components/class/SelectStudentListDialog";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonRadioCheck } from "@/components/common/CommonRadioCheck";
+import { CommonTable } from "@/components/common/CommonTable";
 import { useCustomRouter } from "@/components/common/router/CustomRouter";
 import { Tabs } from "@/components/new/tabs";
 import { cn } from "@/lib/utils";
 import { ReqGetClasses } from "@/requests/class";
 import { ReqGetClassSessions } from "@/requests/class-session";
 import { ReqGetCourses } from "@/requests/course";
+import { ReqGetCourseMissions } from "@/requests/course-mission";
 import { ReqGetEnrollments } from "@/requests/enrollment";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, PanelLeft } from "lucide-react";
+import { useClassStore } from "@/store/class-store";
+import { useLoadingStore } from "@/store/LoadingStore";
+import { useSnackbarStore } from "@/store/SnackbarStore";
+import { CourseMission } from "@/types/course";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ColumnDef } from "@tanstack/react-table";
+import { get } from "lodash";
+import { ArrowLeft, PanelLeft, UserPlus } from "lucide-react";
 import Image from "next/image";
 import qs from "qs";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 export default function ClassDetailPage({
   params,
@@ -26,11 +35,19 @@ export default function ClassDetailPage({
     id: "progress",
     label: "Tiến trình",
   });
-
+  const [totalPage, setTotalPage] = useState(10);
+  const [totalDocs, setTotalDocs] = useState(100);
+  const [limit, setLimit] = useState(10);
+  const [page, setPage] = useState(1);
   const [currentPageStudent, setCurrentPageStudent] = useState(1);
+  const [showStudentListDialog, setShowStudentListDialog] = useState(false)
+  const [currentClass] = useClassStore((state) => [state.currentClass])
+  const [showLoading, hideLoading] = useLoadingStore((state) => [state.hide, state.show]);
+  const [showError, showSuccess] = useSnackbarStore((state) => [state.error, state.success])
 
   const tabs = [
     { id: "progress", label: "Tiến trình" },
+    { id: "mission", label: "Nhiệm vụ ngoài" },
     { id: "students", label: "Danh sách học viên" },
     { id: "teacher", label: "Giảng viên" },
     { id: "info", label: "Thông tin khóa học" },
@@ -102,13 +119,119 @@ export default function ClassDetailPage({
     },
     refetchOnWindowFocus: false,
   });
+  const { data: courseMissionManualList, refetch: refetchCourseMissionManualList } = useQuery({
+    queryKey: ["course-mission"],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          filters: {
+            course: {
+              id: {
+                $eq: get(currentClass, ["course", "id"], 0),
+              },
+            },
+          },
+          populate: "*",
+        });
+        return await ReqGetCourseMissions(queryString);
+      } catch (error) {
+        console.log("Error fetching course mission list:", error);
+        return { data: [] };
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+  const { mutate: addStudentMutation } = useMutation({
+    mutationFn: async (studentIds: string[]) => {
+      // const enrollmentData = studentIds.map((studentId) => ({
+      //   student: Number(studentId),
+      //   class: Number(classId),
+      // }));
+      // return await ReqCreateEnrollment(enrollmentData);
+    },
+    onSuccess: () => {
+      showSuccess("Thành công", "Đã thêm học viên vào lớp học");
+      refetchCourseMissionManualList();
+      setShowStudentListDialog(false);
+    },
+    onError: (err) => {
+      console.error("Error adding students:", err);
+      showError("Lỗi", "Có lỗi xảy ra khi thêm học viên vào lớp học");
+    },
+    onSettled: () => {
+      hideLoading();
+    },
+  });
+  const classMissionManualList = useMemo(() => {
+    if (!courseMissionManualList) {
+      return []
+    }
+    return courseMissionManualList.data.filter((item) => item.mission.type === 'Manual')
+  }, [courseMissionManualList])
 
+  const handleAddStudents = (data: string[]) => {
+    if (data.length === 0) {
+      showError("Lỗi", "Vui lòng chọn ít nhất một học viên");
+      return;
+    }
+    showLoading();
+    addStudentMutation(data);
+  };
   const handleSessionClick = (sessionId: number) => {
     // Get current path and append session route
     const currentPath = window.location.pathname;
     router.push(`${currentPath}/${sessionId}`);
   };
+  const columnsMission: ColumnDef<CourseMission>[] =
+    [
+      {
+        header: 'STT',
+        cell: ({ row }) => <span>{row.index + 1}</span>,
 
+      },
+      {
+        header: 'Icon',
+        cell: ({ row }) => (
+          <div className="bg-center bg-no-repeat bg-cover h-[80px] rounded-xl w-[130px]"
+            style={{
+              // backgroundImage: `url(${row.original?.thumbnail})`
+            }}
+          >
+
+          </div>
+        ),
+      },
+      {
+        header: 'Tên nhiệm vụ',
+        cell: ({ row }) => <span>{row.original.mission.title}</span>,
+      },
+      {
+        header: 'Mô tả',
+        cell: ({ row }) => <span>{row.original.mission.description}</span>,
+      },
+      {
+        header: 'Số học viên đạt được',
+        cell: ({ row }) => <span>{row.original.mission.number}</span>,
+      },
+      {
+        header: 'Loại',
+        cell: ({ row }) => <span>{row.original.mission.type}</span>,
+      },
+      {
+        id: 'action',
+        header: '',
+        cell: ({ row }) => (
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={() => {
+              setShowStudentListDialog(true)
+            }}
+          >
+            <UserPlus className="h-4 w-4" color="#7C6C80" />
+          </button>
+        ),
+      },
+    ]
   return (
     <div className="w-full">
       {/* Header Section */}
@@ -168,7 +291,23 @@ export default function ClassDetailPage({
           </div>
         </div>
       )}
-
+      {
+        activeTab.id === 'mission' && courseMissionManualList && (
+          <div className="p-4">
+            <CommonTable
+              data={classMissionManualList || [] as any[]}
+              isLoading={false}
+              columns={columnsMission}
+              page={page}
+              totalPage={totalPage}
+              totalDocs={totalDocs}
+              onPageChange={setPage}
+              docsPerPage={limit}
+              onPageSizeChange={setLimit}
+            />
+          </div>
+        )
+      }
       {/* Students List Section */}
       {activeTab.id === "students" && StudentData && (
         <StudentList
@@ -205,6 +344,13 @@ export default function ClassDetailPage({
           </div>
         </div>
       )}
+      <SelectStudentListDialog
+        isOpen={showStudentListDialog}
+        title="Học viên hoàn thành nhiệm vụ"
+        openDialogClick={setShowStudentListDialog}
+        closeDialogClick={() => setShowStudentListDialog(false)}
+        handleAddStudent={handleAddStudents}
+      />
     </div>
   );
 }

@@ -11,3 +11,9 @@ export const ReqGetClassSessionDetail = async (query: string = "") => {
   );
   return response.data as StrapiResponse<ClassSessionDetail[]>;
 };
+export const ReqCreateClassSessionDetail = async (data: any) => {
+  const response = await tekdojoAxios.post(
+    `${BASE_URL}/class-session-student-details`, { data }
+  );
+  return response.data as StrapiResponse<ClassSessionDetail[]>;
+};

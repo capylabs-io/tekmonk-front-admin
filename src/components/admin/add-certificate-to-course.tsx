@@ -7,15 +7,13 @@ import { ReqGetClassUserRemaining, ReqGetUsers } from "@/requests/user";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { Input } from "../common/Input";
-import { get } from "lodash";
-import { User } from "@/types/common-types";
 type Props = {
   selectedStudents: string[];
   setSelectedStudents: (students: any) => void;
   classId?: string;
 };
 
-export const AddStudentToClass = ({
+export const AddCertificateToCourse = ({
   selectedStudents,
   setSelectedStudents,
   classId,
@@ -69,27 +67,28 @@ export const AddStudentToClass = ({
         : [...prev, studentId]
     );
   };
-  const filteredStudents = get(studentList, 'data.data', [])
-    ? get(studentList, 'data.data', [])?.filter((student: User) =>
+  const filteredStudents = studentList?.data?.length
+    ? studentList.data?.filter((student) =>
       student.username.toLowerCase().includes(searchQuery.toLowerCase())
     )
     : [];
+
   return (
     <div>
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2 rounded-md min-h-[48px]">
           {selectedStudents.map((selectedId) => {
-            const student = get(studentList, "data?.data", []) && get(studentList, "data.data", []).find(
-              (s: User) => s.id.toString() === selectedId
+            const student = studentList?.data?.find(
+              (s) => s.id.toString() === selectedId
             );
             return student ? (
               <CommonTag
-                key={get(student, 'id')}
+                key={student.id}
                 className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-sm flex items-center gap-1"
               >
-                {get(student, 'username')}
+                {student.username}
                 <button
-                  onClick={() => handleStudentSelect(get(student, 'id', 0).toString())}
+                  onClick={() => handleStudentSelect(student.id.toString())}
                   className="text-gray-500 hover:text-gray-700 ml-1"
                 >
                   ×
@@ -103,7 +102,7 @@ export const AddStudentToClass = ({
           <Input
             isSearch={true}
             type="text"
-            placeholder="Tìm kiếm học viên"
+            placeholder="Tìm kiếm nhiệm vụ"
             value={searchQuery}
             onChange={(value) => setSearchQuery(value)}
             customClassNames="w-full"
@@ -113,7 +112,7 @@ export const AddStudentToClass = ({
 
         <div className="border rounded-md overflow-hidden">
           <div className="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar">
-            {filteredStudents.map((student: User) => (
+            {filteredStudents.map((student) => (
               <div
                 key={student.id}
                 className="flex items-center justify-between p-3 hover:bg-primary-10 border-b last:border-b-0"
