@@ -18,6 +18,8 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   onBlur?: () => void;
   onSearch?: () => void;
   readOnly?: boolean;
+  disabled?: boolean;
+  rightIcon?: ReactNode;
 }
 const BASE_CLASS =
   "w-full rounded-xl border border-grey-300 bg-grey-50 p-3 outline-none min-h-[48px] flex items-center justify-center";
@@ -34,6 +36,8 @@ export const Input = ({
   customClassNames,
   readOnly = false,
   onSearch,
+  disabled = false,
+  rightIcon,
   ...props
 }: Props) => {
   const [showPassword, setshowPassword] = useState(false);
@@ -56,6 +60,7 @@ export const Input = ({
           value &&
             !error &&
             "border-green-400 focus:border-green-400 focus:border-2",
+          disabled && "bg-gray-100 cursor-not-allowed opacity-70",
           customClassNames // This affects the container div
         )}
       >
@@ -87,13 +92,19 @@ export const Input = ({
             onChange={handleOnChange}
             onBlur={handleOnBlur}
             readOnly={readOnly}
+            disabled={disabled}
             {...props}
           />
           {type === "password" && (
-            <button type="button" onClick={handleShowPassword}>
+            <button
+              type="button"
+              onClick={handleShowPassword}
+              disabled={disabled}
+            >
               {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
             </button>
           )}
+          {rightIcon && <div className="ml-2">{rightIcon}</div>}
         </div>
       </div>
       {error && <p className="mt-2 text-BodySm text-red-600">{error}</p>}
