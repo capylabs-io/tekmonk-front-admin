@@ -211,7 +211,7 @@ export default function ClassDetailPage({
       },
       {
         header: 'Số học viên đạt được',
-        cell: ({ row }) => <span>{row.original.mission.number}</span>,
+        cell: ({ row }) => <span>{row.original.mission.reward}</span>,
       },
       {
         header: 'Loại',

@@ -14,9 +14,15 @@ import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { AchievementFormData } from "@/components/achievement/CreateAchievementModal";
 import { Input } from "@/components/common/Input";
-import { useState } from "react";
-import { CreateMissionModal } from "@/components/mission/CreateMissionModal";
+import { useMemo, useState } from "react";
+import { CreateMissionModal, MisionFormData } from "@/components/mission/CreateMissionModal";
 import { useMission } from "@/hooks/useMission";
+import { getMission, postMission, updateMission } from "@/requests/mission";
+import { useSnackbarStore } from "@/store/SnackbarStore";
+import { useLoadingStore } from "@/store/LoadingStore";
+import { Mission, MissionType } from "@/types/mission";
+import { useQuery } from "@tanstack/react-query";
+import qs from "qs";
 
 
 export default function Page() {
@@ -34,6 +40,62 @@ export default function Page() {
   const handleSearch = () => {
     setSearchQuery(textSearch);
   };
+  const [isEditing, setIsEditing] = useState(false)
+  const [currentMissionSelected, setCurrentMissionSelected] = useState<Mission>()
+  const [showSuccess, showError] = useSnackbarStore((state) => [state.success, state.error])
+  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide])
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemPerPage] = useState(10);
+  const { data: missionList, refetch: refetchMissionList } = useQuery({
+    queryKey: ["missionList"],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          populate: ["class", 'teacher'],
+          pagination: {
+            page: currentPage,
+            pageSize: itemsPerPage,
+          },
+        });
+        return await getMission(queryString);
+      } catch (error) {
+        console.log("error when fetching mission list", error);
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+  const handlePostMission = async (data: MisionFormData) => {
+    try {
+      showLoading()
+      if (currentMissionSelected) {
+        const res = await updateMission(currentMissionSelected.id || 0, data)
+        if (res) {
+          showSuccess('Cập nhật', 'Nhiệm vụ cập nhật thành công!')
+        }
+      } else {
+        const res = await postMission(data)
+        if (res) {
+          showSuccess('Tạo mới', 'Nhiệm vụ tạo mới thành công!')
+        }
+      }
+    } catch (error) {
+      console.log('error', error);
+      if (currentMissionSelected) {
+        showError('Cập nhật', 'Nhiệm vụ cập nhật thất bại!')
+      } else {
+        showError('Tạo mới', 'Nhiệm vụ tạo mới thất bại!')
+      }
+    } finally {
+      hideLoading()
+      refetchMissionList()
+    }
+  }
+  const systemMissionList = useMemo(() => {
+    return missionList ? missionList.filter((mission: Mission) => mission.type = MissionType.EVERY_SESSION) : []
+  }, [missionList])
+  const customMissionList = useMemo(() => {
+    return missionList ? missionList.filter((mission: Mission) => mission.type = MissionType.MANUAL) : []
+  }, [missionList])
   const columns: ColumnDef<AchievementFormData>[] =
     [
       {
@@ -74,12 +136,14 @@ export default function Page() {
                 className="p-2 hover:bg-gray-100 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
+                  setIsEditing((prev) => prev = true)
+                  setIsOpenCreateModal(true)
                   // Add edit handler here
                 }}
               >
                 <Edit className="h-4 w-4" color="#7C6C80" />
               </button>
-              <button
+              {/* <button
                 className="p-2 hover:bg-gray-100 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
@@ -87,7 +151,7 @@ export default function Page() {
                 }}
               >
                 <Trash2 className="h-4 w-4" color="#7C6C80" />
-              </button>
+              </button> */}
             </div>
           );
         },
@@ -135,7 +199,7 @@ export default function Page() {
                 />
               </div>
               <CommonTable
-                data={[]}
+                data={systemMissionList}
                 isLoading={false}
                 columns={columns}
                 page={page}
@@ -173,7 +237,7 @@ export default function Page() {
                 </CommonButton>
               </div>
               <CommonTable
-                data={[]}
+                data={customMissionList}
                 isLoading={false}
                 columns={columns}
                 page={page}
@@ -188,7 +252,7 @@ export default function Page() {
         </Tabs>
 
       </div>
-      <CreateMissionModal open={isOpenCreateModal} onOpenChange={(value) => { setIsOpenCreateModal(value) }} onSubmit={() => { }} />
+      <CreateMissionModal isEdit={isEditing} open={isOpenCreateModal} onOpenChange={(value) => { setIsOpenCreateModal(value) }} onSubmit={handlePostMission} />
     </>
   );
 }

@@ -23,39 +23,47 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { InputImgUploadContest } from "../contest/InputImgUploadContest";
-import { achievementFormSchema } from "@/validation/achievement";
 import { CommonSelect } from "../common/CommonSelect";
 import { InputFileUpdload } from "../common/InputFileUpload";
 import { Plus } from "lucide-react";
+import { misionFormSchema } from "@/validation/mission";
+import { MissionType } from "@/types/mission";
 
-export type AchievementFormData = {
-  title: string;
-  icon: File | null;
-  type: string;
-  content: string
+export type MisionFormData = {
+  title?: string
+  description?: string
+  type?: MissionType,
+  actionType?: string
+  module?: string
+  reward?: string
+  requiredQuantity?: string
+  points?: string
 }
 
 type Props = {
   open: boolean;
+  isEdit: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: AchievementFormData) => void;
+  onSubmit: (data: MisionFormData) => void;
 };
 
 
-export const CreateMissionModal = ({ open, onOpenChange, onSubmit }: Props) => {
+export const CreateMissionModal = ({ open, isEdit, onOpenChange, onSubmit }: Props) => {
   const [success, error] = useSnackbarStore((state) => [
     state.success,
     state.error,
   ]);
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
 
-  const methods = useForm<AchievementFormData>({
-    resolver: zodResolver(achievementFormSchema),
+  const methods = useForm<MisionFormData>({
+    resolver: zodResolver(misionFormSchema),
     defaultValues: {
       title: "",
-      icon: null,
-      type: "",
-      content: "",
+      type: MissionType.MANUAL,
+      description: "",
+      reward: '',
+      requiredQuantity: '',
+      points: ''
     },
   });
 
@@ -81,17 +89,14 @@ export const CreateMissionModal = ({ open, onOpenChange, onSubmit }: Props) => {
     onOpenChange(open);
   };
   const handleSelectChange = (value: string) => {
-    setValue('type', value)
-  }
-  const handleImageUpload = (file: File | null) => {
-    if (file) setValue("icon", file as any)
+    setValue('type', value as MissionType)
   }
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
-            Tạo nhiệm vụ mới
+            {isEdit ? "Chỉnh sửa nhiệm vụ" : "Tạo nhiệm vụ mới"}
           </DialogTitle>
         </DialogHeader>
 
@@ -120,23 +125,62 @@ export const CreateMissionModal = ({ open, onOpenChange, onSubmit }: Props) => {
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Icon</div>
-                  <InputFileUpdload
-                    value={getValues("icon")}
-                    onChange={handleImageUpload}
-                    customInputClassNames="text-sm !max-h-[50px] !items-start"
-                    contentImageUpload={
-                      <>
-                        <p className="flex items-center gap-2 text-base  !font-light text-gray-70 w-full justify-start"><Plus size={16}></Plus>Thêm ảnh</p>
-                      </>
-                    }
+                  <div className="w-[160px] text-SubheadMd">Phần thưởng</div>
+                  <Controller
+                    name="reward"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Nhập dữ liệu"
+                        customClassNames="flex-1"
+                        error={errors.title?.message}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-[160px] text-SubheadMd">Số lượng yêu cầu</div>
+                  <Controller
+                    name="requiredQuantity"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Nhập dữ liệu"
+                        customClassNames="flex-1"
+                        error={errors.title?.message}
+                      />
+                    )}
+                  />
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-[160px] text-SubheadMd">Điểm thưởng</div>
+                  <Controller
+                    name="points"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Nhập dữ liệu"
+                        customClassNames="flex-1"
+                        error={errors.title?.message}
+                      />
+                    )}
                   />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="min-w-[160px] text-SubheadMd">Loại hành động</div>
-                  <CommonSelect className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn loại thành tích" options={[]} value={getValues('type')} onChange={handleSelectChange} />
+                  <CommonSelect disabled={isEdit} className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn loại thành tích" options={[]} value={getValues('type')} onChange={handleSelectChange} />
                 </div>
               </div>
               {/* Description Field */}
@@ -144,7 +188,7 @@ export const CreateMissionModal = ({ open, onOpenChange, onSubmit }: Props) => {
                 <div className="flex items-start gap-2">
                   <div className="flex-1">
                     <Controller
-                      name="content"
+                      name="description"
                       control={control}
                       render={({ field }) => (
                         <div className="flex flex-col gap-2">
@@ -157,9 +201,9 @@ export const CreateMissionModal = ({ open, onOpenChange, onSubmit }: Props) => {
                             value={field.value}
                             onChange={field.onChange}
                           />
-                          {errors.content && (
+                          {errors.description && (
                             <p className="text-red-500 text-BodySm">
-                              {errors.content.message}
+                              {errors.description.message}
                             </p>
                           )}
                         </div>

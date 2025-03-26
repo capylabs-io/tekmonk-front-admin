@@ -7,7 +7,7 @@ export type Mission = {
   type?: MissionType,
   actionType?: string
   module?: string
-  number?: number
+  reward?: number
   requiredQuantity?: number
   points?: number
   teacher?: User
