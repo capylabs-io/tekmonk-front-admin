@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ReactNode } from "react";
 import { CommonTag } from "../../common/CommonTag";
 import StudentTablePagination from "../student-table-pagination";
 import { Input } from "../../common/Input";
@@ -14,6 +14,14 @@ import {
 import { CommonButton } from "@/components/common/button/CommonButton";
 
 /**
+ * Item interface for dialog items
+ */
+interface DialogItem {
+  id: string | number;
+  [key: string]: any;
+}
+
+/**
  * AddItemDialogProps interface
  */
 interface AddItemDialogProps {
@@ -21,12 +29,14 @@ interface AddItemDialogProps {
   onOpenChange: (open: boolean) => void;
   title: string;
   description?: string;
-  items: any[];
+  items: DialogItem[];
   selectedItems: string[];
   setSelectedItems: (items: string[]) => void;
   searchPlaceholder?: string;
   nameKey?: string;
   descriptionKey?: string;
+  renderName?: (item: DialogItem) => ReactNode;
+  renderDescription?: (item: DialogItem) => ReactNode;
   onSubmit?: () => void;
   onCancel?: () => void;
   totalItems?: number;
@@ -47,6 +57,8 @@ export const AddItemDialog = ({
   searchPlaceholder = "Search items",
   nameKey = "name",
   descriptionKey = "description",
+  renderName,
+  renderDescription,
   onSubmit,
   onCancel,
   totalItems = 0,
@@ -67,9 +79,15 @@ export const AddItemDialog = ({
     );
   };
 
+  // Get searchable text content from an item
+  const getSearchableContent = (item: DialogItem) => {
+    // Always default to using nameKey for searching
+    return get(item, nameKey, "").toLowerCase();
+  };
+
   const filteredItems = items
     ? items.filter((item) =>
-        get(item, nameKey, "").toLowerCase().includes(searchQuery.toLowerCase())
+        getSearchableContent(item).includes(searchQuery.toLowerCase())
       )
     : [];
 
@@ -94,7 +112,7 @@ export const AddItemDialog = ({
                   key={item.id}
                   className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-sm flex items-center gap-1"
                 >
-                  {get(item, nameKey, "")}
+                  {renderName ? renderName(item) : get(item, nameKey, "")}
                   <button
                     onClick={() => handleItemSelect(item.id.toString())}
                     className="text-gray-500 hover:text-gray-700 ml-1"
@@ -127,11 +145,13 @@ export const AddItemDialog = ({
                 >
                   <div>
                     <div className="font-medium text-sm text-gray-900">
-                      {get(item, nameKey, "")}
+                      {renderName ? renderName(item) : get(item, nameKey, "")}
                     </div>
-                    {get(item, descriptionKey) && (
+                    {(renderDescription || get(item, descriptionKey)) && (
                       <div className="text-sm text-gray-500">
-                        {get(item, descriptionKey, "")}
+                        {renderDescription
+                          ? renderDescription(item)
+                          : get(item, descriptionKey, "")}
                       </div>
                     )}
                   </div>
