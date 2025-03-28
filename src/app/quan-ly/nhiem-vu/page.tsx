@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, PanelLeft } from "lucide-react";
+import { Edit, PanelLeft, UserRoundSearch } from "lucide-react";
 import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
@@ -15,6 +15,8 @@ import { Mission } from "@/types/mission";
 import { Input } from "@/components/common/Input";
 import { CreateMissionDialog } from "@/components/class/create-mission-dialog";
 import { CommonButton } from "@/components/common/button/CommonButton";
+import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
+import { ReqGetUsersAchievedMission } from "@/requests/user";
 
 export default function Page() {
   const {
@@ -37,6 +39,10 @@ export default function Page() {
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Dialog states
+  const [isViewStudentsDialogOpen, setIsViewStudentsDialogOpen] =
+    useState(false);
 
   const { data: missionList, refetch: refetchMissionList } = useQuery({
     queryKey: [
@@ -108,8 +114,12 @@ export default function Page() {
       setIsOpenEditModal(true);
     } else {
       console.log("Cannot edit system missions");
-      // You could show a message here that system missions can't be edited
     }
+  };
+
+  const handleViewStudents = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsViewStudentsDialogOpen(true);
   };
 
   const handleUpdateSuccess = () => {
@@ -159,11 +169,21 @@ export default function Page() {
               disabled={row.original.type !== "Manual"}
               title={
                 row.original.type !== "Manual"
-                  ? "Cannot edit system missions"
-                  : "Edit mission"
+                  ? "Không thể chỉnh sửa nhiệm vụ thuộc hệ thống"
+                  : "Chỉnh sửa nhiệm vụ"
               }
             >
               <Edit className="h-4 w-4" color="#7C6C80" />
+            </button>
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewStudents(row.original);
+              }}
+              title="Xem danh sách học viên đã đạt được nhiệm vụ này"
+            >
+              <UserRoundSearch className="h-4 w-4" color="#7C6C80" />
             </button>
           </div>
         );
@@ -249,6 +269,18 @@ export default function Page() {
           onSubmit={handleUpdateSuccess}
           classId={selectedMission.class?.id || 0}
           mission={selectedMission}
+        />
+      )}
+
+      {/* View students who have achieved this mission */}
+      {isViewStudentsDialogOpen && (
+        <StudentListDialog
+          open={isViewStudentsDialogOpen}
+          onOpenChange={setIsViewStudentsDialogOpen}
+          title="Danh sách học viên đã đạt được nhiệm vụ"
+          mission={selectedMission}
+          queryFn={ReqGetUsersAchievedMission}
+          queryKey="achievedMission"
         />
       )}
     </>

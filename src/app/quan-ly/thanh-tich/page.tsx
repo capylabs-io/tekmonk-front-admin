@@ -1,6 +1,6 @@
 "use client";
 
-import { PanelLeft, UserPlus, Edit } from "lucide-react";
+import { PanelLeft, UserPlus, Edit, UserRoundSearch } from "lucide-react";
 import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
@@ -25,7 +25,11 @@ import { CommonButton } from "@/components/common/button/CommonButton";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { AddItemDialog } from "@/components/admin/dialogs/add-item-dialog";
 import { ReqGetUserHaveAchievedAchievement } from "@/requests/user";
-import { ReqCreateAchievementHistory } from "@/requests/achievement-history";
+import {
+  ReqCreateAchievementHistory,
+  ReqGetAchievementHistory,
+} from "@/requests/achievement-history";
+import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
 
 export default function Page() {
   const {
@@ -58,6 +62,8 @@ export default function Page() {
     state.success,
     state.error,
   ]);
+  const [isViewStudentsDialogOpen, setIsViewStudentsDialogOpen] =
+    useState(false);
 
   const { data: achievementList, refetch: refetchAchievementList } = useQuery({
     queryKey: [
@@ -253,6 +259,11 @@ export default function Page() {
     }
   };
 
+  const handleViewStudentsAchieved = (achievement: Mission) => {
+    setSelectedAchievement(achievement);
+    setIsViewStudentsDialogOpen(true);
+  };
+
   const columns: ColumnDef<Mission>[] = [
     {
       header: "STT",
@@ -287,6 +298,16 @@ export default function Page() {
       cell: ({ row }) => {
         return (
           <div className="flex gap-2">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleViewStudentsAchieved(row.original);
+              }}
+              title="Xem danh sách học viên đã đạt được thành tích này"
+            >
+              <UserRoundSearch className="h-4 w-4" color="#7C6C80" />
+            </button>
             <button
               className="p-2 hover:bg-gray-100 rounded-full"
               onClick={() => handleOpenStudentList(row.original)}
@@ -437,6 +458,17 @@ export default function Page() {
         onItemsPerPageChange={setStudentItemsPerPage}
         showSelectedTags={false}
       />
+
+      {isViewStudentsDialogOpen && (
+        <StudentListDialog
+          open={isViewStudentsDialogOpen}
+          onOpenChange={setIsViewStudentsDialogOpen}
+          title="Danh sách học viên đã đạt được thành tích"
+          mission={selectedAchievement}
+          queryFn={ReqGetAchievementHistory}
+          queryKey="achievedAchievement"
+        />
+      )}
     </>
   );
 }

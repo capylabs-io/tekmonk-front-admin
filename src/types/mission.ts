@@ -21,3 +21,9 @@ export enum MissionType {
   EVERY_SESSION = "EverySession",
   MANUAL = "Manual",
 }
+
+export type MissionHistory = {
+  user?: User;
+  mission?: Mission;
+  isClaim: boolean;
+};

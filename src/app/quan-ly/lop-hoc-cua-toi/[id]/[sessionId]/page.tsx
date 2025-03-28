@@ -40,10 +40,11 @@ export default function SessionDetailPage({
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [currentClass] = useClassStore((state) => [state.currentClass]);
-  const [totalPage, setTotalPage] = useState(10);
-  const [totalDocs, setTotalDocs] = useState(100);
+  const [totalPage, setTotalPage] = useState(1);
+  const [totalDocs, setTotalDocs] = useState(0);
   const [limit, setLimit] = useState(10);
   const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
   /* UseStore */
   const [success, error] = useSnackbarStore((state) => [
     state.success,
@@ -54,31 +55,34 @@ export default function SessionDetailPage({
     state.hide,
   ]);
 
-  const { data: studentAttendance, refetch: refetchStudentAttendance } =
-    useQuery({
-      queryKey: ["student-attendance", params.sessionId],
-      queryFn: async () => {
-        try {
-          const queryString = qs.stringify({
-            filters: {
-              class_session: {
-                id: {
-                  $eq: params.sessionId,
-                },
+  const {
+    data: studentAttendance,
+    refetch: refetchStudentAttendance,
+    isLoading: isStudentAttendanceLoading,
+  } = useQuery({
+    queryKey: ["student-attendance", params.sessionId],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          filters: {
+            class_session: {
+              id: {
+                $eq: params.sessionId,
               },
             },
-            populate: "*",
-          });
-          return await ReqGetClassSessionDetail(queryString);
-        } catch (error) {
-          console.log(error);
-          return { data: [] };
-        }
-      },
-      refetchOnWindowFocus: false,
-    });
+          },
+          populate: "*",
+        });
+        return await ReqGetClassSessionDetail(queryString);
+      } catch (error) {
+        console.log(error);
+        return { data: [] };
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
 
-  const { data: studentList } = useQuery({
+  const { data: studentList, isLoading: isStudentListLoading } = useQuery({
     queryKey: ["student-list", params.id],
     queryFn: async () => {
       try {
@@ -100,7 +104,7 @@ export default function SessionDetailPage({
     },
     refetchOnWindowFocus: false,
   });
-  const { data: everySessionMission } = useQuery({
+  const { data: everySessionMission, isLoading: isMissionLoading } = useQuery({
     queryKey: ["course-mission", get(currentClass, ["course", "id"], 0)],
     queryFn: async () => {
       try {
@@ -225,9 +229,19 @@ export default function SessionDetailPage({
 
         setAttendanceData(combinedData);
         setInitialAttendanceData(JSON.parse(JSON.stringify(combinedData)));
+
+        // Set pagination related state based on the data
+        const total = combinedData.length;
+        setTotalDocs(total);
+        setTotalPage(Math.ceil(total / limit));
       } else {
         setAttendanceData(mergedAttendance);
         setInitialAttendanceData(JSON.parse(JSON.stringify(mergedAttendance)));
+
+        // Set pagination related state based on the data
+        const total = mergedAttendance.length;
+        setTotalDocs(total);
+        setTotalPage(Math.ceil(total / limit));
       }
     } else if (studentList?.data) {
       // If no attendance data exists, create mock data from student list
@@ -248,15 +262,81 @@ export default function SessionDetailPage({
 
       setAttendanceData(mockData);
       setInitialAttendanceData(JSON.parse(JSON.stringify(mockData)));
+
+      // Set pagination related state based on the data
+      const total = mockData.length;
+      setTotalDocs(total);
+      setTotalPage(Math.ceil(total / limit));
     }
-  }, [studentAttendance, studentList, params.sessionId, classMissionList]);
+  }, [
+    studentAttendance,
+    studentList,
+    params.sessionId,
+    classMissionList,
+    limit,
+  ]);
+
+  // Update totalPage when limit changes
+  useEffect(() => {
+    if (attendanceData.length > 0) {
+      setTotalPage(Math.ceil(attendanceData.length / limit));
+    }
+  }, [limit, attendanceData]);
+
+  // Handle page size change
+  const handlePageSizeChange = (newLimit: number) => {
+    setLimit(newLimit);
+    // Reset to page 1 when changing page size to avoid being on a now invalid page
+    setPage(1);
+  };
+
+  // Handle page change
+  const handlePageChange = (newPage: number) => {
+    // Validate the requested page is within bounds
+    if (newPage < 1) {
+      setPage(1);
+    } else if (newPage > totalPage) {
+      setPage(totalPage);
+    } else {
+      setPage(newPage);
+    }
+  };
+
+  // Get paginated data
+  const paginatedData = useMemo(() => {
+    const startIndex = (page - 1) * limit;
+    const endIndex = startIndex + limit;
+
+    // If the current page would be empty after data changes, adjust to the last page with data
+    if (startIndex >= attendanceData.length && page > 1) {
+      const newLastPage = Math.max(1, Math.ceil(attendanceData.length / limit));
+      // Only update if we need to
+      if (page !== newLastPage) {
+        // Schedule this for the next render cycle to avoid state update during render
+        setTimeout(() => setPage(newLastPage), 0);
+      }
+    }
+
+    return attendanceData.slice(startIndex, endIndex);
+  }, [attendanceData, page, limit]);
 
   // Function to check if a checkbox should be disabled
   const isCheckboxDisabled = (index: number, field: string) => {
+    // Calculate the actual index in the full dataset
+    const actualIndex = (page - 1) * limit + index;
+
     // Check if the specific mission is disabled in both current and initial data
+    // Make sure we don't go out of bounds
+    if (
+      actualIndex >= attendanceData.length ||
+      actualIndex >= initialAttendanceData.length
+    ) {
+      return false;
+    }
+
     return (
-      initialAttendanceData[index]?.[`${field}_disable`] === true ||
-      attendanceData[index]?.[`${field}_disable`] === true
+      initialAttendanceData[actualIndex]?.[`${field}_disable`] === true ||
+      attendanceData[actualIndex]?.[`${field}_disable`] === true
     );
   };
 
@@ -268,10 +348,16 @@ export default function SessionDetailPage({
 
     setAttendanceData((prev) => {
       const newData = [...prev];
-      newData[index] = {
-        ...newData[index],
-        [field]: !newData[index][field], // Toggle the checkbox
-      };
+      // Calculate the actual index in the full dataset
+      const actualIndex = (page - 1) * limit + index;
+
+      // Ensure we're updating the correct student in the full array
+      if (actualIndex < newData.length) {
+        newData[actualIndex] = {
+          ...newData[actualIndex],
+          [field]: !newData[actualIndex][field], // Toggle the checkbox
+        };
+      }
       return newData;
     });
 
@@ -281,6 +367,8 @@ export default function SessionDetailPage({
   const handleSaveConfirm = async () => {
     try {
       showLoading();
+      setIsLoading(true); // Set loading state while saving
+
       // First, update class session status if there are new records
       const hasNewRecords = attendanceData.some((record) => record.id === null);
       if (hasNewRecords) {
@@ -290,7 +378,7 @@ export default function SessionDetailPage({
       // Get all checkbox changes that need to be saved
       const newRecordsPromises = [];
 
-      // Process each record
+      // Process each record from the full data array
       for (const record of attendanceData) {
         // Get mission keys that are checked
         const checkedMissions = Object.keys(record).filter(
@@ -345,8 +433,17 @@ export default function SessionDetailPage({
       error("Lỗi", "Có lỗi xảy ra khi lưu dữ liệu điểm danh");
     } finally {
       hideLoading();
+      setIsLoading(false); // Clear loading state when done
     }
   };
+
+  useEffect(() => {
+    // Update isLoading state based on all data fetching statuses
+    setIsLoading(
+      isStudentAttendanceLoading || isStudentListLoading || isMissionLoading
+    );
+  }, [isStudentAttendanceLoading, isStudentListLoading, isMissionLoading]);
+
   const missionColumns: ColumnDef<any>[] = useMemo(() => {
     return classMissionList
       .map((item) => {
@@ -368,7 +465,7 @@ export default function SessionDetailPage({
         };
       })
       .filter(Boolean) as ColumnDef<any>[];
-  }, [classMissionList, handleCheckboxChange, isCheckboxDisabled]);
+  }, [classMissionList, handleCheckboxChange, isCheckboxDisabled, page, limit]);
   // console.log('classMissionList', classMissionList);
   // Base columns
   const baseColumns: ColumnDef<any>[] = [
@@ -422,15 +519,15 @@ export default function SessionDetailPage({
 
         <div className="space-y-6 p-4">
           <CommonTable
-            data={attendanceData || ([] as any[])}
-            isLoading={false}
+            data={paginatedData || ([] as any[])}
+            isLoading={isLoading}
             columns={[...columns]}
             page={page}
             totalPage={totalPage}
             totalDocs={totalDocs}
-            onPageChange={setPage}
+            onPageChange={handlePageChange}
             docsPerPage={limit}
-            onPageSizeChange={setLimit}
+            onPageSizeChange={handlePageSizeChange}
           />
         </div>
       </div>

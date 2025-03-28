@@ -47,3 +47,8 @@ export const ReqGetUserHaveAchievedAchievement = async (query: string = "") => {
   );
   return response.data as StrapiResponse<User[]>;
 };
+
+export const ReqGetUsersAchievedMission = async (query: string = "") => {
+  const response = await tekdojoAxios.get(`/mission-histories?${query}`);
+  return response.data as StrapiResponse<any[]>;
+};
