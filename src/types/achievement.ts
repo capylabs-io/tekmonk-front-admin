@@ -1,10 +1,10 @@
 import { User } from "./common-types";
 
-export type Mission = {
+export type TAchievement = {
   id: number;
   title: string;
   description?: string;
-  type: MissionType;
+  type: AchievementType;
   actionType: string;
   module?: string;
   reward: number;
@@ -15,7 +15,7 @@ export type Mission = {
   numberOfUserAchieved: number;
 };
 
-export enum MissionType {
-  EVERY_SESSION = "EverySession",
+export enum AchievementType {
+  EVERY_SESSION = "Auto",
   MANUAL = "Manual",
 }

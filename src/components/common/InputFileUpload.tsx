@@ -5,7 +5,7 @@ import { ImgSubmitPreview } from "@/components/contest/ImgSubmitPreview";
 
 type Props = {
   value: File | null;
-  contentImageUpload: ReactNode
+  contentImageUpload: ReactNode;
   customInputClassNames?: string;
   customClassNames?: string;
   error?: string;
@@ -40,7 +40,7 @@ export const InputFileUpdload = ({
         return;
       }
       setFile(selectedFile);
-      console.log('selectedFile', selectedFile);
+      console.log("selectedFile", selectedFile);
 
       onChange?.(selectedFile);
     }
@@ -71,7 +71,6 @@ export const InputFileUpdload = ({
           customClassNames
         )}
       >
-
         <div
           className={classNames(
             BASE_CLASS,
@@ -83,7 +82,7 @@ export const InputFileUpdload = ({
             // "border-green-400 focus:border-green-400 focus:border-2"
           )}
         >
-          {file && fileUrl ?
+          {file && fileUrl ? (
             <ImgSubmitPreview
               src={fileUrl}
               key={file.name}
@@ -91,7 +90,8 @@ export const InputFileUpdload = ({
               height={100}
               className="mr-2"
               onRemove={removeImg}
-            /> :
+            />
+          ) : (
             <>
               <input
                 type="file"
@@ -106,12 +106,10 @@ export const InputFileUpdload = ({
                 className="absolute text-gray-400 text-center font-normal"
                 onClick={handleClick}
               >
-                {
-                  contentImageUpload
-                }
+                {contentImageUpload}
               </div>
             </>
-          }
+          )}
         </div>
       </div>
       {isExceedFileSize && (

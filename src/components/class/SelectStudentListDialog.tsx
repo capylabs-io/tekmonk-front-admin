@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -6,72 +6,82 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CommonButton } from "@/components/common/button/CommonButton";
-import { AddStudentToClass } from '../admin/add-student-to-class';
-import { useClassStore } from '@/store/class-store';
-import { useLoadingStore } from '@/store/LoadingStore';
-import { useSnackbarStore } from '@/store/SnackbarStore';
-import { useMutation } from '@tanstack/react-query';
+import { AddStudentToClass } from "../admin/add-student-to-class";
+import { useClassStore } from "@/store/class-store";
+import { AddItemDialog } from "../admin/dialogs/add-item-dialog";
+import { ReqGetUsers } from "@/requests/user";
+import { get } from "lodash";
+import { User } from "@/types/common-types";
+import { useQuery } from "@tanstack/react-query";
+import qs from "qs";
 
 type Props = {
-  title: string,
-  isOpen: boolean
-  openDialogClick: (status: boolean) => void
-  closeDialogClick: () => void
-  handleAddStudent: (data: string[]) => void
-}
-export const SelectStudentListDialog = ({ title, isOpen, openDialogClick, closeDialogClick, handleAddStudent }: Props) => {
+  title: string;
+  isOpen: boolean;
+  openDialogClick: (status: boolean) => void;
+  closeDialogClick: () => void;
+  handleAddStudent: (data: string[]) => void;
+};
+export const SelectStudentListDialog = ({
+  title,
+  isOpen,
+  openDialogClick,
+  closeDialogClick,
+  handleAddStudent,
+}: Props) => {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const handleCloseDialog = () => {
-    closeDialogClick();
-    setSelectedStudents([]);
-  }
+  const [currentClass] = useClassStore((state) => [state.currentClass]);
   const handleAddStudents = () => {
     handleAddStudent(selectedStudents);
     setSelectedStudents([]);
   };
-  return (
-    <Dialog
+  const [step, setStep] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemPerPage] = useState(10);
+
+  const { data: studentList } = useQuery({
+    queryKey: ["studentList", currentPage, itemsPerPage],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          filters: {
+            user_role: {
+              code: {
+                $eq: "STUDENT",
+              },
+            },
+          },
+          populate: "user_role",
+          pagination: {
+            page: currentPage,
+            pageSize: itemsPerPage,
+          },
+        });
+        return await ReqGetUsers(queryString);
+      } catch (error) {
+        console.log("error when fetching student list", error);
+      }
+    },
+    refetchOnWindowFocus: false,
+  }); return (
+    <AddItemDialog
       open={isOpen}
       onOpenChange={openDialogClick}
-    >
-      <DialogContent className="w-[680px] bg-white">
-        <DialogHeader className="px-4">
-          <DialogTitle className="text-HeadingSm font-semibold text-gray-95">
-            {title}
-          </DialogTitle>
-        </DialogHeader>
-
-        <div className="p-4">
-          <AddStudentToClass
-            selectedStudents={selectedStudents}
-            setSelectedStudents={setSelectedStudents}
-          />
-
-          {/* Actions */}
-          <div className="flex justify-between mt-4">
-            <div>
-              <span className="text-sm text-gray-500">
-                Đã chọn {selectedStudents.length} học viên
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <CommonButton
-                variant="secondary"
-                onClick={handleCloseDialog}
-              >
-                Hủy
-              </CommonButton>
-              <CommonButton
-                variant="primary"
-                onClick={handleAddStudents}
-                disabled={selectedStudents.length === 0}
-              >
-                Thêm
-              </CommonButton>
-            </div>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-  )
-}
+      title={title}
+      description=""
+      items={get(studentList, "data", []) || []}
+      selectedItems={selectedStudents}
+      setSelectedItems={setSelectedStudents}
+      searchPlaceholder="Tìm kiếm học viên"
+      nameKey="username"
+      descriptionKey="email"
+      totalItems={get(studentList, "meta.pagination.total", 0)}
+      currentPage={currentPage}
+      itemsPerPage={itemsPerPage}
+      onPageChange={setCurrentPage}
+      onItemsPerPageChange={setItemPerPage}
+      onSubmit={handleAddStudents}
+      onCancel={closeDialogClick}
+    />
+  );
+};

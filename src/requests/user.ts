@@ -26,3 +26,17 @@ export const ReqGetClassUserRemaining = async (query: string = "") => {
     `${BASE_URL}/custom-auth/remaining-users?${query}`
   )) as StrapiResponse<User[]>;
 };
+
+export const ReqGetUserHaveNotAchievedMission = async (query: string = "") => {
+  const response = await tekdojoAxios.get(
+    `/custom-user/users-have-not-achieve-mission?${query}`
+  );
+  return response.data as StrapiResponse<User[]>;
+};
+
+export const ReqGetUserHaveNotInClass = async (query: string = "") => {
+  const response = await tekdojoAxios.get(
+    `/custom-auth/users-have-not-in-class?${query}`
+  );
+  return response.data as StrapiResponse<User[]>;
+};

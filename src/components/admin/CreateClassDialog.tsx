@@ -22,12 +22,13 @@ import { ReqGetCourses } from "@/requests/course";
 import { Check } from "lucide-react";
 import { ReqCreateEnrollment } from "@/requests/enrollment";
 import { ReqCreateClassSession } from "@/requests/class-session";
-import { AddStudentToClass } from "./add-student-to-class";
+import { AddItemDialog } from "./dialogs/add-item-dialog";
 import DateRangePicker from "@/components/common/date-picker/DatePicker";
 import { Course, DateValue } from "@/types/common-types";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { get } from "lodash";
 
 interface CreateClassDialogProps {
   open: boolean;
@@ -159,6 +160,32 @@ export function CreateClassDialog({
         return await ReqGetCourses();
       } catch (error) {
         console.log("error when fetching course list", error);
+      }
+    },
+    refetchOnWindowFocus: false,
+  });
+
+  const { data: studentList } = useQuery({
+    queryKey: ["studentList", currentPage, itemsPerPage],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          filters: {
+            user_role: {
+              code: {
+                $eq: "STUDENT",
+              },
+            },
+          },
+          populate: "user_role",
+          pagination: {
+            page: currentPage,
+            pageSize: itemsPerPage,
+          },
+        });
+        return await ReqGetUsers(queryString);
+      } catch (error) {
+        console.log("error when fetching student list", error);
       }
     },
     refetchOnWindowFocus: false,
@@ -558,9 +585,26 @@ export function CreateClassDialog({
            * This is step 2 of create class and add student and teacher
            */
           <form onSubmit={(e) => e.preventDefault()}>
-            <AddStudentToClass
-              selectedStudents={selectedStudents}
-              setSelectedStudents={setSelectedStudents}
+            <AddItemDialog
+              open={step === 2}
+              onOpenChange={(open) => {
+                if (!open) setStep(1);
+              }}
+              title="Thêm học viên vào lớp học"
+              description="Chọn học viên cho lớp học này"
+              items={get(studentList, "data", []) || []}
+              selectedItems={selectedStudents}
+              setSelectedItems={setSelectedStudents}
+              searchPlaceholder="Tìm kiếm học viên"
+              nameKey="username"
+              descriptionKey="email"
+              totalItems={get(studentList, "meta.pagination.total", 0)}
+              currentPage={currentPage}
+              itemsPerPage={itemsPerPage}
+              onPageChange={setCurrentPage}
+              onItemsPerPageChange={setItemPerPage}
+              onSubmit={handleNext}
+              onCancel={handleBack}
             />
             {step2Form.formState.errors.selectedStudents && (
               <p className="text-red-500 text-sm mt-2">

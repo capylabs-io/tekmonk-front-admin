@@ -187,10 +187,14 @@ export default function Courses() {
 
   const handleFormSubmit = (data: any) => {
     show();
+    // Handle transform data
+    const courseData = {
+      ...data,
+    };
     if (dialogMode === "create") {
-      createCourseMutation(data);
+      createCourseMutation(courseData);
     } else {
-      updateCourseMutation({ ...data, id: courseToEdit?.id });
+      updateCourseMutation({ ...courseData, id: courseToEdit?.id });
     }
   };
 
