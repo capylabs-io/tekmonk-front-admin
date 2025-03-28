@@ -9,55 +9,77 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { quillFormats } from "@/contants/config/react-quill";
-import { quillModules } from "@/contants/config/react-quill";
-import { useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-import {
-  useForm,
-  FormProvider,
-  Controller,
-  useFormContext,
-} from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { useSnackbarStore } from "@/store/SnackbarStore";
-import { InputImgUploadContest } from "../contest/InputImgUploadContest";
 import { achievementFormSchema } from "@/validation/achievement";
-import { CommonSelect } from "../common/CommonSelect";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { ImagePlus } from "lucide-react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
 import { InputFileUpdload } from "../common/InputFileUpload";
-import { Plus } from "lucide-react";
+import { useEffect } from "react";
+import { Mission } from "@/types/mission";
 
 export type AchievementFormData = {
   title: string;
-  icon: File | null;
+  imageUrl: File | null;
   type: string;
-  content: string
-}
+  description: string;
+  reward: string;
+  points: string;
+};
 
 type Props = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: AchievementFormData) => void;
+  isLoading?: boolean;
+  achievement?: Mission;
 };
 
-
-export const CreateAchievementDialog = ({ open, onOpenChange, onSubmit }: Props) => {
-  const [success, error] = useSnackbarStore((state) => [
+export const CreateAchievementDialog = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  isLoading,
+  achievement,
+}: Props) => {
+  const [showSuccess, showError] = useSnackbarStore((state) => [
     state.success,
     state.error,
   ]);
-  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
 
   const methods = useForm<AchievementFormData>({
     resolver: zodResolver(achievementFormSchema),
     defaultValues: {
       title: "",
-      icon: null,
-      type: "",
-      content: "",
+      imageUrl: null,
+      type: "Manual",
+      description: "",
+      reward: "",
+      points: "",
     },
   });
+
+  useEffect(() => {
+    if (achievement && open) {
+      methods.reset({
+        title: achievement.title || "",
+        imageUrl: null,
+        type: "Manual",
+        description: achievement.description || "",
+        reward: achievement.reward?.toString() || "",
+        points: achievement.points?.toString() || "",
+      });
+    } else if (!achievement && open) {
+      methods.reset({
+        title: "",
+        imageUrl: null,
+        type: "Manual",
+        description: "",
+        reward: "",
+        points: "",
+      });
+    }
+  }, [achievement, open, methods]);
 
   const {
     control,
@@ -66,39 +88,33 @@ export const CreateAchievementDialog = ({ open, onOpenChange, onSubmit }: Props)
     getValues,
     setValue,
     watch,
-    trigger, // Add trigger to manually validate fields
+    trigger,
     formState: { errors, isValid, isDirty, isSubmitting },
   } = methods;
-  const ReactQuill = useMemo(
-    () => dynamic(() => import("react-quill"), { ssr: false }),
-    []
-  );
-  // Reset form when dialog closes
+
   const handleDialogChange = (open: boolean) => {
     if (!open) {
       reset();
     }
     onOpenChange(open);
   };
-  const handleSelectChange = (value: string) => {
-    setValue('type', value)
-  }
+
   const handleImageUpload = (file: File | null) => {
-    if (file) setValue("icon", file as any)
-  }
+    if (file) setValue("imageUrl", file as any);
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
-            Tạo thành tích mới
+            {achievement ? "Cập nhật thành tích" : "Tạo thành tích mới"}
           </DialogTitle>
         </DialogHeader>
 
         <FormProvider {...methods}>
           <form className="space-y-4 p-4 h-[500px] overflow-y-auto hide-scrollbar">
             <div className="space-y-6">
-              {/* Course Name Field */}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-[160px] text-SubheadMd">Tiêu đề</div>
@@ -118,116 +134,96 @@ export const CreateAchievementDialog = ({ open, onOpenChange, onSubmit }: Props)
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Icon</div>
-                  <InputFileUpdload
-                    value={getValues("icon")}
-                    onChange={handleImageUpload}
-                    customInputClassNames="text-sm !max-h-[50px] !items-start"
-                    contentImageUpload={
-                      <>
-                        <p className="flex items-center gap-2 text-base  !font-light text-gray-70 w-full justify-start"><Plus size={16}></Plus>Thêm ảnh</p>
-                      </>
-                    }
-                  />
-                </div>
+
+              <div className="flex justify-between text-sm">
+                <span className="w-[160px] text-SubheadMd">
+                  Hình ảnh <span className="text-red-500">*</span>
+                </span>
+                <InputFileUpdload
+                  value={getValues("imageUrl")}
+                  onChange={handleImageUpload}
+                  customClassNames="max-w-[424px]"
+                  customInputClassNames="text-sm flex-1"
+                  error={errors.imageUrl?.message as string}
+                  contentImageUpload={
+                    <>
+                      <div className="rounded-full p-5 w-max mx-auto flex items-center justify-center relative bg-gray-20">
+                        <ImagePlus
+                          size={20}
+                          className="absolute text-gray-50"
+                        />
+                      </div>
+                      <div className="mt-2 text-gray-70 text-SubheadSm">
+                        Tải lên ảnh/video
+                      </div>
+                      <p className="text-gray-70 !text-xs font-normal">
+                        Hoặc kéo và thả
+                      </p>
+                    </>
+                  }
+                />
               </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Loại hành động</div>
-                  <CommonSelect className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn loại thành tích" options={[]} value={getValues('type')} onChange={handleSelectChange} />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-[160px] text-SubheadMd">Số lượng yêu cầu</div>
-                  <Controller
-                    name="type"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="type"
-                        type="text"
-                        placeholder="Nhập số lượng yêu cầu"
-                        customClassNames="flex-1"
-                        error={errors.type?.message}
-                      />
-                    )}
-                  />
-                </div>
-              </div>
+
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-[160px] text-SubheadMd">Phần thưởng</div>
                   <Controller
-                    name="type"
+                    name="reward"
                     control={control}
                     render={({ field }) => (
                       <Input
                         {...field}
-                        id="type"
-                        type="text"
+                        id="reward"
+                        type="number"
                         placeholder="Nhập phần thưởng"
                         customClassNames="flex-1"
-                        error={errors.type?.message}
+                        error={errors.reward?.message}
                       />
                     )}
                   />
                 </div>
               </div>
+
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-[160px] text-SubheadMd">Điểm thưởng</div>
                   <Controller
-                    name="type"
+                    name="points"
                     control={control}
                     render={({ field }) => (
                       <Input
                         {...field}
-                        id="type"
-                        type="text"
-                        placeholder="Nhập điểm thưỏng"
+                        id="points"
+                        type="number"
+                        placeholder="Nhập điểm thưởng"
                         customClassNames="flex-1"
-                        error={errors.type?.message}
+                        error={errors.points?.message}
                       />
                     )}
                   />
                 </div>
               </div>
-              {/* Description Field */}
+
               <div className="flex flex-col gap-2">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <Controller
-                      name="content"
-                      control={control}
-                      render={({ field }) => (
-                        <div className="flex flex-col gap-2">
-                          <ReactQuill
-                            theme="snow"
-                            className="w-full rounded-xl border-grey-300 bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear overflow-y-auto"
-                            placeholder="Nhập mô tả khóa học"
-                            modules={quillModules}
-                            formats={quillFormats}
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                          {errors.content && (
-                            <p className="text-red-500 text-BodySm">
-                              {errors.content.message}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    />
+                <div className="flex items-center gap-2">
+                  <div className="w-[160px] text-SubheadMd">
+                    Mô tả <span className="text-red-500">*</span>
                   </div>
+                  <Controller
+                    name="description"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Nhập mô tả nhiệm vụ"
+                        customClassNames="flex-1"
+                        error={errors.description?.message}
+                      />
+                    )}
+                  />
                 </div>
               </div>
-
-              {/* Category Field */}
-
             </div>
           </form>
         </FormProvider>
@@ -237,16 +233,20 @@ export const CreateAchievementDialog = ({ open, onOpenChange, onSubmit }: Props)
               variant="secondary"
               className="h-11"
               onClick={() => handleDialogChange(false)}
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoading}
             >
               Hủy
             </CommonButton>
             <CommonButton
               className="h-11 w-[139px]"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isLoading}
               onClick={handleSubmit(onSubmit)}
             >
-              {isSubmitting ? "Đang tạo..." : "Tạo mới"}
+              {isSubmitting || isLoading
+                ? "Đang xử lý..."
+                : achievement
+                ? "Cập nhật"
+                : "Tạo mới"}
             </CommonButton>
           </div>
         </DialogFooter>

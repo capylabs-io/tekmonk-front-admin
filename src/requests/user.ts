@@ -40,3 +40,10 @@ export const ReqGetUserHaveNotInClass = async (query: string = "") => {
   );
   return response.data as StrapiResponse<User[]>;
 };
+
+export const ReqGetUserHaveAchievedAchievement = async (query: string = "") => {
+  const response = await tekdojoAxios.get(
+    `/custom-user/users-have-not-achieve-achievement?${query}`
+  );
+  return response.data as StrapiResponse<User[]>;
+};

@@ -17,9 +17,8 @@ export const getMission = async (query: string = "") => {
   const response = await tekdojoAxios.get(`${BASE_URL}/missions?${query}`);
   return response.data as StrapiResponse<Mission[]>;
 };
+
 export const updateMission = async (id: number, data: any) => {
-  const response = await tekdojoAxios.put(`${BASE_URL}/missions/${id}`, {
-    data,
-  });
+  const response = await tekdojoAxios.put(`${BASE_URL}/missions/${id}`, data);
   return response.data;
 };

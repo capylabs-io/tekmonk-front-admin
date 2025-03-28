@@ -5,7 +5,6 @@ import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
-import { AchievementFormData } from "@/components/achievement/CreateAchievementModal";
 import { useState } from "react";
 import { getMission } from "@/requests/mission";
 import { useQuery } from "@tanstack/react-query";
@@ -14,6 +13,8 @@ import { Tabs } from "@/components/new/tabs";
 import { useMission } from "@/hooks/useMission";
 import { Mission } from "@/types/mission";
 import { Input } from "@/components/common/Input";
+import { CreateMissionDialog } from "@/components/class/create-mission-dialog";
+import { CommonButton } from "@/components/common/button/CommonButton";
 
 export default function Page() {
   const {
@@ -33,15 +34,44 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState(tabs[0]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemPerPage] = useState(10);
+  const [isOpenEditModal, setIsOpenEditModal] = useState(false);
+  const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: missionList, refetch: refetchMissionList } = useQuery({
-    queryKey: ["missionList", activeTab.id],
+    queryKey: [
+      "missionList",
+      activeTab.id,
+      currentPage,
+      itemsPerPage,
+      searchQuery,
+    ],
     queryFn: async () => {
       try {
+        const filters = {
+          type: activeTab.id,
+        };
+
+        // Only add search filter if searchQuery is not empty
+        if (searchQuery) {
+          Object.assign(filters, {
+            $or: [
+              {
+                title: {
+                  $containsi: searchQuery,
+                },
+              },
+              {
+                description: {
+                  $containsi: searchQuery,
+                },
+              },
+            ],
+          });
+        }
+
         const queryString = qs.stringify({
-          filters: {
-            type: activeTab.id,
-          },
+          filters,
           populate: ["class", "teacher"],
           pagination: {
             page: currentPage,
@@ -55,6 +85,43 @@ export default function Page() {
     },
     refetchOnWindowFocus: false,
   });
+
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+  };
+
+  const handleSearch = () => {
+    setCurrentPage(1); // Reset to first page on new search
+    refetchMissionList();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
+
+  const handleEdit = (mission: Mission) => {
+    // Only allow editing missions with type "Manual"
+    if (mission.type === "Manual") {
+      setSelectedMission(mission);
+      setIsOpenEditModal(true);
+    } else {
+      console.log("Cannot edit system missions");
+      // You could show a message here that system missions can't be edited
+    }
+  };
+
+  const handleUpdateSuccess = () => {
+    refetchMissionList();
+    setIsOpenEditModal(false);
+    setSelectedMission(null);
+  };
+
+  const handleCreateSuccess = () => {
+    refetchMissionList();
+    setIsOpenCreateModal(false);
+  };
 
   const columns: ColumnDef<Mission>[] = [
     {
@@ -80,11 +147,21 @@ export default function Page() {
         return (
           <div className="flex gap-2">
             <button
-              className="p-2 hover:bg-gray-100 rounded-full"
+              className={`p-2 hover:bg-gray-100 rounded-full ${
+                row.original.type !== "Manual"
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               onClick={(e) => {
                 e.stopPropagation();
-                // Add edit handler here
+                handleEdit(row.original);
               }}
+              disabled={row.original.type !== "Manual"}
+              title={
+                row.original.type !== "Manual"
+                  ? "Cannot edit system missions"
+                  : "Edit mission"
+              }
             >
               <Edit className="h-4 w-4" color="#7C6C80" />
             </button>
@@ -97,7 +174,7 @@ export default function Page() {
   return (
     <>
       <div className="w-full border-gray-20 overflow-hidden flex flex-col gap-y-4 border">
-        <div className="w-full h-[68px]  flex flex-col sm:flex-row items-start sm:items-center justify-between px-2 border-b border-gray-20">
+        <div className="w-full h-[68px] flex flex-col sm:flex-row items-start sm:items-center justify-between px-2 border-b border-gray-20">
           <div className="text-SubheadLg text-gray-95 mb-2 sm:mb-0 flex items-center justify-center gap-2">
             <CommonCard
               size="small"
@@ -107,12 +184,23 @@ export default function Page() {
             </CommonCard>
             Nhiệm vụ
           </div>
+          {activeTab.id === "Manual" && (
+            <CommonButton
+              className="h-10"
+              onClick={() => setIsOpenCreateModal(true)}
+            >
+              Tạo mới
+            </CommonButton>
+          )}
         </div>
         <div className="flex items-center gap-x-4 border-b border-gray-20">
           <Tabs
             tabs={tabs}
             currentTab={activeTab}
-            setCurrentTab={setActiveTab}
+            setCurrentTab={(tab) => {
+              setActiveTab(tab);
+              setCurrentPage(1); // Reset to first page when changing tabs
+            }}
             className="w-[265px] space-x-4"
           />
         </div>
@@ -121,6 +209,11 @@ export default function Page() {
             type="text"
             placeholder="Tìm kiếm"
             customClassNames="max-w-[320px]"
+            value={searchQuery}
+            onChange={handleSearchChange}
+            onSearch={handleSearch}
+            isSearch={true}
+            onKeyDown={handleKeyPress}
           />
 
           {missionList && (
@@ -128,17 +221,36 @@ export default function Page() {
               data={missionList.data}
               isLoading={false}
               columns={columns}
-              page={page}
-              totalPage={totalPage}
-              totalDocs={totalDocs}
-              onPageChange={setPage}
-              docsPerPage={limit}
-              onPageSizeChange={setLimit}
+              page={currentPage}
+              totalPage={missionList.meta.pagination.pageCount}
+              totalDocs={missionList.meta.pagination.total}
+              onPageChange={setCurrentPage}
+              docsPerPage={itemsPerPage}
+              onPageSizeChange={setItemPerPage}
               customTableClassname="!h-[calc(100%-50px)]"
             />
           )}
         </div>
       </div>
+
+      {isOpenCreateModal && (
+        <CreateMissionDialog
+          open={isOpenCreateModal}
+          onOpenChange={setIsOpenCreateModal}
+          onSubmit={handleCreateSuccess}
+          classId={0} // Default class ID, you might want to change this
+        />
+      )}
+
+      {isOpenEditModal && selectedMission && (
+        <CreateMissionDialog
+          open={isOpenEditModal}
+          onOpenChange={setIsOpenEditModal}
+          onSubmit={handleUpdateSuccess}
+          classId={selectedMission.class?.id || 0}
+          mission={selectedMission}
+        />
+      )}
     </>
   );
 }
