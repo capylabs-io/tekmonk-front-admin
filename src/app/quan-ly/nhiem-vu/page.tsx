@@ -91,10 +91,10 @@ export default function Page() {
     }
   }
   const systemMissionList = useMemo(() => {
-    return missionList ? missionList.filter((mission: Mission) => mission.type = MissionType.EVERY_SESSION) : []
+    return missionList ? missionList.data.filter((mission: Mission) => mission.type === MissionType.EVERY_SESSION) : []
   }, [missionList])
   const customMissionList = useMemo(() => {
-    return missionList ? missionList.filter((mission: Mission) => mission.type = MissionType.MANUAL) : []
+    return missionList ? missionList.data.filter((mission: Mission) => mission.type === MissionType.MANUAL) : []
   }, [missionList])
   const columns: ColumnDef<AchievementFormData>[] =
     [

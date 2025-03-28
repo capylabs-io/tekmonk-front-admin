@@ -69,8 +69,13 @@ export const AddStudentToClass = ({
         : [...prev, studentId]
     );
   };
-  const filteredStudents = get(studentList, 'data.data', [])
+  const filteredStudentsClassId = get(studentList, 'data.data', [])
     ? get(studentList, 'data.data', [])?.filter((student: User) =>
+      student.username.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    : [];
+  const filteredStudents = get(studentList, 'data', [])
+    ? get(studentList, 'data', [])?.filter((student: User) =>
       student.username.toLowerCase().includes(searchQuery.toLowerCase())
     )
     : [];
@@ -79,9 +84,10 @@ export const AddStudentToClass = ({
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2 rounded-md min-h-[48px]">
           {selectedStudents.map((selectedId) => {
-            const student = get(studentList, "data?.data", []) && get(studentList, "data.data", []).find(
+            const student = classId ? get(studentList, "data?.data", []) && get(studentList, "data.data", []).find(
               (s: User) => s.id.toString() === selectedId
-            );
+            ) : get(studentList, "data", []) && get(studentList, "data", []).find(
+              (s: User) => s.id.toString() === selectedId)
             return student ? (
               <CommonTag
                 key={get(student, 'id')}
@@ -113,7 +119,7 @@ export const AddStudentToClass = ({
 
         <div className="border rounded-md overflow-hidden">
           <div className="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar">
-            {filteredStudents.map((student: User) => (
+            {(classId ? filteredStudentsClassId : filteredStudents).map((student: User) => (
               <div
                 key={student.id}
                 className="flex items-center justify-between p-3 hover:bg-primary-10 border-b last:border-b-0"

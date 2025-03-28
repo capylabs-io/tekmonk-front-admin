@@ -20,6 +20,8 @@ export const useCertificate = () => {
     isOpenCreateModal,
     setIsOpenCreateModal,
     setLimit,
-    setPage
+    setPage,
+    setTotalPage,
+    setTotalDocs
   }
 };

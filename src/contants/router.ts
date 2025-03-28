@@ -16,4 +16,6 @@ export const ROUTE = {
   ACHIEVEMENT: "/quan-ly/thanh-tich",
   MISSION: "/quan-ly/nhiem-vu",
   CERTIFICATE: "/quan-ly/chung-chi",
+  CERTIFICATE_REQUEST: "/quan-ly/xin-cap-chung-chi",
+  CERTIFICATE_CONFIG: "/quan-ly/cau-hinh-chung-chi",
 };

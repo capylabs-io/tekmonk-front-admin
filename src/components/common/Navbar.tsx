@@ -4,7 +4,7 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Bell, Goal, Home, Newspaper, ShoppingCart, User } from "lucide-react";
+import { Bell, Goal, Home, Newspaper, Settings, ShoppingCart, User } from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
@@ -127,7 +127,19 @@ export const Navbar = () => {
             url={ROUTE.MISSION}
           />
           <MenuCard
-            title="Chứng chỉ"
+            title="Cấu hình Chứng chỉ"
+            active={usePathname().includes(ROUTE.CERTIFICATE_CONFIG)}
+            iconElement={<Settings size={20} />}
+            url={ROUTE.CERTIFICATE_CONFIG}
+          />
+          <MenuCard
+            title="Xin cấp Chứng chỉ"
+            active={usePathname().includes(ROUTE.CERTIFICATE_REQUEST)}
+            iconElement={<Goal size={20} />}
+            url={ROUTE.CERTIFICATE_REQUEST}
+          />
+          <MenuCard
+            title="Quản lý Chứng chỉ"
             active={usePathname().includes(ROUTE.CERTIFICATE)}
             iconElement={<Goal size={20} />}
             url={ROUTE.CERTIFICATE}

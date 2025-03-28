@@ -23,7 +23,7 @@ export const CommonSelect = ({
   onChange,
   options,
   selectClassName,
-  placeholder = "Chọn loại bài viết",
+  placeholder = "Chọn",
   className = "w-full max-w-sm",
   disabled = false,
 }: SelectProps) => {
@@ -33,9 +33,9 @@ export const CommonSelect = ({
         <SelectTrigger className={classNames("w-full", selectClassName)}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent className="bg-grey-50 !z-50">
           {options && options.map((option) => (
-            <SelectItem key={option.value} value={option.value}>
+            <SelectItem key={option.value} value={option.value} className="cursor-pointer">
               {option.label}
             </SelectItem>
           ))}

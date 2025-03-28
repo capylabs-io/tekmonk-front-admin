@@ -21,9 +21,13 @@ type Props = {
 }
 export const SelectStudentListDialog = ({ title, isOpen, openDialogClick, closeDialogClick, handleAddStudent }: Props) => {
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [currentClass] = useClassStore((state) => [state.currentClass])
+  const handleCloseDialog = () => {
+    closeDialogClick();
+    setSelectedStudents([]);
+  }
   const handleAddStudents = () => {
     handleAddStudent(selectedStudents);
+    setSelectedStudents([]);
   };
   return (
     <Dialog
@@ -41,7 +45,6 @@ export const SelectStudentListDialog = ({ title, isOpen, openDialogClick, closeD
           <AddStudentToClass
             selectedStudents={selectedStudents}
             setSelectedStudents={setSelectedStudents}
-            classId={currentClass?.id.toString() as string}
           />
 
           {/* Actions */}
@@ -54,7 +57,7 @@ export const SelectStudentListDialog = ({ title, isOpen, openDialogClick, closeD
             <div className="flex gap-2">
               <CommonButton
                 variant="secondary"
-                onClick={closeDialogClick}
+                onClick={handleCloseDialog}
               >
                 Hủy
               </CommonButton>

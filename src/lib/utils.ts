@@ -17,3 +17,14 @@ export const ConvertoStatusPostToText = (value: string) => {
   }
 }
 
+export const appendFormData = (formData: FormData, data: any, parentKey = "") => {
+  Object.entries(data).forEach(([key, value]) => {
+    if (value === null || value === undefined || value === "" || value instanceof File) return // Skip empty values
+    const newKey = parentKey ? `${parentKey}[${key}]` : key
+    if (typeof value === "object" && !(value instanceof File || value instanceof Blob)) {
+      appendFormData(formData, value, newKey) // Recursively append nested objects
+    } else {
+      formData.append(newKey, String(value))
+    }
+  })
+}

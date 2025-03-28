@@ -16,6 +16,7 @@ import { PostVerificationType } from "@/types"
 import { useSnackbarStore } from "@/store/SnackbarStore"
 import { useLoadingStore } from "@/store/LoadingStore"
 import { profileFormSchema, ProfileFormValues } from "@/validation/post"
+import { appendFormData } from "@/lib/utils"
 
 export const CreateProfileModal = () => {
   const ReactQuill = useMemo(() => dynamic(() => import("react-quill"), { ssr: false }), [])
@@ -50,17 +51,7 @@ export const CreateProfileModal = () => {
     reset,
     formState: { errors },
   } = method
-  const appendFormData = (formData: FormData, data: any, parentKey = "") => {
-    Object.entries(data).forEach(([key, value]) => {
-      if (value === null || value === undefined || value === "" || value instanceof File) return // Skip empty values
-      const newKey = parentKey ? `${parentKey}[${key}]` : key
-      if (typeof value === "object" && !(value instanceof File || value instanceof Blob)) {
-        appendFormData(formData, value, newKey) // Recursively append nested objects
-      } else {
-        formData.append(newKey, String(value))
-      }
-    })
-  }
+ 
   const handleCreatePost = async () => {
     try {
       showLoading()
