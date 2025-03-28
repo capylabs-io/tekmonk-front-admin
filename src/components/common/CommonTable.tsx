@@ -352,7 +352,7 @@ export const CommonTable = ({
       <div
         className={classNames(
           !disableBorder && "rounded-lg",
-          "w-full overflow-x-auto rounded-2xl border",
+          "w-full overflow-auto rounded-2xl border",
           customTableClassname
         )}
       >

@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     "og:locale": "vi_VN",
     "og:site_name": "Tekmonk",
     "twitter:image:alt": SHARE_TITLE,
-    "twitter:creator": "@tekmonk",
+    "twitter:creator": "@tekmonk", 
   },
 };
 export default function RootLayout({
@@ -94,7 +94,7 @@ export default function RootLayout({
         <TopLoader showSpinner={false} color="#bc4cac" />
         <Suspense fallback={<Loading />}>
           <Providers>
-            <div className="relative">{children}</div>
+            <div className="relative h-screen">{children}</div>
           </Providers>
         </Suspense>
         <Loading />

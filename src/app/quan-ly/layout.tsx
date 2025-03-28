@@ -9,12 +9,10 @@ export default function QuanLyLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex">
+    <div className="h-screen flex">
       <LoginGuard>
         <Navbar />
-        <div className="flex flex-1 h-screen overflow-y-auto border-gray-200 border">
-          {children}
-        </div>
+        <div className="flex flex-1 border-gray-200 border">{children}</div>
       </LoginGuard>
     </div>
   );

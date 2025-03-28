@@ -188,12 +188,9 @@ export default function Courses() {
   const handleFormSubmit = (data: any) => {
     show();
     // Handle transform data
-    const missionIds = data.missions.map((mission: any) => mission.id);
     const courseData = {
       ...data,
-      missions: missionIds,
     };
-    console.log("data course = ", courseData);
     if (dialogMode === "create") {
       createCourseMutation(courseData);
     } else {
