@@ -16,7 +16,7 @@ import { ArrowLeft, PanelLeft } from "lucide-react";
 import Image from "next/image";
 import qs from "qs";
 import { useState } from "react";
-import { CreateForeignMission } from "@/components/class/create-foreign-mission";
+import { CreateMission } from "@/components/class/create-mission";
 import { getMission } from "@/requests/mission";
 
 export default function ClassDetailPage({
@@ -199,7 +199,7 @@ export default function ClassDetailPage({
         </div>
       )}
       {activeTab.id === "mission" && studentMissionManualList && (
-        <CreateForeignMission
+        <CreateMission
           courseMissionManualList={studentMissionManualList.data}
           refetchCourseMissionManualList={refetchStudentMissionManualList}
           classId={Number(params.id)}

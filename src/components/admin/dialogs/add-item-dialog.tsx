@@ -44,6 +44,8 @@ interface AddItemDialogProps {
   itemsPerPage?: number;
   onPageChange?: (page: number) => void;
   onItemsPerPageChange?: (itemsPerPage: number) => void;
+  showSelectedTags?: boolean;
+  showPagination?: boolean;
 }
 
 export const AddItemDialog = ({
@@ -66,6 +68,8 @@ export const AddItemDialog = ({
   itemsPerPage = 10,
   onPageChange = () => {},
   onItemsPerPageChange = () => {},
+  showSelectedTags = true,
+  showPagination = true,
 }: AddItemDialogProps) => {
   /** UseState */
   const [searchQuery, setSearchQuery] = useState("");
@@ -104,25 +108,27 @@ export const AddItemDialog = ({
         </DialogHeader>
 
         <div className="space-y-4 p-4">
-          <div className="flex flex-wrap gap-2 rounded-md min-h-[48px]">
-            {selectedItems.map((selectedId) => {
-              const item = items.find((i) => i.id.toString() === selectedId);
-              return item ? (
-                <CommonTag
-                  key={item.id}
-                  className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-sm flex items-center gap-1"
-                >
-                  {renderName ? renderName(item) : get(item, nameKey, "")}
-                  <button
-                    onClick={() => handleItemSelect(item.id.toString())}
-                    className="text-gray-500 hover:text-gray-700 ml-1"
+          {showSelectedTags && (
+            <div className="flex flex-wrap gap-2 rounded-md min-h-[48px]">
+              {selectedItems.map((selectedId) => {
+                const item = items.find((i) => i.id.toString() === selectedId);
+                return item ? (
+                  <CommonTag
+                    key={item.id}
+                    className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-sm flex items-center gap-1"
                   >
-                    ×
-                  </button>
-                </CommonTag>
-              ) : null;
-            })}
-          </div>
+                    {renderName ? renderName(item) : get(item, nameKey, "")}
+                    <button
+                      onClick={() => handleItemSelect(item.id.toString())}
+                      className="text-gray-500 hover:text-gray-700 ml-1"
+                    >
+                      ×
+                    </button>
+                  </CommonTag>
+                ) : null;
+              })}
+            </div>
+          )}
 
           <div className="relative">
             <Input
@@ -164,7 +170,7 @@ export const AddItemDialog = ({
                 </div>
               ))}
             </div>
-            {totalItems > 0 && (
+            {showPagination && totalItems > 0 && (
               <div className="border-t bg-white">
                 <StudentTablePagination
                   showDetails={false}
@@ -189,7 +195,7 @@ export const AddItemDialog = ({
                 onOpenChange(false);
               }}
             >
-              Cancel
+              Thoát
             </CommonButton>
             <CommonButton
               onClick={() => {
@@ -199,7 +205,7 @@ export const AddItemDialog = ({
                 onOpenChange(false);
               }}
             >
-              Save
+              Lưu
             </CommonButton>
           </div>
         </div>

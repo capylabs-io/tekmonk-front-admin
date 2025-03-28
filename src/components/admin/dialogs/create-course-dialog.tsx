@@ -23,12 +23,10 @@ import * as z from "zod";
 import { courseSchema } from "@/validation/course";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { AddItemDialog } from "./add-item-dialog";
-import { CommonTag } from "@/components/common/CommonTag";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { getMission } from "@/requests/mission";
 import { Mission } from "@/types/mission";
-import { StrapiResponse } from "@/requests/strapi-response-pattern";
 
 // Dynamically import ReactQuill with SSR disabled
 const ReactQuill = dynamic(() => import("react-quill"), {
@@ -48,9 +46,6 @@ type Props = {
 
 type FormProps = {
   onClickSearchCertificate: () => void;
-  onClickSearchMission: () => void;
-  selectedMissions: Mission[];
-  isLoadingMissions: boolean;
 };
 
 type CourseFormValues = z.infer<typeof courseSchema> & {
@@ -58,12 +53,7 @@ type CourseFormValues = z.infer<typeof courseSchema> & {
 };
 
 // Form Fields Component
-const CourseFormFields = ({
-  onClickSearchCertificate,
-  onClickSearchMission,
-  selectedMissions,
-  isLoadingMissions,
-}: FormProps) => {
+const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
   const {
     control,
     formState: { errors },
@@ -72,11 +62,6 @@ const CourseFormFields = ({
   useEffect(() => {
     setIsMounted(true);
   }, []);
-
-  const removeMission = (missionId: string) => {
-    const customEvent = new CustomEvent("removeMission", { detail: missionId });
-    window.dispatchEvent(customEvent);
-  };
 
   const formContent = (
     <div className="space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar px-1">
@@ -188,49 +173,6 @@ const CourseFormFields = ({
           />
         </div>
       </div>
-      <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-2">
-          <div className="w-[160px] text-SubheadMd text-gray-60">
-            Nhiệm vụ của khoá học
-          </div>
-          <div className="flex-1 flex flex-col gap-2">
-            <Input
-              isSearch={true}
-              type="text"
-              placeholder="Chọn nhiệm vụ"
-              onClick={onClickSearchMission}
-              customClassNames="w-full cursor-pointer"
-              customInputClassNames="w-full pl-8"
-              readOnly
-              disabled={isLoadingMissions}
-              rightIcon={
-                isLoadingMissions ? (
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-60"></div>
-                ) : undefined
-              }
-            />
-            {selectedMissions.length > 0 && (
-              <div className="flex flex-wrap gap-2 mt-2">
-                {selectedMissions.map((mission) => (
-                  <CommonTag
-                    key={mission.id}
-                    className="bg-gray-200 text-gray-700 px-2 py-1 rounded-md text-sm flex items-center gap-1"
-                  >
-                    {mission.title}
-                    <button
-                      onClick={() => removeMission(mission.id.toString())}
-                      className="text-gray-500 hover:text-gray-700 ml-1"
-                      type="button"
-                    >
-                      ×
-                    </button>
-                  </CommonTag>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
     </div>
   );
 
@@ -250,32 +192,6 @@ export const CreateCourseDialog = ({
   ]);
   const [isClient, setIsClient] = useState(false);
   const [openListCertificate, setOpenListCertificate] = useState(false);
-  const [openListMission, setOpenListMission] = useState(false);
-  const [selectedMissions, setSelectedMissions] = useState<Mission[]>([]);
-  const [selectedMissionIds, setSelectedMissionIds] = useState<string[]>([]);
-
-  const { data: missionsResponse, isLoading: isLoadingMissions } = useQuery({
-    queryKey: ["missions"],
-    queryFn: async () => {
-      try {
-        const queryString = qs.stringify({
-          filters: {
-            type: {
-              $eq: "auto",
-            },
-          },
-        });
-        const response = await getMission(queryString);
-        return response;
-      } catch (err) {
-        error("Lỗi", "Không thể lấy dữ liệu nhiệm vụ");
-        console.error("error when get missions", err);
-      }
-    },
-  });
-
-  // Extract missions data from the Strapi response
-  const missions = missionsResponse?.data || [];
 
   const methods = useForm<CourseFormValues>({
     resolver: zodResolver(courseSchema),
@@ -297,41 +213,10 @@ export const CreateCourseDialog = ({
     setIsClient(true);
   }, []);
 
-  // Add event listener for removing missions
-  useEffect(() => {
-    const handleRemoveMission = (event: Event) => {
-      const missionId = (event as CustomEvent<string>).detail;
-      setSelectedMissionIds((prev) => prev.filter((id) => id !== missionId));
-      setSelectedMissions((prev) =>
-        prev.filter((mission) => mission.id.toString() !== missionId)
-      );
-    };
-
-    window.addEventListener(
-      "removeMission",
-      handleRemoveMission as EventListener
-    );
-
-    return () => {
-      window.removeEventListener(
-        "removeMission",
-        handleRemoveMission as EventListener
-      );
-    };
-  }, []);
-
   // Initialize from courseToEdit when in edit mode
   useEffect(() => {
     if (courseToEdit && mode === "edit") {
       reset(courseToEdit);
-
-      // Set selected missions if available in courseToEdit
-      if (courseToEdit.missions && courseToEdit.missions.length > 0) {
-        setSelectedMissions(courseToEdit.missions);
-        setSelectedMissionIds(
-          courseToEdit.missions.map((mission) => mission.id.toString())
-        );
-      }
     } else {
       // Reset form and clear missions in create mode
       reset({
@@ -340,42 +225,20 @@ export const CreateCourseDialog = ({
         type: "",
         numberSession: 0,
       });
-      setSelectedMissions([]);
-      setSelectedMissionIds([]);
     }
   }, [courseToEdit, mode, reset]);
 
   const handleDialogChange = (open: boolean) => {
     if (!open) {
       reset();
-      setSelectedMissions([]);
-      setSelectedMissionIds([]);
     }
     onOpenChange(open);
-  };
-
-  const handleClickSearchMission = () => {
-    if (!missions.length) {
-      error("Lỗi", "Không có nhiệm vụ tự động nào");
-      return;
-    }
-
-    setOpenListMission(true);
-  };
-
-  const handleMissionSubmit = () => {
-    // Update the selectedMissions array based on selectedMissionIds
-    const selectedMissionsData = missions.filter((mission) =>
-      selectedMissionIds.includes(mission.id.toString())
-    );
-    setSelectedMissions(selectedMissionsData);
   };
 
   const handleSubmitForm = (data: CourseFormValues) => {
     // Include selected missions in the form data
     const formData = {
       ...data,
-      missions: selectedMissions,
     };
     onSubmit(formData);
   };
@@ -399,9 +262,6 @@ export const CreateCourseDialog = ({
                 onClickSearchCertificate={() => {
                   setOpenListCertificate(true);
                 }}
-                onClickSearchMission={handleClickSearchMission}
-                selectedMissions={selectedMissions}
-                isLoadingMissions={isLoadingMissions}
               />
 
               <div className="flex justify-between items-center mt-6 border-t pt-4">
@@ -429,21 +289,6 @@ export const CreateCourseDialog = ({
           </FormProvider>
         </DialogContent>
       </Dialog>
-
-      <AddItemDialog
-        open={openListMission}
-        onOpenChange={setOpenListMission}
-        title="Chọn nhiệm vụ"
-        description="Vui lòng chọn nhiệm vụ cho khóa học"
-        items={missions}
-        selectedItems={selectedMissionIds}
-        setSelectedItems={setSelectedMissionIds}
-        searchPlaceholder="Tìm kiếm nhiệm vụ"
-        nameKey="title"
-        descriptionKey="actionType"
-        onSubmit={handleMissionSubmit}
-        totalItems={missions.length}
-      />
     </>
   );
 

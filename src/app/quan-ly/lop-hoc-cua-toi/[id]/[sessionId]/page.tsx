@@ -26,6 +26,7 @@ import { useClassStore } from "@/store/class-store";
 import { get } from "lodash";
 import { CommonTable } from "@/components/common/CommonTable";
 import { useLoadingStore } from "@/store/LoadingStore";
+import { getMission } from "@/requests/mission";
 
 export default function SessionDetailPage({
   params,
@@ -99,21 +100,18 @@ export default function SessionDetailPage({
     },
     refetchOnWindowFocus: false,
   });
-  const { data: courseMissionList } = useQuery({
+  const { data: everySessionMission } = useQuery({
     queryKey: ["course-mission", get(currentClass, ["course", "id"], 0)],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
           filters: {
-            course: {
-              id: {
-                $eq: get(currentClass, ["course", "id"], 0),
-              },
+            type: {
+              $eq: "EverySession",
             },
           },
-          populate: "*",
         });
-        return await ReqGetCourseMissions(queryString);
+        return await getMission(queryString);
       } catch (error) {
         console.log("Error fetching course mission list:", error);
         return { data: [] };
@@ -133,13 +131,13 @@ export default function SessionDetailPage({
     },
   });
   const classMissionList = useMemo(() => {
-    if (!courseMissionList) {
+    if (!everySessionMission) {
       return [];
     }
-    return courseMissionList.data.filter(
-      (item) => item.mission.type === "EverySession"
+    return everySessionMission.data.filter(
+      (item) => item.type === "EverySession"
     );
-  }, [courseMissionList]);
+  }, [everySessionMission]);
 
   // Add updateClassSession mutation
   const updateClassSessionMutation = useMutation({
@@ -213,7 +211,7 @@ export default function SessionDetailPage({
             class_session: params.sessionId,
             // Initialize all missions as unchecked and enabled for new students
             ...classMissionList.reduce((acc, mission) => {
-              const missionKey = `mission${mission.mission.id}`;
+              const missionKey = `mission${mission.id}`;
               return {
                 ...acc,
                 [missionKey]: false,
@@ -239,7 +237,7 @@ export default function SessionDetailPage({
         class_session: params.sessionId,
         // Initialize all missions as unchecked and enabled
         ...classMissionList.reduce((acc, mission) => {
-          const missionKey = `mission${mission.mission.id}`;
+          const missionKey = `mission${mission.id}`;
           return {
             ...acc,
             [missionKey]: false,
@@ -255,8 +253,11 @@ export default function SessionDetailPage({
 
   // Function to check if a checkbox should be disabled
   const isCheckboxDisabled = (index: number, field: string) => {
-    // Check if the specific mission is disabled
-    return initialAttendanceData[index]?.[`${field}_disable`] === true;
+    // Check if the specific mission is disabled in both current and initial data
+    return (
+      initialAttendanceData[index]?.[`${field}_disable`] === true ||
+      attendanceData[index]?.[`${field}_disable`] === true
+    );
   };
 
   const handleCheckboxChange = (index: number, field: string) => {
@@ -349,10 +350,10 @@ export default function SessionDetailPage({
   const missionColumns: ColumnDef<any>[] = useMemo(() => {
     return classMissionList
       .map((item) => {
-        if (!item.mission.id) return null;
-        const title = "mission" + item.mission.id;
+        if (!item.id) return null;
+        const title = "mission" + item.id;
         return {
-          header: item.mission.title || "Nhiệm vụ",
+          header: item.title || "Nhiệm vụ",
           cell: ({ row }: { row: any }) => (
             <span>
               <input
@@ -367,7 +368,7 @@ export default function SessionDetailPage({
         };
       })
       .filter(Boolean) as ColumnDef<any>[];
-  }, [classMissionList]);
+  }, [classMissionList, handleCheckboxChange, isCheckboxDisabled]);
   // console.log('classMissionList', classMissionList);
   // Base columns
   const baseColumns: ColumnDef<any>[] = [

@@ -217,7 +217,7 @@ export const CreateMissionDialog = ({
                     render={({ field }) => (
                       <Input
                         {...field}
-                        type="text"
+                        type="number"
                         placeholder="Nhập phần thưởng"
                         customClassNames="flex-1"
                         error={errors.reward?.message}
@@ -238,7 +238,7 @@ export const CreateMissionDialog = ({
                     render={({ field }) => (
                       <Input
                         {...field}
-                        type="text"
+                        type="number"
                         placeholder="Nhập điểm thưởng"
                         customClassNames="flex-1"
                         error={errors.points?.message}
@@ -249,34 +249,23 @@ export const CreateMissionDialog = ({
               </div>
 
               <div className="flex flex-col gap-2">
-                <div className="flex items-start gap-2">
-                  <div className="flex-1">
-                    <div className="text-SubheadMd mb-2">
-                      Mô tả <span className="text-red-500">*</span>
-                    </div>
-                    <Controller
-                      name="description"
-                      control={control}
-                      render={({ field }) => (
-                        <div className="flex flex-col gap-2">
-                          <ReactQuill
-                            theme="snow"
-                            className="w-full max-w-[600px] rounded-xl border-grey-300 bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear overflow-y-auto"
-                            placeholder="Nhập mô tả nhiệm vụ"
-                            modules={quillModules}
-                            formats={quillFormats}
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                          {errors.description && (
-                            <p className="text-red-500 text-BodySm">
-                              {errors.description.message}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    />
+                <div className="flex items-center gap-2">
+                  <div className="w-[160px] text-SubheadMd">
+                    Mô tả <span className="text-red-500">*</span>
                   </div>
+                  <Controller
+                    name="description"
+                    control={control}
+                    render={({ field }) => (
+                      <Input
+                        {...field}
+                        type="text"
+                        placeholder="Nhập mô tả nhiệm vụ"
+                        customClassNames="flex-1"
+                        error={errors.description?.message}
+                      />
+                    )}
+                  />
                 </div>
               </div>
             </div>
