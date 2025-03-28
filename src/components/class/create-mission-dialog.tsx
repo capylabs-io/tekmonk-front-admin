@@ -5,29 +5,23 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { postMission, updateMission } from "@/requests/mission";
+import { useSnackbarStore } from "@/store/SnackbarStore";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { ImagePlus } from "lucide-react";
+import { useEffect } from "react";
+import { Controller, FormProvider, useForm } from "react-hook-form";
+import * as z from "zod";
 import { CommonButton } from "../common/button/CommonButton";
 import { Input } from "../common/Input";
-import { Controller, FormProvider, useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { InputFileUpdload } from "../common/InputFileUpload";
-import { ImagePlus, Plus } from "lucide-react";
-import { quillFormats, quillModules } from "@/contants/config/react-quill";
-import dynamic from "next/dynamic";
-import { useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { postMission } from "@/requests/mission";
-import { useSnackbarStore } from "@/store/SnackbarStore";
+import { Mission } from "@/types/mission";
 
 const missionFormSchema = z.object({
   title: z.string().min(1, "Vui lòng nhập tiêu đề"),
   description: z.string().min(1, "Vui lòng nhập mô tả"),
-  imageUrl: z
-    .any()
-    .nullable()
-    .refine((val) => val !== null, {
-      message: "Vui lòng tải lên hình ảnh",
-    }),
+  imageUrl: z.any().nullable(),
   type: z.string().min(1, "Vui lòng chọn loại nhiệm vụ"),
   reward: z.string().min(1, "Vui lòng nhập phần thưởng"),
   points: z.string().min(1, "Vui lòng nhập điểm thưởng"),
@@ -41,6 +35,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: MissionFormData) => void;
   classId: number;
+  mission?: Mission;
 };
 
 export const CreateMissionDialog = ({
@@ -48,12 +43,8 @@ export const CreateMissionDialog = ({
   onOpenChange,
   onSubmit,
   classId,
+  mission,
 }: Props) => {
-  const ReactQuill = useMemo(
-    () => dynamic(() => import("react-quill"), { ssr: false }),
-    []
-  );
-
   // UseStore
   const [showSuccess, showError] = useSnackbarStore((state) => [
     state.success,
@@ -74,6 +65,32 @@ export const CreateMissionDialog = ({
     mode: "onChange",
   });
 
+  // Update form when mission data changes or when opening in edit mode
+  useEffect(() => {
+    if (mission && open) {
+      methods.reset({
+        title: mission.title || "",
+        description: mission.description || "",
+        imageUrl: null,
+        type: "Manual",
+        reward: mission.reward?.toString() || "",
+        points: mission.points?.toString() || "",
+        class: mission.class?.id || classId,
+      });
+    } else if (!mission && open) {
+      // Reset form for create mode
+      methods.reset({
+        title: "",
+        description: "",
+        imageUrl: null,
+        type: "Manual",
+        reward: "",
+        points: "",
+        class: classId,
+      });
+    }
+  }, [mission, open, methods, classId]);
+
   const {
     control,
     handleSubmit,
@@ -91,51 +108,67 @@ export const CreateMissionDialog = ({
   };
 
   const handleImageUpload = (file: File | null) => {
-    if (file) setValue("imageUrl", file);
+    if (file) {
+      setValue("imageUrl", file);
+    }
   };
 
   const createMissionMutation = useMutation({
     mutationFn: async (data: MissionFormData) => {
-      console.log("data submit = ", data);
       const formData = new FormData();
-
-      // Log the data to check what we're sending
-      console.log("Submitting data:", data);
 
       formData.append("title", data.title);
       formData.append("description", data.description);
-      if (data.imageUrl) formData.append("image", data.imageUrl);
-      formData.append("type", data.type);
+      formData.append("type", "Manual");
       formData.append("reward", data.reward);
       formData.append("points", data.points);
       formData.append("class", data.class.toString());
-      console.log("Form data = ", formData);
+
+      // Handle image upload
+      if (data.imageUrl instanceof File) {
+        formData.append("image", data.imageUrl);
+      } else if (mission?.imageUrl && typeof data.imageUrl === "string") {
+        // If editing and no new image, keep the existing image URL
+        formData.append("imageUrl", mission.imageUrl);
+      }
+
+      if (mission) {
+        return updateMission(mission.id, formData);
+      }
       return postMission(formData);
     },
     onSuccess: () => {
-      showSuccess("Thành công", "Tạo nhiệm vụ thành công");
+      showSuccess(
+        "Thành công",
+        mission ? "Cập nhật nhiệm vụ thành công" : "Tạo nhiệm vụ thành công"
+      );
       handleDialogChange(false);
       onSubmit(getValues());
     },
     onError: (error) => {
       console.error("Error details:", error);
-      showError("Lỗi", "Tạo nhiệm vụ thất bại");
+      showError(
+        "Lỗi",
+        mission ? "Cập nhật nhiệm vụ thất bại" : "Tạo nhiệm vụ thất bại"
+      );
     },
   });
 
   const onSubmitForm = async (data: MissionFormData) => {
     try {
-      // Validate form data before submission
       if (
         !data.title ||
         !data.description ||
-        !data.imageUrl ||
         !data.reward ||
-        !data.points
+        !data.points ||
+        (!mission && !data.imageUrl) // Only require image for new missions
       ) {
         showError("Lỗi", "Vui lòng điền đầy đủ thông tin");
         return;
       }
+
+      // Force Manual type for missions edited through this dialog
+      data.type = "Manual";
 
       await createMissionMutation.mutate(data);
     } catch (error) {
@@ -149,7 +182,7 @@ export const CreateMissionDialog = ({
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
-            Tạo nhiệm vụ mới
+            {mission ? "Cập nhật nhiệm vụ" : "Tạo nhiệm vụ mới"}
           </DialogTitle>
         </DialogHeader>
 
@@ -179,7 +212,7 @@ export const CreateMissionDialog = ({
 
               <div className="flex justify-between text-sm">
                 <span className="w-[160px] text-SubheadMd">
-                  Hình ảnh <span className="text-red-500">*</span>
+                  Hình ảnh {!mission && <span className="text-red-500">*</span>}
                 </span>
                 <InputFileUpdload
                   value={getValues("imageUrl")}
@@ -196,7 +229,7 @@ export const CreateMissionDialog = ({
                         />
                       </div>
                       <div className="mt-2 text-gray-70 text-SubheadSm">
-                        Tải lên ảnh/video
+                        {mission ? "Cập nhật ảnh" : "Tải lên ảnh/video"}
                       </div>
                       <p className="text-gray-70 !text-xs font-normal">
                         Hoặc kéo và thả
@@ -287,7 +320,11 @@ export const CreateMissionDialog = ({
               disabled={isSubmitting}
               onClick={handleSubmit(onSubmitForm)}
             >
-              {isSubmitting ? "Đang tạo..." : "Tạo mới"}
+              {isSubmitting
+                ? "Đang xử lý..."
+                : mission
+                ? "Cập nhật"
+                : "Tạo mới"}
             </CommonButton>
           </div>
         </DialogFooter>

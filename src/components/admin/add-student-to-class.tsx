@@ -118,7 +118,10 @@ export const AddStudentToClass = ({
 
         <div className="border rounded-md overflow-hidden">
           <div className="space-y-0 max-h-[300px] overflow-y-auto custom-scrollbar">
-            {(classId ? filteredStudentsClassId : filteredStudents).map((student: User) => (
+            {(classId
+              ? get(studentList, "data.data", [])
+              : filteredStudents
+            ).map((student: User) => (
               <div
                 key={student.id}
                 className="flex items-center justify-between p-3 hover:bg-primary-10 border-b last:border-b-0"

@@ -1,21 +1,20 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { CommonTable } from "@/components/common/CommonTable";
-import { UserPlus } from "lucide-react";
-import { ColumnDef } from "@tanstack/react-table";
 import { AddItemDialog } from "@/components/admin/dialogs/add-item-dialog";
+import { CommonTable } from "@/components/common/CommonTable";
+import { ReqCreateMissionHistory } from "@/requests/mission-history";
+import { ReqGetUserHaveNotAchievedMission } from "@/requests/user";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { Mission } from "@/types/mission";
-import { CommonButton } from "../common/button/CommonButton";
-import { CreateMissionDialog } from "./create-mission-dialog";
-import { Input } from "../common/Input";
-import { useClassStore } from "@/store/class-store";
 import { useQuery } from "@tanstack/react-query";
-import { ReqGetUserHaveNotAchievedMission } from "@/requests/user";
+import { ColumnDef } from "@tanstack/react-table";
+import { UserPlus } from "lucide-react";
 import qs from "qs";
-import { ReqCreateMissionHistory } from "@/requests/mission-history";
+import { useEffect, useState } from "react";
+import { CommonButton } from "../common/button/CommonButton";
+import { Input } from "../common/Input";
+import { CreateMissionDialog } from "./create-mission-dialog";
 
 interface CreateMissionProps {
   courseMissionManualList: Mission[];
@@ -45,7 +44,7 @@ export const CreateMission = ({
   // Students dialog state
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [studentCurrentPage, setStudentCurrentPage] = useState(1);
-  const [studentItemsPerPage, setStudentItemsPerPage] = useState(2);
+  const [studentItemsPerPage, setStudentItemsPerPage] = useState(10);
 
   // Store hooks
   const [showLoading, hideLoading] = useLoadingStore((state) => [
