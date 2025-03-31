@@ -184,14 +184,19 @@ export default function Page() {
       achievementId: string;
       studentIds: string[];
     }) => {
-      studentIds.forEach(async (id) => {
-        await ReqCreateAchievementHistory({
+      // Remove the try-catch block from here as it prevents the error from propagating
+      // to the onError handler, making the mutation always appear successful
+      const promises = studentIds.map(async (id) => {
+        return await ReqCreateAchievementHistory({
           data: {
             user: id,
             achievement: achievementId,
           },
         });
       });
+
+      // Use Promise.all to properly handle all requests and catch any errors
+      return await Promise.all(promises);
     },
     onSuccess: () => {
       success("Thành công", "Thêm học viên thành công!");
