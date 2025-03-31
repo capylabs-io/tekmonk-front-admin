@@ -32,16 +32,6 @@ import {
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
 
 export default function Page() {
-  const {
-    totalPage,
-    totalDocs,
-    limit,
-    page,
-    isOpenCreateModal,
-    setLimit,
-    setPage,
-    setIsOpenCreateModal,
-  } = useMission();
   const tabs = [
     { id: "Auto", label: "Thuộc hệ thống" },
     { id: "Manual", label: "Cấu hình ngoài" },
@@ -471,10 +461,4 @@ export default function Page() {
       )}
     </>
   );
-}
-function ReqAddStudentsToAchievement(
-  achievementId: string,
-  studentIds: string[]
-): any {
-  throw new Error("Function not implemented.");
 }
