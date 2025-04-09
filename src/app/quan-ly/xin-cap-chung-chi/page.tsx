@@ -39,11 +39,16 @@ export default function Page() {
   const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide]);
   const [showError, showSuccess] = useSnackbarStore((state) => [state.error, state.success])
   const { data: certificates } = useQuery({
-    queryKey: ["certificates", page, limit],
+    queryKey: ["certificates", page, limit, textSearch],
     queryFn: async () => {
       try {
         const queryString = qs.stringify(
           {
+            filters: {
+              name: {
+                $containsi: textSearch
+              }
+            },
             populate: '*',
             pagination: {
               page: page,

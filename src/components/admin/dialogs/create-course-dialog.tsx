@@ -158,7 +158,7 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
           />
         </div>
       </div>
-      <div className="flex flex-col gap-2">
+      {/* <div className="flex flex-col gap-2">
         <div className="flex items-start gap-2">
           <div className="w-[160px] text-SubheadMd text-gray-60">
             Chứng chỉ của khoá học
@@ -172,7 +172,7 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
             customInputClassNames="w-full pl-8"
           />
         </div>
-      </div>
+      </div> */}
     </div>
   );
 
@@ -281,8 +281,8 @@ export const CreateCourseDialog = ({
                   {isSubmitting
                     ? "Đang xử lý..."
                     : mode === "create"
-                    ? "Tạo"
-                    : "Cập nhật"}
+                      ? "Tạo"
+                      : "Cập nhật"}
                 </CommonButton>
               </div>
             </form>

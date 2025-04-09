@@ -76,7 +76,7 @@ export const metadata: Metadata = {
     "og:locale": "vi_VN",
     "og:site_name": "Tekmonk",
     "twitter:image:alt": SHARE_TITLE,
-    "twitter:creator": "@tekmonk", 
+    "twitter:creator": "@tekmonk",
   },
 };
 export default function RootLayout({

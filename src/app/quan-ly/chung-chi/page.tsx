@@ -55,11 +55,18 @@ export default function Page() {
     { id: "verified", label: "Đã phê duyệt" },
   ];
   const { data: certificateHistory, refetch: refetchCertificateHistory } = useQuery({
-    queryKey: ["certificateHistories", page, limit],
+    queryKey: ["certificateHistories", page, limit, textSearch],
     queryFn: async () => {
       try {
         const queryString = qs.stringify(
           {
+            filters: {
+              certificate: {
+                name: {
+                  $containsi: textSearch
+                }
+              }
+            },
             populate: ['certificate', 'student', 'certificate.course'],
             pagination: {
               page: page,

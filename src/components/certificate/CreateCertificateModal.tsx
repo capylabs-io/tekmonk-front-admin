@@ -121,123 +121,122 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
   }, []);
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="w-[680px] bg-white">
-        <DialogHeader className="px-4">
+      <DialogContent className="w-[680px] h-[calc(100vh-10%)] bg-white">
+        <DialogHeader className="px-4 overflow-y-auto hide-scrollbar">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
             Tạo chứng chỉ mới
           </DialogTitle>
-        </DialogHeader>
-
-        <FormProvider {...methods}>
-          <form className="space-y-4 p-4 h-max overflow-y-auto hide-scrollbar">
-            <div className="space-y-6">
-              {/* Course Name Field */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-[160px] text-SubheadMd">Tiêu đề</div>
-                  <Controller
-                    name="name"
-                    control={control}
-                    render={({ field }) => (
-                      <Input
-                        {...field}
-                        id="name"
-                        type="text"
-                        placeholder="Nhập dữ liệu"
-                        customClassNames="flex-1"
-                        error={errors.name?.message}
-                      />
-                    )}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Hình nền</div>
-                  <InputFileUpdload
-                    value={getValues("imgUrl")}
-                    onChange={handleImageUpload}
-                    customInputClassNames="text-sm min-h-[50px] max-h-max !items-start"
-                    contentImageUpload={
-                      <>
-                        <p className="flex items-center gap-2 text-base  !font-light text-gray-70 w-full justify-start !self-start"><Plus size={16}></Plus>Thêm ảnh</p>
-                      </>
-                    }
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Form chứng chỉ</div>
-                  <Input
-                    type="text"
-                    placeholder="Chọn form chứng chỉ"
-                    customClassNames="flex-1"
-                    onClick={() => onChooseCertificateForm?.()}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Chọn khoá học</div>
-                  <CommonSelect className="w-full bg-grey-50" selectClassName="rounded-xl h-[50px] !bg-grey-50 border border-grey-300" placeholder="Chọn khoá học" options={courses ? courses.data.map((course) => {
-                    return {
-                      label: course.name,
-                      value: course.id.toString()
-                    }
-                  }) : []} value={course} onChange={handleSelectCourseChange} />
-                </div>
-              </div>
-              {/* Category Field */}
-              <div className="flex flex-col gap-2">
-                <div className="flex items-start gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Mô tả</div>
-                  <div className="flex-1">
+          <FormProvider {...methods}>
+            <form className="space-y-4 p-4 h-max">
+              <div className="space-y-6">
+                {/* Course Name Field */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[160px] text-SubheadMd">Tiêu đề</div>
                     <Controller
-                      name="description"
+                      name="name"
                       control={control}
                       render={({ field }) => (
-                        <div className="flex flex-col gap-2">
-                          <ReactQuill
-                            theme="snow"
-                            className="w-full rounded-xl border-grey-300 bg-grey-50 outline-none !text-[20px] min-h-[200px] transition-all ease-linear overflow-y-auto"
-                            placeholder="Nhập mô tả chứng chỉ"
-                            modules={quillModules}
-                            formats={quillFormats}
-                            value={field.value}
-                            onChange={field.onChange}
-                          />
-                          {errors.description && (
-                            <p className="text-red-500 text-BodySm">
-                              {errors.description.message}
-                            </p>
-                          )}
-                        </div>
+                        <Input
+                          {...field}
+                          id="name"
+                          type="text"
+                          placeholder="Nhập dữ liệu"
+                          customClassNames="flex-1"
+                          error={errors.name?.message}
+                        />
                       )}
                     />
                   </div>
                 </div>
-              </div>
-              <div className="flex flex-col gap-2">
-                <div className="flex items-start gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Đánh giá</div>
-                  <div className="flex-1">
-                    <Controller
-                      name="isHasValidation"
-                      control={control}
-                      render={({ field: { value, onChange } }) => (
-                        <div className="flex gap-x-2 items-center text-sm">
-                          <Switch checked={value} onCheckedChange={onChange} />
-                        </div>
-                      )}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-[160px] text-SubheadMd">Hình nền</div>
+                    <InputFileUpdload
+                      value={getValues("imgUrl")}
+                      onChange={handleImageUpload}
+                      customInputClassNames="text-sm min-h-[50px] max-h-max !items-start"
+                      contentImageUpload={
+                        <>
+                          <p className="flex items-center gap-2 text-base  !font-light text-gray-70 w-full justify-start !self-start"><Plus size={16}></Plus>Thêm ảnh</p>
+                        </>
+                      }
                     />
                   </div>
                 </div>
-              </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-[160px] text-SubheadMd">Form chứng chỉ</div>
+                    <Input
+                      type="text"
+                      placeholder="Chọn form chứng chỉ"
+                      customClassNames="flex-1"
+                      onClick={() => onChooseCertificateForm?.()}
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-[160px] text-SubheadMd">Chọn khoá học</div>
+                    <CommonSelect className="w-full bg-grey-50" selectClassName="rounded-xl h-[50px] !bg-grey-50 border border-grey-300" placeholder="Chọn khoá học" options={courses ? courses.data.map((course) => {
+                      return {
+                        label: course.name,
+                        value: course.id.toString()
+                      }
+                    }) : []} value={course} onChange={handleSelectCourseChange} />
+                  </div>
+                </div>
+                {/* Category Field */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-[160px] text-SubheadMd">Mô tả</div>
+                    <div className="flex-1">
+                      <Controller
+                        name="description"
+                        control={control}
+                        render={({ field }) => (
+                          <div className="flex flex-col gap-2">
+                            <ReactQuill
+                              theme="snow"
+                              className="w-full rounded-xl border-grey-300 bg-grey-50 outline-none !text-[20px] !min-h-[300px] transition-all ease-linear overflow-y-auto"
+                              placeholder="Nhập mô tả chứng chỉ"
+                              modules={quillModules}
+                              formats={quillFormats}
+                              value={field.value}
+                              onChange={field.onChange}
+                            />
+                            {errors.description && (
+                              <p className="text-red-500 text-BodySm">
+                                {errors.description.message}
+                              </p>
+                            )}
+                          </div>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start gap-2">
+                    <div className="min-w-[160px] text-SubheadMd">Đánh giá</div>
+                    <div className="flex-1">
+                      <Controller
+                        name="isHasValidation"
+                        control={control}
+                        render={({ field: { value, onChange } }) => (
+                          <div className="flex gap-x-2 items-center text-sm">
+                            <Switch checked={value} onCheckedChange={onChange} />
+                          </div>
+                        )}
+                      />
+                    </div>
+                  </div>
+                </div>
 
-            </div>
-          </form>
-        </FormProvider>
+              </div>
+            </form>
+          </FormProvider>
+        </DialogHeader>
         <DialogFooter>
           <div className="flex justify-between items-center mt-6 border-t pt-4 w-full">
             <CommonButton

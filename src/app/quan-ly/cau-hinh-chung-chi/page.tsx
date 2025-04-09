@@ -52,11 +52,16 @@ export default function Page() {
   const [showError, showSuccess] = useSnackbarStore((state) => [state.error, state.success])
 
   const { data: certificates, refetch: refetchCertificates } = useQuery({
-    queryKey: ["certificates", page, limit],
+    queryKey: ["certificates", page, limit, textSearch],
     queryFn: async () => {
       try {
         const queryString = qs.stringify(
           {
+            filters: {
+              name: {
+                $containsi: textSearch
+              }
+            },
             populate: '*',
             pagination: {
               page: page,
@@ -234,7 +239,7 @@ export default function Page() {
       </div>
       <CreateCertificateModal open={isOpenCreateModal} onOpenChange={(value) => { setIsOpenCreateModal(value) }} onSubmit={handlePostCertificate} onChooseCertificateForm={() => { setIsOpenChooseCertificateForm(true) }} />
       <Dialog open={isOpenChooseCertificateForm} onOpenChange={setIsOpenChooseCertificateForm}>
-        <DialogContent className="w-[calc(100vw-30%)] h-[calc(100vh-30%)] bg-white flex flex-col">
+        <DialogContent className="w-[calc(100vw-20%)] h-[calc(100vh-10%)] bg-white flex flex-col">
           <DialogHeader className="h-full !overflow-y-auto grow">
             <DialogTitle className="text-2xl">Chọn form chứng chỉ</DialogTitle>
             <CertificateEditor />
