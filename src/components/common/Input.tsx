@@ -17,6 +17,7 @@ interface Props extends React.HTMLAttributes<HTMLDivElement> {
   onChange?: (value: any) => void;
   onBlur?: () => void;
   onSearch?: () => void;
+  onKeyDown?: (e: React.KeyboardEvent<HTMLInputElement>) => void;
   readOnly?: boolean;
   disabled?: boolean;
   rightIcon?: ReactNode;
@@ -36,6 +37,7 @@ export const Input = ({
   customClassNames,
   readOnly = false,
   onSearch,
+  onKeyDown,
   disabled = false,
   rightIcon,
   ...props
@@ -91,6 +93,7 @@ export const Input = ({
             name={name}
             onChange={handleOnChange}
             onBlur={handleOnBlur}
+            onKeyDown={onKeyDown}
             readOnly={readOnly}
             disabled={disabled}
             {...props}
