@@ -17,6 +17,7 @@ interface StudentRegistrationDialogProps {
   onOpenChange: (open: boolean) => void;
   onRegister: (data: StudentFormData) => Promise<void>;
   isSubmitting?: boolean;
+  idRole?: number;
 }
 
 const studentFormSchema = z.object({
@@ -56,6 +57,7 @@ export const StudentRegistrationDialog = ({
   onOpenChange,
   onRegister,
   isSubmitting = false,
+  idRole,
 }: StudentRegistrationDialogProps) => {
   const {
     handleSubmit,
@@ -73,7 +75,7 @@ export const StudentRegistrationDialog = ({
       parentName: "",
       phoneNumber: "",
       password: "123123", // default password
-      user_role: 1, // student role
+      user_role: idRole, // student role
     },
   });
 

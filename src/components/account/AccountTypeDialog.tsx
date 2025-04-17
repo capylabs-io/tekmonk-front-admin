@@ -7,9 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import {
-  ArrowRight
-} from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import { StudentRegistrationDialog } from "./StudentRegistrationDialog";
 import { TeacherRegistrationDialog } from "./TeacherRegistrationDialog";
@@ -21,6 +19,8 @@ import { ReqRegister } from "@/requests/login";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { HandleReturnMessgaeErrorAxios } from "@/requests/return-message-error";
+import { useUserRole } from "@/hooks/useUserRole";
+import { Role } from "@/contants/role";
 
 type AccountType = {
   id: string;
@@ -107,6 +107,8 @@ export const AccountTypeDialog = ({
     state.error,
   ]);
 
+  const { data: userRoles } = useUserRole();
+
   const handleTypeSelect = (typeId: string) => {
     setSelectedType(typeId);
   };
@@ -165,6 +167,9 @@ export const AccountTypeDialog = ({
         }}
         onRegister={handleRegister}
         isSubmitting={isSubmitting}
+        idRole={
+          userRoles?.data.find((role) => role.code === Role.CLASSMANAGEMENT)?.id
+        }
       />
     );
   }
@@ -182,6 +187,9 @@ export const AccountTypeDialog = ({
         }}
         onRegister={handleRegister}
         isSubmitting={isSubmitting}
+        idRole={
+          userRoles?.data.find((role) => role.code === Role.MODERATOR)?.id
+        }
       />
     );
   }
@@ -199,6 +207,7 @@ export const AccountTypeDialog = ({
         }}
         onRegister={handleRegister}
         isSubmitting={isSubmitting}
+        idRole={userRoles?.data.find((role) => role.code === Role.TEACHER)?.id}
       />
     );
   }
@@ -216,6 +225,7 @@ export const AccountTypeDialog = ({
         }}
         onRegister={handleRegister}
         isSubmitting={isSubmitting}
+        idRole={userRoles?.data.find((role) => role.code === Role.STUDENT)?.id}
       />
     );
   }
@@ -284,4 +294,4 @@ export const AccountTypeDialog = ({
       </DialogContent>
     </Dialog>
   );
-}
+};

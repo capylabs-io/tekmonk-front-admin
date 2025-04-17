@@ -17,6 +17,7 @@ interface AdminRegistrationDialogProps {
   onOpenChange: (open: boolean) => void;
   onRegister: (data: AdminFormData) => Promise<void>;
   isSubmitting?: boolean;
+  idRole?: number;
 }
 
 const adminFormSchema = z.object({
@@ -55,6 +56,7 @@ export const AdminRegistrationDialog = ({
   onOpenChange,
   onRegister,
   isSubmitting = false,
+  idRole,
 }: AdminRegistrationDialogProps) => {
   const {
     handleSubmit,
@@ -71,7 +73,7 @@ export const AdminRegistrationDialog = ({
       dateOfBirth: "",
       phoneNumber: "",
       password: "123123", // default password
-      user_role: 4, // admin role
+      user_role: idRole, // admin role
     },
   });
 
