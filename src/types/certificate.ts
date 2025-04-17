@@ -17,3 +17,22 @@ export type CertificateHistory = {
   student: User,
   isVerified: boolean
 }
+export type CertificatePdfFieldConfig = {
+  id?: number
+  label?: string
+  value?: string
+  fontSize?: string
+  color?: string
+  fontFamily?: string
+  fontWeight?: string
+  fontStyle?: string
+  positionX?: number
+  positionY?: number
+  config?: CertificatePdfFieldConfig
+}
+export type CertificatePdfConfig = {
+  id?: number
+  backgroundUrl?: string
+  fields?: CertificatePdfFieldConfig[]
+  certificates?: Certificate[]
+}

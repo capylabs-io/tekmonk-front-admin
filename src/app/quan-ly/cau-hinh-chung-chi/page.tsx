@@ -130,7 +130,6 @@ export default function Page() {
             style={{
               backgroundImage: `url(${row.original?.imgUrl})`
             }}>
-
           </div>
         ),
       },
@@ -149,7 +148,7 @@ export default function Page() {
       {
         header: 'Thuộc khoá học',
         cell: ({ row }) => <div>
-          {
+          {-
             get(row, 'original.course.name', '')
           }
         </div>
@@ -198,7 +197,6 @@ export default function Page() {
             Cấu hình chứng chỉ
           </div>
         </div>
-
         <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
           <div className="flex justify-between items-center">
             <Input

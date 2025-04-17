@@ -65,4 +65,3 @@ export const likePost = async (data: any) => {
   const response = await tekdojoAxios.post(`${BASE_URL}/likes`, data);
   return response.data;
 };
-

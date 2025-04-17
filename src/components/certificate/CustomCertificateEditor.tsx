@@ -368,7 +368,7 @@ export default function CertificateEditor() {
         };
 
         const [r, g, b] = hexToRgb(field.color);
-        pdf.setTextColor(r, g, b);
+        pdf.setTextColor(r, g, b); 
 
         // Xác định textAlign cho jsPDF
         let align: 'left' | 'center' | 'right' = 'left';
@@ -475,20 +475,6 @@ export default function CertificateEditor() {
     delete fieldRefs.current[id]
   }
 
-  // Hàm chuyển đổi File thành data URI
-  const fileToDataUri = (file: File): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        resolve(event.target?.result as string);
-      };
-      reader.onerror = (error) => {
-        reject(error);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
   // Thêm hàm này vào file
   const blobToDataURL = (blob: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -499,61 +485,6 @@ export default function CertificateEditor() {
       reader.onerror = reject;
       reader.readAsDataURL(blob);
     });
-  };
-
-  // Thêm phương thức để gửi dữ liệu lên server và tạo PDF
-  const exportPDFViaServer = async () => {
-    if (!backgroundFile) {
-      alert("Vui lòng tải lên hình nền trước");
-      return;
-    }
-
-    setIsGeneratingPDF(true);
-
-    try {
-      // Chuyển đổi ảnh nền thành base64
-      const backgroundBase64 = await blobToDataURL(backgroundFile);
-
-      // Chuẩn bị dữ liệu để gửi lên server
-      const data = {
-        fields,
-        background: backgroundBase64,
-        width: certificateWidth,
-        height: certificateHeight
-      };
-
-      // Gửi request tới server
-      const response = await fetch('/api/generate-pdf', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(data)
-      });
-
-      if (!response.ok) {
-        throw new Error('Server error: ' + response.statusText);
-      }
-
-      // Tải file PDF từ response
-      const blob = await response.blob();
-      const url = URL.createObjectURL(blob);
-
-      // Tạo link tải xuống
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'certificate.pdf';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
-    } catch (error) {
-      console.error('Lỗi khi tạo PDF:', error);
-      alert('Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
   };
 
   // Thêm hàm tính offset để mô phỏng kết quả PDF
@@ -571,36 +502,6 @@ export default function CertificateEditor() {
     const offsetY = -field.fontSize * 0.3;
 
     return `translate(${offsetX}px, ${offsetY}px)`;
-  };
-
-  // Thêm nút hiệu chuẩn tự động
-  const calibratePDFPositions = () => {
-    // Điều chỉnh vị trí của tất cả các field để hiển thị chính xác trong PDF
-    const calibratedFields = fields.map(field => {
-      // Tính toán độ lệch cần áp dụng cho từng loại căn chỉnh văn bản
-      const textWidth = field.value.length * field.fontSize * 0.55;
-
-      let adjustedX = field.position.x;
-      if (field.textAlign === "center") {
-        adjustedX = field.position.x + (textWidth / 2);
-      } else if (field.textAlign === "right") {
-        adjustedX = field.position.x + textWidth;
-      }
-
-      // Điều chỉnh vị trí Y để căn chính xác
-      const adjustedY = field.position.y + (field.fontSize * 0.3);
-
-      return {
-        ...field,
-        position: {
-          x: adjustedX,
-          y: adjustedY
-        }
-      };
-    });
-
-    setFields(calibratedFields);
-    alert("Đã hiệu chỉnh vị trí của tất cả các khối văn bản để hiển thị chính xác trong PDF.");
   };
 
   // Thêm hàm centerAllTextItems để căn giữa tất cả các item theo khung chứng chỉ
@@ -621,72 +522,6 @@ export default function CertificateEditor() {
 
     setFields(updatedFields);
     alert("Đã căn giữa tất cả các khối văn bản theo khung chứng chỉ");
-  };
-
-  // Thêm hàm tạo PDF preview
-  const generatePDFPreview = async () => {
-    if (!backgroundFile) return;
-
-    try {
-      setIsGeneratingPDF(true);
-
-      // Tạo data URL từ background
-      const backgroundBase64 = await blobToDataURL(backgroundFile);
-
-      // Tạo Document với react-pdf
-      const blob = await new Promise<Blob>((resolve) => {
-        const worker = new Worker('/pdf-worker.js');
-        worker.postMessage({
-          fields,
-          backgroundImage: backgroundBase64,
-          width: certificateWidth,
-          height: certificateHeight
-        });
-
-        worker.onmessage = (e) => {
-          resolve(e.data);
-        };
-      });
-
-      // Tạo URL từ blob
-      const pdfUrl = URL.createObjectURL(blob);
-      setPdfPreviewUrl(pdfUrl);
-
-    } catch (error) {
-      console.error('Error generating PDF preview:', error);
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
-  // Thêm nút để điều chỉnh vị trí cho phù hợp với PDF
-  const adjustPositionsForPDF = () => {
-    const updatedFields = fields.map(field => {
-      // Điều chỉnh vị trí Y để căn baseline giữa trong PDF
-      const adjustedY = field.position.y + (field.fontSize / 4);
-
-      // Xác định vị trí X dựa trên textAlign
-      let adjustedX = field.position.x;
-
-      // Thông báo cho người dùng
-      return {
-        ...field,
-        position: {
-          x: adjustedX,
-          y: adjustedY
-        }
-      };
-    });
-
-    setFields(updatedFields);
-    alert("Đã điều chỉnh vị trí cho PDF. Vui lòng kiểm tra lại vị trí trước khi xuất PDF.");
-  };
-
-  // Thêm hàm chuyển đổi HTML thành plain text (nếu cần)
-  const stripHtml = (html: string) => {
-    const tmp = document.createElement("DIV");
-    tmp.innerHTML = html;
-    return tmp.textContent || tmp.innerText || "";
   };
 
   // Thêm phương thức xuất PDF sử dụng HTML2Canvas
