@@ -1,15 +1,6 @@
 "use client";
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { useEffect, useState } from "react";
-import StudentTablePagination from "./student-table-pagination";
 import { Edit, Pencil, Trash2 } from "lucide-react";
 import { EditUserDialog } from "./dialogs/edit-user-dialog";
 import { DeactivateUserDialog } from "./dialogs/deactivate-user-dialog";
@@ -21,6 +12,8 @@ import qs from "qs";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { User } from "@/types/common-types";
+import { CommonTable } from "@/components/common/CommonTable";
+import { ColumnDef } from "@tanstack/react-table";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12">
@@ -37,8 +30,8 @@ const EmptyState = () => (
 );
 
 export const AccountTable = () => {
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [activeTab, setActiveTab] = useState("STUDENT");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -54,8 +47,8 @@ export const AccountTable = () => {
     state.error,
   ]);
   /** UseQuery */
-  const { data, refetch } = useQuery({
-    queryKey: ["users", activeTab, currentPage, itemsPerPage, sortOrder],
+  const { data, refetch, isLoading } = useQuery({
+    queryKey: ["users", activeTab, page, pageSize, sortOrder],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
@@ -67,8 +60,8 @@ export const AccountTable = () => {
             },
           },
           populate: "user_role",
-          page: currentPage,
-          pageSize: itemsPerPage,
+          page: page,
+          pageSize: pageSize,
           sort: [`id:${sortOrder}`],
         });
         return await ReqGetUsers(queryString);
@@ -191,11 +184,6 @@ export const AccountTable = () => {
     { id: "MODERATOR", label: "Quản trị viên" },
   ];
 
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
-  };
-
   const handleEdit = (user: User) => {
     // Only pass the editable fields to the dialog
     const editableUser = {
@@ -260,49 +248,117 @@ export const AccountTable = () => {
     setSortOrder(newSortOrder);
   };
 
-  const getTableHeaders = () => {
-    switch (activeTab) {
-      case "STUDENT":
-        return [
-          { label: "STT", sortable: true },
-          { label: "Tên học viên" },
-          { label: "Tên tài khoản" },
-          { label: "Email" },
-          { label: "Trạng thái" },
-          { label: "Thao tác", align: "right" },
-        ];
-      case "TEACHER":
-        return [
-          { label: "STT", sortable: true },
-          { label: "Tên giảng viên" },
-          { label: "Tên tài khoản" },
-          { label: "Email" },
-          { label: "Trạng thái" },
-          { label: "Thao tác", align: "right" },
-        ];
-      case "CLASSMANAGEMENT":
-        return [
-          { label: "STT", sortable: true },
-          { label: "Tên người dùng" },
-          { label: "Tên tài khoản" },
-          { label: "Email" },
-          { label: "Loại" },
-          { label: "Thao tác", align: "right" },
-        ];
-      default:
-        return [
-          { label: "STT", sortable: true },
-          { label: "Tên người dùng" },
-          { label: "Tên tài khoản" },
-          { label: "Email" },
-          { label: "Trạng thái" },
-          { label: "Thao tác", align: "right" },
-        ];
-    }
-  };
+  const columns: ColumnDef<User>[] = [
+    {
+      id: "stt",
+      header: () => (
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={handleSort}
+        >
+          <span>STT</span>
+          <span className="inline-block">
+            {sortOrder === "asc" ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m18 15-6-6-6 6" />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
+            )}
+          </span>
+        </div>
+      ),
+      cell: ({ row }) => <span>{(page - 1) * pageSize + row.index + 1}</span>,
+    },
+    {
+      id: "name",
+      header:
+        activeTab === "STUDENT" || activeTab === "TEACHER"
+          ? activeTab === "STUDENT"
+            ? "Tên học viên"
+            : "Tên giảng viên"
+          : "Tên người dùng",
+      cell: ({ row }) => (
+        <span>{row.original.fullName || row.original.username}</span>
+      ),
+    },
+    {
+      accessorKey: "username",
+      header: "Tên tài khoản",
+    },
+    {
+      accessorKey: "email",
+      header: "Email",
+    },
+    {
+      id: "status",
+      header: activeTab === "CLASSMANAGEMENT" ? "Loại" : "Trạng thái",
+      cell: ({ row }) => (
+        <div className="flex items-center">
+          <div>{row.original.blocked ? "Đã khóa" : "Đang hoạt động"}</div>
+        </div>
+      ),
+    },
+    {
+      id: "action",
+      header: "Thao tác",
+      cell: ({ row }) => (
+        <div className="flex items-center justify-end gap-2">
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full text-BodySm text-gray-95"
+            onClick={() => handleEdit(row.original)}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="lucide lucide-square-pen"
+            >
+              <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />
+            </svg>
+          </button>
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={() => handleDelete(row.original)}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full">
       <div className="flex flex-wrap border-b border-gray-200 mb-4 gap-2">
         {tabs.map((tab) => (
           <button
@@ -322,117 +378,21 @@ export const AccountTable = () => {
       {data && data.meta?.pagination.total === 0 ? (
         <EmptyState />
       ) : (
-        <div className="rounded-md border min-w-[800px]">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {getTableHeaders().map((header, index) => (
-                  <TableHead
-                    key={index}
-                    className={`${header.sortable ? "cursor-pointer" : ""} ${
-                      header.align === "right" ? "text-right" : ""
-                    } ${index === 0 ? "w-[100px]" : ""}`}
-                    onClick={header.sortable ? handleSort : undefined}
-                  >
-                    <div className="flex items-center gap-2">
-                      {header.label}
-                      {header.sortable && (
-                        <span className="inline-block">
-                          {sortOrder === "asc" ? (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="m18 15-6-6-6 6" />
-                            </svg>
-                          ) : (
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              width="16"
-                              height="16"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="m6 9 6 6 6-6" />
-                            </svg>
-                          )}
-                        </span>
-                      )}
-                    </div>
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody className="text-BodySm">
-              {data &&
-                data.data.map((user, index) => (
-                  <TableRow key={user.id}>
-                    <TableCell className="">
-                      {(currentPage - 1) * itemsPerPage + index + 1}
-                    </TableCell>
-                    <TableCell>{user.fullName || user.username}</TableCell>
-                    <TableCell>{user.username}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div>{user.blocked ? "Đã khóa" : "Đang hoạt động"}</div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <button
-                        className="p-2 hover:bg-gray-100 rounded-full text-BodySm text-gray-95"
-                        onClick={() => handleEdit(user)}
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-square-pen"
-                        >
-                          <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-                          <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />
-                        </svg>
-                      </button>
-
-                      <button
-                        className="p-2 hover:bg-gray-100 rounded-full"
-                        onClick={() => handleDelete(user)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-            </TableBody>
-          </Table>
+        <div className="rounded-md">
+          {data && (
+            <CommonTable
+              data={data?.data}
+              isLoading={isLoading}
+              columns={columns}
+              page={page}
+              totalPage={data.meta.pagination.pageCount}
+              totalDocs={data.meta.pagination.total}
+              onPageChange={setPage}
+              docsPerPage={pageSize}
+              onPageSizeChange={setPageSize}
+            />
+          )}
         </div>
-      )}
-
-      {data && data.meta.pagination.total > 0 && (
-        <StudentTablePagination
-          totalItems={data.meta.pagination.total}
-          currentPage={currentPage}
-          itemsPerPage={itemsPerPage}
-          onPageChange={setCurrentPage}
-          onItemsPerPageChange={handleItemsPerPageChange}
-        />
       )}
 
       <EditUserDialog

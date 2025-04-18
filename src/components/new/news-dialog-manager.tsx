@@ -27,9 +27,10 @@ import {
   ReqUpdateImage,
   ReqUpdateNews,
 } from "@/requests/news";
+import { extractBase64Images } from "@/lib/process-base64";
 
 type Props = {
-  type: "news" | "event" | "hiring"
+  type: "news" | "event" | "hiring";
   isOpen?: boolean;
   onClose?: () => void;
   onDelete?: (id: string | null) => void;
@@ -149,7 +150,15 @@ export const NewsDialogManager = ({
     try {
       const formData = new FormData();
       formData.append("title", values.title);
-      formData.append("content", values.content);
+      const { files: imageFiles, replacedDescription: description } =
+        await extractBase64Images(values.content);
+
+      formData.append("content", description);
+
+      imageFiles.forEach((file) => {
+        formData.append("image_description", file);
+      });
+
       formData.append("startTime", values.startTime);
       formData.append("endTime", values.endTime);
       formData.append("type", type);
@@ -438,7 +447,7 @@ export const NewsDialogManager = ({
               <div className="flex flex-col gap-1">
                 <ReactQuill
                   theme="snow"
-                  className="w-full rounded-xl bg-grey-50 outline-none !text-[20px] max-h-[200px] transition-all ease-linear"
+                  className="w-full rounded-xl bg-grey-50 outline-none !text-[20px] md:max-w-[750px] sm:max-w-[600px]  mx-auto  transition-all ease-linear"
                   value={value}
                   onChange={onChange}
                   placeholder="Nội dung bài viết"

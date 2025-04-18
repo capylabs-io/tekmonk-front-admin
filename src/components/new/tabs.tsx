@@ -40,10 +40,12 @@ export const Tabs = ({
           key={index}
           onClick={() => handleSetActiveTab(tab)}
           className={cn(
-            "w-max h-full flex items-center justify-center rounded-t-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 cursor-pointer",
+            "w-max h-full flex items-center border-b-4 border-white justify-center rounded-t-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 cursor-pointer",
             currentTab.id === tab.id
-              ? "border-b-4 border-primary-60 text-primary-95"
-              : "text-gray-600 hover:text-gray-900"
+              ? " border-primary-60 text-primary-95"
+              : "text-gray-600 hover:text-gray-900",
+            currentTab.id !== tab.id &&
+              "hover:border-primary-60 relative before:absolute before:content-[''] before:bottom-[-4px] before:left-0 before:w-0 before:h-[4px] before:bg-primary-60 before:transition-all hover:before:w-full transition-all duration-200"
           )}
           role="tab"
           aria-selected={currentTab.id === tab.id}
