@@ -3,12 +3,6 @@
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
-import {
-  ReqCreateCourse,
-  ReqGetCourses,
-  ReqUpdateCourse,
-  ReqDeleteCourse,
-} from "@/requests/course";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -27,18 +21,9 @@ import {
 import qs from "qs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import { CreateShopItem } from "@/components/shop/CreateShopItem";
+import { ReqCreateShopItem, ReqDeleteShopItem, ReqGetShopItem, ReqUpdateShopItem } from "@/requests/shop";
 
-// Dynamically import the dialog component with SSR disabled and loading state
-const CreateCourseDialog = dynamic(
-  () =>
-    import("@/components/admin/dialogs/create-course-dialog").then(
-      (mod) => mod.CreateCourseDialog
-    ),
-  {
-    ssr: false,
-    loading: () => <div>Loading...</div>,
-  }
-);
 
 // Simple loading component
 const LoadingState = () => (
@@ -65,8 +50,8 @@ export default function ConfigShop() {
   // All state declarations
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [courseToEdit, setCourseToEdit] = useState<any | null>(null);
-  const [courseToDelete, setCourseToDelete] = useState<any | null>(null);
+  const [courseToEdit, setShopItemToEdit] = useState<any | null>(null);
+  const [courseToDelete, setShopItemToDelete] = useState<any | null>(null);
   const [dialogMode, setDialogMode] = useState<"create" | "edit">("create");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -85,31 +70,32 @@ export default function ConfigShop() {
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
+          populate: ["category"],
           pagination: {
             page,
             pageSize: pageSize,
           },
         });
-        return await ReqGetCourses(queryString);
+        return await ReqGetShopItem(queryString);
       } catch (err) {
-        error("Lỗi", "Không thể lấy thông tin khóa học");
+        error("Lỗi", "Không thể lấy thông tin vật phẩm");
       }
     },
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
 
-  const { mutate: createCourseMutation, isPending: isCreating } = useMutation({
+  const { mutate: createShopItemMutation, isPending: isCreating } = useMutation({
     mutationFn: (data: any) => {
-      return ReqCreateCourse(data);
+      return ReqCreateShopItem(data);
     },
     onSuccess: () => {
-      success("Thành công", "Đã tạo khóa học thành công");
+      success("Thành công", "Đã tạo vật phẩm thành công");
       refetch();
     },
     onError: (err) => {
       console.error("Error creating course:", err);
-      error("Lỗi", "Có lỗi xảy ra khi tạo khóa học");
+      error("Lỗi", "Có lỗi xảy ra khi tạo vật phẩm");
     },
     onSettled: () => {
       hide();
@@ -117,42 +103,42 @@ export default function ConfigShop() {
     },
   });
 
-  const { mutate: updateCourseMutation, isPending: isUpdating } = useMutation({
+  const { mutate: updateShopItemMutation, isPending: isUpdating } = useMutation({
     mutationFn: (data: any) => {
       const { id, ...dataUpdate } = data;
-      return ReqUpdateCourse(id.toString(), dataUpdate);
+      return ReqUpdateShopItem(id.toString(), dataUpdate);
     },
     onSuccess: () => {
-      success("Thành công", "Đã cập nhật khóa học thành công");
+      success("Thành công", "Đã cập nhật vật phẩm thành công");
       refetch();
     },
     onError: (err) => {
       console.error("Error updating course:", err);
-      error("Lỗi", "Có lỗi xảy ra khi cập nhật khóa học");
+      error("Lỗi", "Có lỗi xảy ra khi cập nhật vật phẩm");
     },
     onSettled: () => {
       hide();
       setIsDialogOpen(false);
-      setCourseToEdit(null);
+      setShopItemToEdit(null);
     },
   });
 
-  const { mutate: deleteCourseMutation, isPending: isDeleting } = useMutation({
+  const { mutate: deleteShopItemMutation, isPending: isDeleting } = useMutation({
     mutationFn: (id: number) => {
-      return ReqDeleteCourse(id.toString());
+      return ReqDeleteShopItem(id.toString());
     },
     onSuccess: () => {
-      success("Thành công", "Đã xóa khóa học thành công");
+      success("Thành công", "Đã xóa vật phẩm thành công");
       refetch();
     },
     onError: (err) => {
       console.error("Error deleting course:", err);
-      error("Lỗi", "Có lỗi xảy ra khi xóa khóa học");
+      error("Lỗi", "Có lỗi xảy ra khi xóa vật phẩm");
     },
     onSettled: () => {
       hide();
       setDeleteDialogOpen(false);
-      setCourseToDelete(null);
+      setShopItemToDelete(null);
     },
   });
 
@@ -164,25 +150,25 @@ export default function ConfigShop() {
   // Handler functions
   const handleOpenCreateDialog = () => {
     setDialogMode("create");
-    setCourseToEdit(null);
+    setShopItemToEdit(null);
     setIsDialogOpen(true);
   };
 
   const handleOpenEditDialog = (course: any) => {
     setDialogMode("edit");
-    setCourseToEdit(course);
+    setShopItemToEdit(course);
     setIsDialogOpen(true);
   };
 
-  const handleDeleteCourse = (course: any) => {
-    setCourseToDelete(course);
+  const handleDeleteShopItem = (course: any) => {
+    setShopItemToDelete(course);
     setDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = () => {
     if (!courseToDelete) return;
     show();
-    deleteCourseMutation(courseToDelete.id);
+    deleteShopItemMutation(courseToDelete.id);
   };
 
   const handleFormSubmit = (data: any) => {
@@ -192,9 +178,9 @@ export default function ConfigShop() {
       ...data,
     };
     if (dialogMode === "create") {
-      createCourseMutation(courseData);
+      createShopItemMutation(courseData);
     } else {
-      updateCourseMutation({ ...courseData, id: courseToEdit?.id });
+      updateShopItemMutation({ ...courseData, id: courseToEdit?.id });
     }
   };
 
@@ -204,16 +190,20 @@ export default function ConfigShop() {
       cell: ({ row }) => <span>{row.index + 1}</span>,
     },
     {
-      header: "Mã",
-      cell: ({ row }) => <div>{row.original.code}</div>,
+      header: "Tên vật phẩm",
+      cell: ({ row }) => <div>{row.original.name}</div>,
     },
     {
-      header: "Tên khoá",
-      cell: ({ row }) => <span>{row.original.name}</span>,
+      header: "Số lượng",
+      cell: ({ row }) => <span>{row.original.quantity}</span>,
     },
     {
-      header: "Loại",
-      cell: ({ row }) => <span>{get(row, "original.type", "")}</span>,
+      header: "Loại vật phẩm",
+      cell: ({ row }) => <span>{get(row, "original.category.name", "")}</span>,
+    },
+    {
+      header: "Giá tiền",
+      cell: ({ row }) => <span>{row.original.price}</span>,
     },
     {
       id: "action",
@@ -233,7 +223,7 @@ export default function ConfigShop() {
             className="p-2 hover:bg-gray-100 rounded-full"
             onClick={(e) => {
               e.stopPropagation();
-              handleDeleteCourse(row.original);
+              handleDeleteShopItem(row.original);
             }}
           >
             <Trash2 className="h-4 w-4" color="#7C6C80" />
@@ -330,13 +320,7 @@ export default function ConfigShop() {
       </Dialog>
       <Suspense fallback={<div>Loading...</div>}>
         {isMounted && (
-          <CreateCourseDialog
-            open={isDialogOpen}
-            onOpenChange={setIsDialogOpen}
-            onSubmit={handleFormSubmit}
-            courseToEdit={courseToEdit}
-            mode={dialogMode}
-          />
+          <CreateShopItem open={isDialogOpen} onOpenChange={setIsDialogOpen} onSubmit={handleFormSubmit} isEdit={dialogMode === "edit"} />
         )}
       </Suspense>
     </>

@@ -4,7 +4,7 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Bell, Goal, Home, Newspaper, Settings, ShoppingCart, User } from "lucide-react";
+import { Bell, Goal, Home, ListOrdered, Newspaper, Settings, ShoppingCart, User } from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
@@ -49,7 +49,7 @@ export const Navbar = () => {
             onClick={handleRidirectHomePage}
           />
         </div>
-        <div className="flex flex-col grow mt-4">
+        <div className="flex flex-col grow mt-4 overflow-y-auto">
           <MenuCard
             title="Tài khoản"
             active={usePathname().includes(ROUTE.ACCOUNT)}
@@ -143,6 +143,18 @@ export const Navbar = () => {
             active={usePathname().includes(ROUTE.CERTIFICATE)}
             iconElement={<Goal size={20} />}
             url={ROUTE.CERTIFICATE}
+          />
+          <MenuCard
+            title="Cấu hình Cửa Hàng"
+            active={usePathname().includes(ROUTE.SHOP_CONFIG)}
+            iconElement={<ShoppingCart size={20} />}
+            url={ROUTE.SHOP_CONFIG}
+          />
+          <MenuCard
+            title="Quản lý Cấp vật phẩm"
+            active={usePathname().includes(ROUTE.CLAIMED_ITEM)}
+            iconElement={<ListOrdered size={20} />}
+            url={ROUTE.CLAIMED_ITEM}
           />
         </div>
 

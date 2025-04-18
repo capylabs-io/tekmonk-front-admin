@@ -18,4 +18,6 @@ export const ROUTE = {
   CERTIFICATE: "/quan-ly/chung-chi",
   CERTIFICATE_REQUEST: "/quan-ly/xin-cap-chung-chi",
   CERTIFICATE_CONFIG: "/quan-ly/cau-hinh-chung-chi",
+  SHOP_CONFIG: "/quan-ly/cau-hinh-cua-hang",
+  CLAIMED_ITEM: "/quan-ly/duyet-cap-vat-pham",
 };

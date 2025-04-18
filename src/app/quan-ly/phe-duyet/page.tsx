@@ -178,7 +178,7 @@ export default function Page() {
             listPost.length > 0 &&
             <div className="border rounded-2xl w-[720px] mx-auto pb-5">
               {listPost.map((item: PostType, index: number) => (
-                <div className="px-8">
+                <div className="px-8" key={item?.name ? item?.name + index + 'post' : index + 'post'}>
                   <Post
                     showButton
                     data={item}
@@ -197,7 +197,7 @@ export default function Page() {
                     hideSocial
                     postContent={get(item, 'content', '')}
                     postName={get(item, 'name', '')}
-                     createdAt={moment(get(item, 'createdAt', ''), 'dd/mm/yyyy hh:mm:ss').toString()}
+                    createdAt={moment(get(item, 'createdAt', ''), 'dd/mm/yyyy hh:mm:ss').toString()}
                     likedCount="6.2"
                     commentCount="61"
                   />

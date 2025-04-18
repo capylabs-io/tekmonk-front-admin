@@ -43,3 +43,44 @@ export const updateCertificateHistory = async (id: number, data: any) => {
 };
 
 
+export const postCertificatePdfConfig = async (data: any) => {
+  const response = await tekdojoAxios.post(`${BASE_URL}/certificate-pdf-configs`, { data });
+  return response.data;
+};
+
+export const getCertificatePdfConfig = async (query: string = "") => {
+  const response = await tekdojoAxios.get(`${BASE_URL}/certificate-pdf-configs?${query}`);
+  return response.data;
+};
+
+export const updateCertificatePdfConfig = async (id: number, data: any) => {
+  const response = await tekdojoAxios.put(`${BASE_URL}/certificate-pdf-configs/${id}`, { data });
+  return response.data;
+};
+
+export const postCertificatePdfConfigField = async (data: any) => {
+  const response = await tekdojoAxios.post(`${BASE_URL}/certificate-pdf-field-configs`, { data });
+  return response.data;
+};
+
+export const getCertificatePdfConfigField = async (query: string = "") => {
+  const response = await tekdojoAxios.get(`${BASE_URL}/certificate-pdf-field-configs?${query}`);
+  return response.data;
+};
+
+export const updateCertificatePdfConfigField = async (id: number, data: any) => {
+  const response = await tekdojoAxios.put(`${BASE_URL}/certificate-pdf-field-configs/${id}`, { data });
+  return response.data;
+};
+
+export const deleteCertificatePdfConfigField = async (id: number) => {
+  const response = await tekdojoAxios.delete(`${BASE_URL}/certificate-pdf-field-configs/${id}`);
+  return response.data;
+};
+
+
+
+
+
+
+

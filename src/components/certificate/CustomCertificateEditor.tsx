@@ -84,15 +84,33 @@ const fontOptions = [
   { value: "Pacifico", label: "Pacifico" },
 ]
 
-export default function CertificateEditor() {
+export interface CertificateEditorProps {
+  initialFields?: CertificateField[]
+  initialBackgroundImage?: string | null
+  onFieldsChange?: (fields: CertificateField[]) => void
+  onBackgroundChange?: (file: File | null, imageUrl: string | null) => void
+}
+
+export default function CertificateEditor({
+  initialFields,
+  initialBackgroundImage,
+  onFieldsChange,
+  onBackgroundChange
+}: CertificateEditorProps) {
   // Certificate background image
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null)
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(initialBackgroundImage || null)
   const [backgroundFile, setBackgroundFile] = useState<File | null>(null)
   const [isOpenAddTextBlock, setIsOpenAddTextBlock] = useState(false)
   const [textBlockName, setTextBlockName] = useState("")
   // Certificate dimensions
   const certificateWidth = 1920
   const certificateHeight = 1080
+
+  // Thêm ref để theo dõi thay đổi và tránh vòng lặp vô hạn
+  const onFieldsChangeRef = useRef<string | null>(null);
+  const onBackgroundChangeRef = useRef<string | null>(null);
+  const initialFieldsRef = useRef<boolean>(false);
+  const initialBackgroundRef = useRef<boolean>(false);
 
   // Certificate fields with default positions
   const [fields, setFields] = useState<CertificateField[]>([
@@ -146,6 +164,58 @@ export default function CertificateEditor() {
     },
   ])
 
+  // Khi initialFields thay đổi từ bên ngoài, cập nhật fields
+  useEffect(() => {
+    if (initialFields && initialFields.length > 0 && !initialFieldsRef.current) {
+      initialFieldsRef.current = true;
+      setFields(initialFields);
+    }
+  }, [initialFields]);
+
+  // Khi initialBackgroundImage thay đổi từ bên ngoài, cập nhật backgroundImage
+  useEffect(() => {
+    if (initialBackgroundImage && !initialBackgroundRef.current) {
+      initialBackgroundRef.current = true;
+      setBackgroundImage(initialBackgroundImage);
+    }
+  }, [initialBackgroundImage]);
+
+  // Gọi callback khi fields thay đổi
+  useEffect(() => {
+    if (onFieldsChange) {
+      // Đảm bảo tất cả các trường đều có giá trị cơ bản
+      const validatedFields = fields.map(field => ({
+        ...field,
+        value: field.value || '',
+        htmlContent: field.htmlContent || field.value || '',
+        fontSize: field.fontSize || 18,
+        fontWeight: field.fontWeight || 'normal',
+        color: field.color || '#000000',
+        fontFamily: field.fontFamily || 'Roboto',
+        textAlign: field.textAlign || 'center'
+      }));
+
+      // Tránh gọi callback với cùng một dữ liệu
+      const fieldsString = JSON.stringify(validatedFields);
+      if (onFieldsChangeRef.current !== fieldsString) {
+        onFieldsChangeRef.current = fieldsString;
+        onFieldsChange(validatedFields);
+      }
+    }
+  }, [fields, onFieldsChange]);
+
+  // Gọi callback khi background thay đổi
+  useEffect(() => {
+    if (onBackgroundChange) {
+      // Tạo key duy nhất cho cặp backgroundFile và backgroundImage
+      const backgroundKey = `${backgroundFile?.name || ''}-${backgroundImage || ''}`;
+      if (onBackgroundChangeRef.current !== backgroundKey) {
+        onBackgroundChangeRef.current = backgroundKey;
+        onBackgroundChange(backgroundFile, backgroundImage);
+      }
+    }
+  }, [backgroundFile, backgroundImage, onBackgroundChange]);
+
   const certificateRef = useRef<HTMLDivElement>(null)
   const fieldRefs = useRef<Record<string, React.RefObject<HTMLDivElement>>>({})
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -186,7 +256,11 @@ export default function CertificateEditor() {
   const handleFieldChange = (id: string, value: string, htmlContent: string) => {
     setFields(fields.map((field) =>
       field.id === id
-        ? { ...field, value, htmlContent }
+        ? {
+          ...field,
+          value: value, // Giá trị text thuần túy
+          htmlContent: htmlContent || value // Đảm bảo luôn có HTML content
+        }
         : field
     ))
   }
@@ -313,7 +387,7 @@ export default function CertificateEditor() {
 
   // Export as PDF using jsPDF with better error handling
   const exportAsPDF = async () => {
-    if (!backgroundFile) {
+    if (!backgroundImage) {
       alert("Vui lòng tải lên hình nền trước");
       return;
     }
@@ -368,7 +442,7 @@ export default function CertificateEditor() {
         };
 
         const [r, g, b] = hexToRgb(field.color);
-        pdf.setTextColor(r, g, b); 
+        pdf.setTextColor(r, g, b);
 
         // Xác định textAlign cho jsPDF
         let align: 'left' | 'center' | 'right' = 'left';
@@ -526,7 +600,7 @@ export default function CertificateEditor() {
 
   // Thêm phương thức xuất PDF sử dụng HTML2Canvas
   const exportPDFUsingCanvas = async () => {
-    if (!backgroundFile) {
+    if (!backgroundImage) {
       alert("Vui lòng tải lên hình nền trước");
       return;
     }
@@ -604,7 +678,7 @@ export default function CertificateEditor() {
 
   // Thêm phương thức exportPDFHighPrecision
   const exportPDFHighPrecision = async () => {
-    if (!backgroundFile) {
+    if (!backgroundImage) {
       alert("Vui lòng tải lên hình nền trước");
       return;
     }
@@ -641,16 +715,38 @@ export default function CertificateEditor() {
       const offsetX = (pageWidth - scaledWidth) / 2;
       const offsetY = (pageHeight - scaledHeight) / 2;
 
-      // Thêm ảnh nền
-      const backgroundDataUrl = await blobToDataURL(backgroundFile);
-      pdf.addImage(
-        backgroundDataUrl,
-        'PNG',
-        offsetX,
-        offsetY,
-        scaledWidth,
-        scaledHeight
-      );
+      // Xử lý ảnh nền dựa trên nguồn (File hoặc URL)
+      let backgroundDataUrl;
+      if (backgroundFile) {
+        // Nếu có file nền, chuyển đổi từ File
+        backgroundDataUrl = await blobToDataURL(backgroundFile);
+      } else if (backgroundImage) {
+        // Nếu có URL ảnh nền, tải và chuyển đổi thành dataURL
+        try {
+          const img = await loadImage(backgroundImage);
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          backgroundDataUrl = canvas.toDataURL('image/png');
+        } catch (err) {
+          console.error('Lỗi khi xử lý ảnh nền từ URL:', err);
+          // Vẫn tiếp tục xử lý mà không có ảnh nền
+        }
+      }
+
+      // Thêm ảnh nền nếu có
+      if (backgroundDataUrl) {
+        pdf.addImage(
+          backgroundDataUrl,
+          'PNG',
+          offsetX,
+          offsetY,
+          scaledWidth,
+          scaledHeight
+        );
+      }
 
       // Xử lý từng text field
       for (const field of fields) {
@@ -756,10 +852,10 @@ export default function CertificateEditor() {
   return (
     <>
       <FontPreloader />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-y-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-y-auto !bg-white">
         {/* Certificate Preview */}
         <div className="lg:col-span-2 h-full">
-          <div className="bg-white p-4 rounded-lg h-full">
+          <div className="!bg-white p-4 rounded-lg h-full">
             <div className="flex justify-between items-center mb-2">
               <h2 className="text-lg font-medium">Xem trước chứng chỉ</h2>
               <div className="flex gap-2">
@@ -868,7 +964,7 @@ export default function CertificateEditor() {
               <TabsTrigger value="background">Hình nền</TabsTrigger>
             </TabsList>
 
-            <TabsContent value="content" className="space-y-4">
+            <TabsContent value="content" className="space-y-4 !h-[calc(100%-100px)] overflow-y-auto">
               <Card>
                 <CardContent className="pt-6">
                   <div className="space-y-6">

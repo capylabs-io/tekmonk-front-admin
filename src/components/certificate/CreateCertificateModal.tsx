@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { quillFormats } from "@/contants/config/react-quill";
 import { quillModules } from "@/contants/config/react-quill";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import dynamic from "next/dynamic";
 import {
   useForm,
@@ -26,6 +26,8 @@ import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { ReqGetCourses } from "@/requests/course";
 import { Switch } from "../ui/switch";
+import CertificateEditor, { CertificateField } from "./CustomCertificateEditor";
+import React from "react";
 
 export type CertificateFormData = {
   name?: string
@@ -36,6 +38,8 @@ export type CertificateFormData = {
   isHasValidation?: boolean
   // issuer_type?: string,
   // certificate_form?: string
+  certificateFields?: string
+  certificatePdfConfigId?: number
 }
 
 type Props = {
@@ -54,6 +58,49 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
   const [uploadedImage, setUploadedImage] = useState<File | null>(null);
   const [isMounted, setIsMounted] = useState(false);
 
+  // Trạng thái theo dõi việc đã chọn form chứng chỉ chưa
+  const [certificateFormSelected, setCertificateFormSelected] = useState(false);
+
+  // Thêm state để lưu trữ thông tin từ CustomCertificateEditor
+  const [certificateFields, setCertificateFields] = useState<CertificateField[]>([]);
+  const [certificateBackground, setCertificateBackground] = useState<File | null>(null);
+
+  // Refs để tránh vòng lặp vô hạn
+  const fieldsUpdateRef = useRef<string | null>(null);
+  const backgroundUpdateRef = useRef<boolean>(false);
+
+  // Phương thức để xử lý khi component cha truyền dữ liệu form từ CustomCertificateEditor
+  const updateFormWithCertificateData = (fields: CertificateField[], background: File | null) => {
+    // Chỉ cập nhật fields khi thực sự thay đổi
+    const fieldsStr = JSON.stringify(fields);
+    if (fieldsUpdateRef.current !== fieldsStr) {
+      fieldsUpdateRef.current = fieldsStr;
+      setCertificateFields(fields);
+      // Lưu certificateFields dưới dạng JSON string
+      setValue("certificateFields" as any, JSON.stringify(fields));
+    }
+
+    // Chỉ cập nhật background khi thực sự thay đổi
+    if (background && !backgroundUpdateRef.current) {
+      backgroundUpdateRef.current = true;
+      setCertificateBackground(background);
+
+      // Lưu thông tin vào form
+      setValue("imgUrl", background as any);
+      setUploadedImage(background);
+    }
+
+    // Cập nhật trạng thái form
+    setCertificateFormSelected(true);
+  };
+
+  // Thông báo đến component cha rằng muốn chọn form
+  const handleChooseCertificateForm = () => {
+    if (onChooseCertificateForm) {
+      onChooseCertificateForm();
+    }
+  };
+
   const methods = useForm({
     // resolver: zodResolver(achievementFormSchema),
     defaultValues: {
@@ -62,7 +109,9 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
       // type: "",
       description: "",
       course: "",
-      isHasValidation: false
+      isHasValidation: false,
+      certificateFields: "",
+      certificatePdfConfigId: undefined
     },
   })
   const { data: courses } = useQuery({
@@ -101,6 +150,13 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
   const handleDialogChange = (open: boolean) => {
     if (!open) {
       reset();
+      setCertificateFormSelected(false);
+      // Reset các ref
+      fieldsUpdateRef.current = null;
+      backgroundUpdateRef.current = false;
+      // Reset các state
+      setCertificateFields([]);
+      setCertificateBackground(null);
     }
     onOpenChange(open);
   };
@@ -119,6 +175,32 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  // Công khai phương thức để component cha có thể gọi
+  // Sử dụng useImperativeHandle nếu dùng với forwardRef
+  React.useEffect(() => {
+    // Tạo một hàm tham chiếu mới để tránh vòng lặp vô hạn
+    const publishedMethod = {
+      updateFormWithCertificateData: (fields: CertificateField[], background: File | null) => {
+        updateFormWithCertificateData(fields, background);
+      }
+    };
+
+    // @ts-ignore - Chấp nhận lỗi TypeScript để công khai phương thức
+    if (typeof window !== 'undefined') {
+      // @ts-ignore
+      window.currentCertificateModal = publishedMethod;
+    }
+
+    return () => {
+      // @ts-ignore
+      if (typeof window !== 'undefined') {
+        // @ts-ignore
+        delete window.currentCertificateModal;
+      }
+    };
+  }, []);
+
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="w-[680px] h-[calc(100vh-10%)] bg-white">
@@ -149,7 +231,7 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
                     />
                   </div>
                 </div>
-                <div className="flex flex-col gap-2">
+                {/* <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <div className="min-w-[160px] text-SubheadMd">Hình nền</div>
                     <InputFileUpdload
@@ -163,7 +245,7 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
                       }
                     />
                   </div>
-                </div>
+                </div> */}
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <div className="min-w-[160px] text-SubheadMd">Form chứng chỉ</div>
@@ -171,9 +253,16 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
                       type="text"
                       placeholder="Chọn form chứng chỉ"
                       customClassNames="flex-1"
-                      onClick={() => onChooseCertificateForm?.()}
+                      onClick={handleChooseCertificateForm}
+                      value={certificateFormSelected ? "Đã chọn form chứng chỉ" : ""}
+                      readOnly
                     />
                   </div>
+                  {certificateFormSelected && (
+                    <div className="ml-[160px] text-green-600 text-sm">
+                      Form chứng chỉ đã được thiết lập. Nhấn vào để chỉnh sửa.
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">

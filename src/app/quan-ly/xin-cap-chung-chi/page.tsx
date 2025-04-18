@@ -156,17 +156,6 @@ export default function Page() {
 
       },
       {
-        header: 'Hình nền',
-        cell: ({ row }) => (
-          <div className="bg-center bg-no-repeat bg-cover h-[80px] rounded-xl w-[130px]"
-            style={{
-              backgroundImage: `url(${row.original?.imgUrl})`
-            }}>
-
-          </div>
-        ),
-      },
-      {
         header: 'Tên chứng chỉ',
         cell: ({ row }) => <span>{row.original.name}</span>,
       },
