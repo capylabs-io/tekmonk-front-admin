@@ -2,18 +2,9 @@
 
 import { CreateClassDialog } from "@/components/admin/CreateClassDialog";
 import { DeleteClassDialog } from "@/components/admin/dialogs/delete-class-dialog";
-import StudentTablePagination from "@/components/admin/student-table-pagination";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { useCustomRouter } from "@/components/common/router/CustomRouter";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ROUTE } from "@/contants/router";
 import { ReqDeleteClass, ReqGetClasses } from "@/requests/class";
 import { useLoadingStore } from "@/store/LoadingStore";
@@ -22,7 +13,9 @@ import { Class } from "@/types/common-types";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Edit, PanelLeft, Trash2 } from "lucide-react";
 import qs from "qs";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { CommonTable } from "@/components/common/CommonTable";
+import { ColumnDef } from "@tanstack/react-table";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12">
@@ -43,8 +36,9 @@ export default function Admin() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [classToDelete, setClassToDelete] = useState<Class | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [isMounted, setIsMounted] = useState(false);
 
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
@@ -53,16 +47,24 @@ export default function Admin() {
   ]);
   const { show, hide } = useLoadingStore();
 
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
   /* UseQuery */
-  const { data: classes, refetch } = useQuery({
-    queryKey: ["class", currentPage, itemsPerPage],
+  const {
+    data: classes,
+    refetch,
+    isLoading,
+  } = useQuery({
+    queryKey: ["class", page, pageSize],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
           populate: "*",
           pagination: {
-            page: currentPage,
-            pageSize: itemsPerPage,
+            page: page,
+            pageSize: pageSize,
           },
         });
         return await ReqGetClasses(queryString);
@@ -71,6 +73,7 @@ export default function Admin() {
       }
     },
     refetchOnWindowFocus: false,
+    enabled: isMounted,
   });
 
   const { mutate: deleteClassMutation, isPending: isDeleting } = useMutation({
@@ -96,11 +99,6 @@ export default function Admin() {
     setIsDialogOpen(true);
   };
 
-  const handleItemsPerPageChange = (newItemsPerPage: number) => {
-    setItemsPerPage(newItemsPerPage);
-    setCurrentPage(1);
-  };
-
   const handleDeleteClass = (classData: Class) => {
     setClassToDelete(classData);
     setDeleteDialogOpen(true);
@@ -112,6 +110,88 @@ export default function Admin() {
     show();
     deleteClassMutation(classToDelete.id);
   };
+
+  const columns: ColumnDef<Class>[] = [
+    {
+      id: "stt",
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      id: "code",
+      header: "Mã lớp",
+      cell: ({ row }) => (
+        <div className="max-w-[200px] truncate" title={row.original.code}>
+          {row.original.code}
+        </div>
+      ),
+    },
+    {
+      id: "course",
+      header: "Tên khóa",
+      cell: ({ row }) => (
+        <div
+          className="max-w-[150px] truncate"
+          title={row.original.course?.name}
+        >
+          {row.original.course?.name}
+        </div>
+      ),
+    },
+    {
+      id: "teacher",
+      header: "Tên giảng viên",
+      cell: ({ row }) => (
+        <div
+          className="max-w-[200px] truncate"
+          title={row.original.teacher?.username}
+        >
+          {row.original.teacher?.username}
+        </div>
+      ),
+    },
+    {
+      id: "status",
+      header: "Trạng thái",
+      cell: ({ row }) => (
+        <div className="max-w-[100px] truncate">
+          {new Date(row.original.endTime) > new Date()
+            ? "Đang diễn ra"
+            : "Đã kết thúc"}
+        </div>
+      ),
+    },
+    {
+      id: "action",
+      header: "Thao tác",
+      cell: ({ row }) => (
+        <div className="flex justify-end gap-2">
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push(`${ROUTE.MANAGE_CLASS}/${row.original.id}`);
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </button>
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleDeleteClass(row.original);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        </div>
+      ),
+    },
+  ];
+
+  if (!isMounted) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <>
@@ -136,88 +216,23 @@ export default function Admin() {
           {classes && classes.meta.pagination.total === 0 ? (
             <EmptyState />
           ) : (
-            <div className="rounded-md border min-w-[800px] w-full">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>STT</TableHead>
-                    <TableHead>Mã lớp</TableHead>
-                    <TableHead>Tên khóa</TableHead>
-                    <TableHead>Tên giảng viên</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                    <TableHead className="text-right">Thao tác</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody className="text-BodySm">
-                  {classes &&
-                    classes.data.map((item) => (
-                      <TableRow key={item.id} className="cursor-pointer">
-                        <TableCell className="text-right">{item.id}</TableCell>
-                        <TableCell>
-                          <div
-                            className="max-w-[200px] truncate"
-                            title={item.code}
-                          >
-                            {item.code}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div
-                            className="max-w-[150px] truncate"
-                            title={item.course?.name}
-                          >
-                            {item.course?.name}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div
-                            className="max-w-[200px] truncate"
-                            title={item.teacher?.username}
-                          >
-                            {item.teacher?.username}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="max-w-[100px] truncate">
-                            {new Date(item.endTime) > new Date()
-                              ? "Đang diễn ra"
-                              : "Đã kết thúc"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right space-x-2">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              className="p-2 hover:bg-gray-100 rounded-full"
-                              onClick={() =>
-                                router.push(`${ROUTE.MANAGE_CLASS}/${item.id}`)
-                              }
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              className="p-2 hover:bg-gray-100 rounded-full"
-                              onClick={() => handleDeleteClass(item)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                </TableBody>
-              </Table>
+            <div className="w-full">
+              {classes && (
+                <CommonTable
+                  data={classes?.data}
+                  isLoading={isLoading}
+                  columns={columns}
+                  page={page}
+                  totalPage={classes.meta.pagination.pageCount}
+                  totalDocs={classes.meta.pagination.total}
+                  onPageChange={setPage}
+                  docsPerPage={pageSize}
+                  onPageSizeChange={setPageSize}
+                />
+              )}
             </div>
           )}
         </div>
-        {classes && (
-          <StudentTablePagination
-            totalItems={classes.meta.pagination.total}
-            currentPage={currentPage}
-            itemsPerPage={itemsPerPage}
-            onPageChange={setCurrentPage}
-            onItemsPerPageChange={handleItemsPerPageChange}
-          />
-        )}
       </div>
 
       <CreateClassDialog open={isDialogOpen} onOpenChange={setIsDialogOpen} />

@@ -17,6 +17,7 @@ interface ManagerRegistrationDialogProps {
   onOpenChange: (open: boolean) => void;
   onRegister: (data: ManagerFormData) => Promise<void>;
   isSubmitting?: boolean;
+  idRole?: number;
 }
 
 const managerFormSchema = z.object({
@@ -55,6 +56,7 @@ export const ManagerRegistrationDialog = ({
   onOpenChange,
   onRegister,
   isSubmitting = false,
+  idRole,
 }: ManagerRegistrationDialogProps) => {
   const {
     handleSubmit,
@@ -71,7 +73,7 @@ export const ManagerRegistrationDialog = ({
       dateOfBirth: "",
       phoneNumber: "",
       password: "123123", // default password
-      user_role: 3, // manager role
+      user_role: idRole, // manager role
     },
   });
 

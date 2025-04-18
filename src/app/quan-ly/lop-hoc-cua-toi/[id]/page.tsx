@@ -235,9 +235,12 @@ export default function ClassDetailPage({
             <span className="text-SubheadLg text-gray-95">
               {classData.data[0].course?.name}
             </span>
-            <span className="text-BodyMd text-gray-95">
-              {classData.data[0].course?.description}
-            </span>
+            <span
+              className="text-BodyMd text-gray-95"
+              dangerouslySetInnerHTML={{
+                __html: classData.data[0].course?.description || "",
+              }}
+            />
           </div>
         </div>
       )}

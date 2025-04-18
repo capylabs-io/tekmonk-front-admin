@@ -17,6 +17,7 @@ interface TeacherRegistrationDialogProps {
   onOpenChange: (open: boolean) => void;
   onRegister: (data: TeacherFormData) => Promise<void>;
   isSubmitting?: boolean;
+  idRole?: number;
 }
 
 const teacherFormSchema = z.object({
@@ -49,6 +50,7 @@ export const TeacherRegistrationDialog = ({
   onOpenChange,
   onRegister,
   isSubmitting = false,
+  idRole,
 }: TeacherRegistrationDialogProps) => {
   const {
     handleSubmit,
@@ -65,7 +67,7 @@ export const TeacherRegistrationDialog = ({
       dateOfBirth: "",
       phoneNumber: "",
       password: "123123", // default password
-      user_role: 2, // teacher role
+      user_role: idRole, // teacher role
     },
   });
 

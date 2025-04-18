@@ -10,7 +10,8 @@ export type Event = {
   createdAt: string;
 };
 
-type UserRole = {
+export type UserRole = {
+  id: number;
   name?: string;
   code?: string;
   description?: string;
@@ -238,7 +239,7 @@ export type ClassSessionDetail = {
   id: number;
   class_session?: ClassSession;
   student?: User;
-  mission?: Mission
+  mission?: Mission;
   createdAt: string;
   updatedAt: string;
 };
