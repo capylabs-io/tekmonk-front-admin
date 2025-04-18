@@ -48,17 +48,12 @@ export const ReqCreateNews = async (data: any) => {
 
 //PUT METHODS
 export const ReqUpdateNews = async (id: string, data: any) => {
-  console.log("data", data);
   try {
-    const res = await tekdojoAxios.put(
-      `/news/${id}`,
-      { data: data },
-      {
-        headers: {
-          "Content-Type": "application/json",
-        },
-      }
-    );
+    const res = await tekdojoAxios.put(`/news/${id}`, data, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
     return res.data as StrapiResponse<TNews[]>;
   } catch (error) {
     console.log("Error updating news: ", error);
