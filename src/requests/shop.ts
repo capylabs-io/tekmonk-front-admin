@@ -9,8 +9,10 @@ export const ReqGetShopItem = async (query: string = "") => {
 };
 
 export const ReqCreateShopItem = async (data: any) => {
-  const response = await tekdojoAxios.post(`${BASE_URL}/shop-items`, {
-    data: data,
+  const response = await tekdojoAxios.post(`shop-items`, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   });
   return response.data;
 };
@@ -18,6 +20,15 @@ export const ReqCreateShopItem = async (data: any) => {
 export const ReqUpdateShopItem = async (id: string, data: any) => {
   const response = await tekdojoAxios.put(`${BASE_URL}/shop-items/${id}`, {
     data,
+  });
+  return response.data;
+};
+
+export const ReqUpdateShopItemWithImage = async (id: string, data: FormData) => {
+  const response = await tekdojoAxios.put(`${BASE_URL}/shop-items/${id}`, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   });
   return response.data;
 };

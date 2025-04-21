@@ -11,11 +11,8 @@ import {
   useForm,
   FormProvider,
   Controller,
-  useFormContext,
 } from "react-hook-form";
-import { zodResolver } from '@hookform/resolvers/zod';
 import { ShopItem, ShopItemEnum } from '@/types/shop';
-import ReactQuill from 'react-quill';
 import { quillFormats, quillModules } from '@/contants/config/react-quill';
 import { CommonSelect } from '../common/CommonSelect';
 import { CommonButton } from '../common/button/CommonButton';
@@ -23,29 +20,40 @@ import { useQuery } from '@tanstack/react-query';
 import { ReqGetCategory } from '@/requests/category';
 import { useSnackbarStore } from '@/store/SnackbarStore';
 import { SHOP_ITEM_TYPE } from '@/contants/shop';
+import { InputFileUpdload } from '../common/InputFileUpload';
+import { ImagePlus } from 'lucide-react';
+import dynamic from 'next/dynamic';
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full max-w-[600px] min-h-[200px] bg-gray-100 rounded-xl animate-pulse" />
+  ),
+});
 type Props = {
   open: boolean;
   isEdit: boolean;
+  initialData?: ShopItem;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: any) => void;
+  onSubmit: (data: any, image?: File | null) => void;
 };
 
 export const CreateShopItem = ({
   open,
   isEdit,
   onOpenChange,
-  onSubmit
+  onSubmit,
+  initialData
 }: Props) => {
   const form = useForm<ShopItem>({
     // resolver: zodResolver(misionFormSchema),
     defaultValues: {
-      name: '',
-      image: '',
-      price: 0,
-      description: '',
-      category: undefined,
-      type: ShopItemEnum.VIRTUAL,
-      quantity: 0,
+      name: initialData?.name || '',
+      image: initialData?.image || '',
+      price: initialData?.price || 0,
+      description: initialData?.description || '',
+      category: initialData?.category || undefined,
+      type: initialData?.type || '' as ShopItemEnum,
+      quantity: initialData?.quantity || 0,
     },
   });
 
@@ -60,6 +68,8 @@ export const CreateShopItem = ({
     formState: { errors, isValid, isDirty, isSubmitting },
   } = form;
   const [isMounted, setIsMounted] = useState(false);
+  const [uploadedImage, setUploadedImage] = useState<File | null>(null);
+
   const [isStationery, setIsStationery] = useState(false);
   const [error, success] = useSnackbarStore((state) => [
     state.error,
@@ -82,8 +92,19 @@ export const CreateShopItem = ({
     }
     setValue('category', category);
   }
+  const handleImageUpload = (file: File | null) => {
+    console.log("file", file as any);
+    setUploadedImage(file);
+    // Update the form value for validation
+    setValue("image", file ? "has-new-file" : (initialData?.image ? "existing-image" : ""), {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
   const handleSelectItemTypeChange = (value: string) => {
-    if (value === ShopItemEnum.STATIONERY) {
+    if (value === ShopItemEnum.VIRTUAL) {
       setValue('quantity', 0);
       setIsStationery(true);
     } else {
@@ -97,12 +118,25 @@ export const CreateShopItem = ({
     }
     onOpenChange(open);
   };
+  useEffect(() => {
+    if (initialData) {
+      reset({
+        name: initialData.name || '',
+        price: initialData.price || 0,
+        image: initialData.image || '',
+        description: initialData.description || '',
+        category: initialData.category || undefined,
+        type: initialData.type || ShopItemEnum.VIRTUAL,
+        quantity: initialData.quantity || 0,
+      });
 
+    }
+  }, [initialData]);
   useEffect(() => {
     setIsMounted(true);
   }, []);
   return (
-    <Dialog open={open} onOpenChange={handleDialogChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
@@ -111,7 +145,7 @@ export const CreateShopItem = ({
         </DialogHeader>
 
         <FormProvider {...form}>
-          <form className="space-y-4 p-4 h-[500px] overflow-y-auto hide-scrollbar">
+          <form className="space-y-4 p-4 overflow-y-auto hide-scrollbar">
             <div className="space-y-6">
               {/* Course Name Field */}
               <div className="flex flex-col gap-2">
@@ -133,6 +167,38 @@ export const CreateShopItem = ({
                   />
                 </div>
               </div>
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-[160px] text-SubheadMd">Hình nền</div>
+                  <InputFileUpdload
+                    value={uploadedImage}
+                    onChange={handleImageUpload}
+                    customClassNames="max-w-[424px]"
+                    customInputClassNames="text-sm"
+                    contentImageUpload={
+                      <>
+                        {initialData?.image ? (
+                          <img src={initialData.image} alt="ảnh" className="w-full h-full object-cover" />
+                        )
+                          :
+                          <>
+                            <div
+                              className="rounded-full p-5 w-max mx-auto flex items-center justify-center relative bg-gray-20"
+                            >
+                              <ImagePlus size={20} className="absolute text-gray-50" />
+                            </div>
+                            <div className="mt-2 text-gray-70 text-SubheadSm">
+                              Tải lên ảnh/video
+                            </div>
+                            <p className="text-gray-70 !text-xs font-normal">Hoặc kéo và thả</p>
+                          </>
+                        }
+                      </>
+                    }
+                  />
+                </div>
+              </div>
+              {errors.image && <span className="text-red-500 text-xs mt-1">{errors.image.message}</span>}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-[160px] text-SubheadMd">Giá tiền</div>
@@ -178,13 +244,13 @@ export const CreateShopItem = ({
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="min-w-[160px] text-SubheadMd">Loại vật phẩm</div>
-                  <CommonSelect disabled={isEdit} className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn loại vật phẩm" options={SHOP_ITEM_TYPE} value={getValues('type')} onChange={handleSelectItemTypeChange} />
+                  <CommonSelect className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn loại vật phẩm" options={SHOP_ITEM_TYPE} value={getValues('type')} onChange={handleSelectItemTypeChange} />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="min-w-[160px] text-SubheadMd">Danh mục</div>
-                  <CommonSelect disabled={isEdit} className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn danh mục" options={categories ? categories?.data?.map((category) => ({ label: category.name || "", value: category.id?.toString() || "" })) : []} value={getValues('category.name')} onChange={handleSelectChange} />
+                  <CommonSelect className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn danh mục" options={categories ? categories?.data?.map((category) => ({ label: category.name || "", value: category.id?.toString() || "" })) : []} value={getValues('category.name')} onChange={handleSelectChange} />
                 </div>
               </div>
               {/* Description Field */}
@@ -236,11 +302,12 @@ export const CreateShopItem = ({
               className="h-11 w-[139px]"
               disabled={isSubmitting}
               onClick={() => {
-                handleSubmit(onSubmit)
+                onSubmit(getValues(), uploadedImage)
                 reset()
+                setUploadedImage(null)
               }}
             >
-              {isSubmitting ? "Đang tạo..." : "Tạo mới"}
+              {isEdit ? "Cập nhật" : "Tạo mới"}
             </CommonButton>
           </div>
         </DialogFooter>

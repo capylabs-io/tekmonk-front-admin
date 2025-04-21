@@ -6,7 +6,7 @@ import { CommonTable } from "@/components/common/CommonTable";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Check, Edit, PanelLeft, Trash2 } from "lucide-react";
+import { Check, CheckCircle, Edit, PanelLeft, Trash2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { ColumnDef } from "@tanstack/react-table";
 import { get } from "lodash";
@@ -22,7 +22,8 @@ import qs from "qs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { ReqGetClaimedItem, ReqUpdateClaimedItem } from "@/requests/claimed-item";
-
+import { ClaimedItemStatusEnum } from "@/types/shop";
+import { Tabs } from "@/components/new/tabs";
 
 // Simple loading component
 const LoadingState = () => (
@@ -61,13 +62,21 @@ export default function VerifyClaimedItem() {
     state.success,
   ]);
   const { show, hide } = useLoadingStore();
-
+  const [activeTab, setActiveTab] = useState<{ id: string; label: string }>({
+    id: "pending",
+    label: "Đợi phê duyệt",
+  });
+  const tabs = [
+    { id: "pending", label: "Đợi phê duyệt" },
+    { id: "verified", label: "Đã phê duyệt" },
+  ];
   /* UseQuery */
   const { data: courses, refetch } = useQuery({
     queryKey: ["course", page, pageSize],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
+          populate: ["user"],
           pagination: {
             page,
             pageSize: pageSize,
@@ -96,6 +105,17 @@ export default function VerifyClaimedItem() {
     setIsDialogOpen(true);
   };
 
+  const handleConfirmPurchase = async (id: string) => {
+    try {
+      await ReqUpdateClaimedItem(id, {
+        status: ClaimedItemStatusEnum.CLAIMED,
+      });
+      success("Thành công", "Đã duyệt cấp vật phẩm");
+      refetch();
+    } catch (err) {
+      error("Lỗi", "Không thể duyệt cấp vật phẩm");
+    }
+  };
 
   const columns: ColumnDef<any>[] = [
     {
@@ -104,37 +124,45 @@ export default function VerifyClaimedItem() {
     },
     {
       header: "Mã quy đổi",
-      cell: ({ row }) => <span>{row.original.itemCode}</span>,
+      cell: ({ row }) => <div>{get(row.original, "code", "Không có")}</div>,
     },
     {
       header: "Mã vật phẩm",
-      cell: ({ row }) => <div>{row.original.code}</div>,
+      cell: ({ row }) => <span>{get(row.original, "itemCode", "Không có")}</span>,
     },
     {
       header: "Số lượng",
-      cell: ({ row }) => <span>{row.original.quantity}</span>,
+      cell: ({ row }) => <span>{get(row.original, "quantity", "Không có")}</span>,
     },
     {
       header: "Người dùng",
-      cell: ({ row }) => <span>{row.original.user.username}</span>,
+      cell: ({ row }) => <span>{get(row.original, "user.username", "Không có")}</span>,
     },
     {
       header: "Ngày tạo",
-      cell: ({ row }) => <span>{row.original.createdAt}</span>,
+      cell: ({ row }) => <span>{get(row.original, "createdAt", "Không có")}</span>,
     },
     {
       id: "action",
       header: "",
       cell: ({ row }) => (
         <div className="flex gap-2">
-          <button
-            className="p-2 hover:bg-gray-100 rounded-full"
-            onClick={(e) => {
-              e.stopPropagation();
-            }}
-          >
-            <Check className="h-4 w-4" color="#7C6C80" />
-          </button>
+          {
+            get(row.original, "status", "") === ClaimedItemStatusEnum.PENDING ?
+              <button
+                className="p-2 hover:bg-gray-100 rounded-full"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsDialogOpen(true);
+                  setClaimedItemToEdit(row.original);
+                }}
+              >
+                <CheckCircle className="h-5 w-5" color="#7C6C80" />
+              </button> :
+              <div className="flex items-center justify-center">
+                <div className="text-base text-primary-50">Đã duyệt</div>
+              </div>
+          }
         </div>
       ),
     },
@@ -160,22 +188,95 @@ export default function VerifyClaimedItem() {
             </div>
           </div>
         </div>
-        <div className="p-4">
-          {courses && (
-            <CommonTable
-              data={courses?.data}
-              isLoading={false}
-              columns={columns}
-              page={page}
-              totalPage={courses.meta.pagination.pageCount}
-              totalDocs={courses.meta.pagination.total}
-              onPageChange={setPage}
-              docsPerPage={pageSize}
-              onPageSizeChange={setPageSize}
-            />
-          )}
-        </div>
+
+        <Tabs
+          tabs={tabs}
+          currentTab={activeTab}
+          setCurrentTab={setActiveTab}
+          className="w-full !justify-start space-x-5 px-4 border-b border-gray-20"
+        />
+        {
+          activeTab.id === 'pending' && (
+            <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+              {courses && (
+                <CommonTable
+                  data={courses?.data.filter((item: any) => item.status === ClaimedItemStatusEnum.PENDING)}
+                  isLoading={false}
+                  columns={columns}
+                  page={page}
+                  totalPage={courses.meta.pagination.pageCount}
+                  totalDocs={courses.meta.pagination.total}
+                  onPageChange={setPage}
+                  docsPerPage={pageSize}
+                  onPageSizeChange={setPageSize}
+                />
+              )}
+            </div>
+          )
+        }
+        {
+          activeTab.id === 'verified' && (
+            <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+              {courses && (
+                <CommonTable
+                  data={courses?.data.filter((item: any) => item.status === ClaimedItemStatusEnum.CLAIMED)}
+                  isLoading={false}
+                  columns={columns}
+                  page={page}
+                  totalPage={courses.meta.pagination.pageCount}
+                  totalDocs={courses.meta.pagination.total}
+                  onPageChange={setPage}
+                  docsPerPage={pageSize}
+                  onPageSizeChange={setPageSize}
+                />
+              )}
+            </div>
+          )
+        }
       </div>
+      <Dialog
+        open={isDialogOpen}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDialogOpen(false);
+          }
+        }}
+      >
+        <DialogContent className="max-w-[500px] max-h-full bg-gray-00 overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-xl">Duyệt cấp vật phẩm</DialogTitle>
+            <DialogDescription>
+              <div className="text-gray-95 text-BodySm">
+                Bạn có muốn duyệt cấp vật phẩm này không?
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter className="flex items-center justify-between sm:justify-between">
+            <CommonButton
+              variant="secondary"
+              className="h-[48px]"
+              childrenClassName="text-SubheadMd"
+              onClick={() => {
+                setIsDialogOpen(false);
+              }}
+            >
+              Thoát
+            </CommonButton>
+            <CommonButton
+              variant="primary"
+              className="h-[48px]"
+              childrenClassName="text-SubheadMd"
+              onClick={() => {
+                handleConfirmPurchase(courseToEdit.id);
+                setIsDialogOpen(false);
+              }}
+            >
+              Duyệt
+            </CommonButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

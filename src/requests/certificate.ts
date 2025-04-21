@@ -44,7 +44,13 @@ export const updateCertificateHistory = async (id: number, data: any) => {
 
 
 export const postCertificatePdfConfig = async (data: any) => {
-  const response = await tekdojoAxios.post(`${BASE_URL}/certificate-pdf-configs`, { data });
+  const response = await tekdojoAxios.post(`${BASE_URL}/certificate-pdf-configs`, { data },
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
   return response.data;
 };
 

@@ -22,7 +22,8 @@ import qs from "qs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { CreateShopItem } from "@/components/shop/CreateShopItem";
-import { ReqCreateShopItem, ReqDeleteShopItem, ReqGetShopItem, ReqUpdateShopItem } from "@/requests/shop";
+import { ReqCreateShopItem, ReqDeleteShopItem, ReqGetShopItem, ReqUpdateShopItem, ReqUpdateShopItemWithImage } from "@/requests/shop";
+import Image from "next/image";
 
 
 // Simple loading component
@@ -84,10 +85,20 @@ export default function ConfigShop() {
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
-
   const { mutate: createShopItemMutation, isPending: isCreating } = useMutation({
-    mutationFn: (data: any) => {
-      return ReqCreateShopItem(data);
+    mutationFn: async (data: any) => {
+      const { image, ...dataUpdate } = data;
+      const formData = new FormData();
+      formData.append("name", dataUpdate.name);
+      formData.append("price", dataUpdate.price);
+      formData.append("description", dataUpdate.description);
+      formData.append("category", dataUpdate.category.id);
+      formData.append("type", dataUpdate.type);
+      formData.append("quantity", dataUpdate.quantity);
+      if (image) {
+        formData.append("image", image);
+      }
+      return await ReqCreateShopItem(formData);
     },
     onSuccess: () => {
       success("Thành công", "Đã tạo vật phẩm thành công");
@@ -102,11 +113,26 @@ export default function ConfigShop() {
       setIsDialogOpen(false);
     },
   });
-
   const { mutate: updateShopItemMutation, isPending: isUpdating } = useMutation({
     mutationFn: (data: any) => {
-      const { id, ...dataUpdate } = data;
-      return ReqUpdateShopItem(id.toString(), dataUpdate);
+      const { id, image, ...dataUpdate } = data;
+      if (image && image instanceof File) {
+        // Xử lý cập nhật với hình ảnh mới
+        const formData = new FormData();
+        formData.append("name", dataUpdate.name);
+        formData.append("price", dataUpdate.price);
+        formData.append("description", dataUpdate.description);
+        formData.append("category", dataUpdate.category.id);
+        formData.append("type", dataUpdate.type);
+        formData.append("quantity", dataUpdate.quantity);
+        formData.append('image', image);
+        // Bỏ trường image ra khỏi dữ liệu
+
+        return ReqUpdateShopItemWithImage(id.toString(), formData);
+      } else {
+        // Cập nhật bình thường không có hình ảnh mới
+        return ReqUpdateShopItem(id.toString(), dataUpdate);
+      }
     },
     onSuccess: () => {
       success("Thành công", "Đã cập nhật vật phẩm thành công");
@@ -171,16 +197,13 @@ export default function ConfigShop() {
     deleteShopItemMutation(courseToDelete.id);
   };
 
-  const handleFormSubmit = (data: any) => {
+  const handleFormSubmit = (data: any, image?: File | null) => {
     show();
-    // Handle transform data
-    const courseData = {
-      ...data,
-    };
+
     if (dialogMode === "create") {
-      createShopItemMutation(courseData);
+      createShopItemMutation({ ...data, image: image });
     } else {
-      updateShopItemMutation({ ...courseData, id: courseToEdit?.id });
+      updateShopItemMutation({ ...data, id: courseToEdit?.id, image: image });
     }
   };
 
@@ -192,6 +215,19 @@ export default function ConfigShop() {
     {
       header: "Tên vật phẩm",
       cell: ({ row }) => <div>{row.original.name}</div>,
+    },
+    {
+      header: "Hình ảnh",
+      cell: ({ row }) => <div>
+        <Image
+          src={row.original.image || ''}
+          alt="avatar pic"
+          width={170}
+          height={100}
+          className="rounded-xl max-h-[100px] max-w-[170px] object-cover"
+        />
+
+      </div>,
     },
     {
       header: "Số lượng",
@@ -320,7 +356,7 @@ export default function ConfigShop() {
       </Dialog>
       <Suspense fallback={<div>Loading...</div>}>
         {isMounted && (
-          <CreateShopItem open={isDialogOpen} onOpenChange={setIsDialogOpen} onSubmit={handleFormSubmit} isEdit={dialogMode === "edit"} />
+          <CreateShopItem open={isDialogOpen} initialData={courseToEdit} onOpenChange={setIsDialogOpen} onSubmit={handleFormSubmit} isEdit={dialogMode === "edit"} />
         )}
       </Suspense>
     </>

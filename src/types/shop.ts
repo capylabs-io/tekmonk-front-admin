@@ -25,4 +25,11 @@ export type ClaimedItem = {
   user?: User
   createdAt?: string
   updatedAt?: string
+  status?: ClaimedItemStatusEnum
+}
+
+export enum ClaimedItemStatusEnum {
+  PENDING = "pending",
+  CLAIMED = "claimed",
+  REJECTED = "rejected"
 }

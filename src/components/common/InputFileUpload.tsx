@@ -40,7 +40,6 @@ export const InputFileUpdload = ({
         return;
       }
       setFile(selectedFile);
-      console.log("selectedFile", selectedFile);
 
       onChange?.(selectedFile);
     }

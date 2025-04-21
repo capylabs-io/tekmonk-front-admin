@@ -10,7 +10,7 @@ import { Input } from "@/components/common/Input";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useCertificate } from "@/hooks/useCertificate";
 import { CertificateFormData, CreateCertificateModal } from "@/components/certificate/CreateCertificateModal";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
@@ -143,7 +143,7 @@ export default function Page() {
                 $containsi: textSearch
               }
             },
-            populate: '*',
+            populate: ['course', 'certificatePdfConfig', 'certificatePdfConfig.fields'],
             pagination: {
               page: page,
               pageSize: limit,
@@ -170,76 +170,101 @@ export default function Page() {
     setSearchQuery(textSearch);
   };
 
-  const handlePostCertificate = async (data: CertificateFormData) => {
-    try {
-      showLoading()
-
-      // Chuẩn bị dữ liệu cơ bản cho certificate
-      const certificateData: any = {
-        name: data.name,
-        description: data.description
-      };
-
-      // Kiểm tra xem có dữ liệu từ CertificateEditor không
-      if (certificateFields.length > 0) {
-        // BƯỚC 1: Tạo các trường config PDF
-        const pdfFieldConfigs = certificateFields.map(convertToPdfFieldConfig);
-        const createdFieldsPromises = pdfFieldConfigs.map(async (field) => {
-          // Tạm thời loại bỏ id nếu có (vì đang tạo mới)
-          const fieldData = { ...field };
-          delete fieldData.id;
-
-          const response = await postCertificatePdfConfigField(fieldData);
-          return response.data;
-        });
-
-        // Chờ tất cả các trường được tạo
-        const createdFields = await Promise.all(createdFieldsPromises);
-        console.log("Created field configs:", createdFields);
-
-        // BƯỚC 2: Tạo cấu hình PDF với danh sách trường đã tạo
-        const pdfConfigData = {
+  const { mutate: createCertificateMutation } = useMutation({
+    mutationFn: async (data: CertificateFormData) => {
+      try {
+        // Chuẩn bị dữ liệu cơ bản cho certificate
+        const certificateData: any = {
           name: data.name,
-          backgroundUrl: certificateBackgroundUrl,
-          fields: createdFields.map(field => field.id) // Liên kết đến các trường đã tạo
+          description: data.description,
+          // Thêm các trường khác nếu cần từ data
+          isHasValidation: data.isHasValidation
         };
 
-        // Tạo cấu hình PDF
-        const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigData);
-        const createdPdfConfig = pdfConfigResponse.data;
-        console.log("Created PDF config:", createdPdfConfig);
+        // Thêm course nếu có
+        if (data.course) {
+          certificateData.course = data.course;
+        }
 
-        // BƯỚC 3: Liên kết cấu hình PDF với certificate
-        certificateData.certificatePdfConfig = { id: createdPdfConfig.id };
+        // Kiểm tra xem có dữ liệu từ CertificateEditor không
+        if (certificateFields.length > 0) {
+          // BƯỚC 1: Tạo các trường config PDF
+          const pdfFieldConfigs = certificateFields.map(convertToPdfFieldConfig);
+          const createdFieldsPromises = pdfFieldConfigs.map(async (field) => {
+            // Tạm thời loại bỏ id nếu có (vì đang tạo mới)
+            const fieldData = { ...field };
+            delete fieldData.id;
+
+            const response = await postCertificatePdfConfigField(fieldData);
+            return response.data;
+          });
+
+          // Chờ tất cả các trường được tạo
+          const createdFields = await Promise.all(createdFieldsPromises);
+          console.log("Created field configs:", createdFields);
+
+          // BƯỚC 2: Tạo cấu hình PDF với danh sách trường đã tạo
+          const pdfConfigFormData = new FormData();
+          const pdfConfigData = {
+            name: data.name,
+            fields: createdFields.map(field => field.id) // Liên kết đến các trường đã tạo
+          };
+
+          // Strapi yêu cầu dữ liệu dưới dạng JSON trong trường "data"
+          pdfConfigFormData.append("data", JSON.stringify(pdfConfigData));
+
+          // Thêm hình ảnh nền cho PDF Config nếu có
+          if (certificateBackground) {
+            pdfConfigFormData.append("files.backgroundUrl", certificateBackground);
+          }
+
+          // Tạo cấu hình PDF
+          const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigFormData);
+          const createdPdfConfig = pdfConfigResponse.data;
+          console.log("Created PDF config:", createdPdfConfig);
+
+          // BƯỚC 3: Liên kết cấu hình PDF với certificate
+          certificateData.certificatePdfConfig = createdPdfConfig.id;
+          console.log("Certificate data with PDF config:", certificateData);
+        }
+
+        // BƯỚC 4: Tạo certificate
+        const certificateFormData = new FormData();
+        certificateFormData.set("data", JSON.stringify(certificateData));
+
+        // Log data để debug
+        console.log("Final certificate data being sent:", certificateData);
+
+        // Tạo chứng chỉ
+        const result = await postCertificate(certificateFormData);
+        return result;
+      } catch (error) {
+        console.error("Error in mutation function:", error);
+        throw error; // Đảm bảo lỗi được chuyển tiếp cho onError handler
       }
-
-      // Tạo formData cho việc tải lên
-      const formData = new FormData();
-
-      // Thêm dữ liệu certificate vào formData
-      appendFormData(formData, data);
-      formData.set("data", JSON.stringify(certificateData));
-
-      // Sử dụng background từ CertificateEditor nếu có
-      if (certificateBackground) {
-        formData.append("files.imgUrl", certificateBackground)
-      } else if (data.imgUrl) {
-        formData.append("files.imgUrl", data.imgUrl)
-      }
-
-      // Tạo chứng chỉ
-      const res = await postCertificate(formData)
-      if (res) {
-        showSuccess('Tạo mới', 'Tạo chứng chỉ thành công!')
-      }
-    } catch (error) {
+    },
+    onSuccess: (data) => {
+      console.log("Certificate created successfully:", data);
+      showSuccess('Tạo mới', 'Tạo chứng chỉ thành công!');
+      refetchCertificates();
+      setIsOpenCreateModal(false);
+      // Reset các state
+      setCertificateFields([]);
+      setCertificateBackground(null);
+      setCertificateBackgroundUrl(null);
+    },
+    onError: (error) => {
       console.error('Lỗi khi tạo chứng chỉ:', error);
-      showError('Tạo mới', 'Tạo chứng chỉ thất bại!')
-    } finally {
-      hideLoading()
-      refetchCertificates()
-      setIsOpenCreateModal(false)
+      showError('Tạo mới', 'Tạo chứng chỉ thất bại!');
+    },
+    onSettled: () => {
+      hideLoading();
     }
+  });
+
+  const handlePostCertificate = async (data: CertificateFormData) => {
+    showLoading();
+    createCertificateMutation(data);
   }
 
   const handleConfirmCertificateForm = () => {
