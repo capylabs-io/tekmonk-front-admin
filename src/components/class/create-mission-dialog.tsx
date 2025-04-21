@@ -1,3 +1,4 @@
+"use client";
 import {
   Dialog,
   DialogContent,
@@ -8,7 +9,7 @@ import {
 import { postMission, updateMission } from "@/requests/mission";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ImagePlus } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -17,6 +18,8 @@ import { CommonButton } from "../common/button/CommonButton";
 import { Input } from "../common/Input";
 import { InputFileUpdload } from "../common/InputFileUpload";
 import { Mission } from "@/types/mission";
+import { ReqGetClasses } from "@/requests/class";
+import { cn } from "@/lib/utils";
 
 const missionFormSchema = z.object({
   title: z.string().min(1, "Vui lòng nhập tiêu đề"),
@@ -25,7 +28,7 @@ const missionFormSchema = z.object({
   type: z.string().min(1, "Vui lòng chọn loại nhiệm vụ"),
   reward: z.string().min(1, "Vui lòng nhập phần thưởng"),
   points: z.string().min(1, "Vui lòng nhập điểm thưởng"),
-  class: z.number().min(1, "Vui lòng chọn lớp học"),
+  class: z.number().optional(),
 });
 
 type MissionFormData = z.infer<typeof missionFormSchema>;
@@ -36,6 +39,12 @@ type Props = {
   onSubmit: (data: MissionFormData) => void;
   classId: number;
   mission?: Mission;
+};
+
+// Custom styles to fix z-index issues
+const customPopoverStyles = {
+  content: "z-[9999] w-full",
+  dialog: "z-[50]",
 };
 
 export const CreateMissionDialog = ({
@@ -113,6 +122,11 @@ export const CreateMissionDialog = ({
     }
   };
 
+  const { data: classes } = useQuery({
+    queryKey: ["classes"],
+    queryFn: () => ReqGetClasses(),
+  });
+
   const createMissionMutation = useMutation({
     mutationFn: async (data: MissionFormData) => {
       const formData = new FormData();
@@ -122,7 +136,7 @@ export const CreateMissionDialog = ({
       formData.append("type", "Manual");
       formData.append("reward", data.reward);
       formData.append("points", data.points);
-      formData.append("class", data.class.toString());
+      formData.append("class", data.class?.toString() || "");
 
       // Handle image upload
       if (data.imageUrl instanceof File) {
@@ -133,9 +147,9 @@ export const CreateMissionDialog = ({
       }
 
       if (mission) {
-        return updateMission(mission.id, formData);
+        return await updateMission(mission.id, formData);
       }
-      return postMission(formData);
+      return await postMission(formData);
     },
     onSuccess: () => {
       showSuccess(
@@ -169,8 +183,7 @@ export const CreateMissionDialog = ({
 
       // Force Manual type for missions edited through this dialog
       data.type = "Manual";
-
-      await createMissionMutation.mutate(data);
+      createMissionMutation.mutate(data);
     } catch (error) {
       console.error("Error submitting form:", error);
       showError("Lỗi", "Có lỗi xảy ra khi tạo nhiệm vụ");
@@ -179,7 +192,9 @@ export const CreateMissionDialog = ({
 
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent className="w-[680px] bg-white">
+      <DialogContent
+        className={cn("w-[680px] bg-white", customPopoverStyles.dialog)}
+      >
         <DialogHeader className="px-4">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
             {mission ? "Cập nhật nhiệm vụ" : "Tạo nhiệm vụ mới"}

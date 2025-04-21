@@ -21,6 +21,7 @@ import { useSnackbarStore } from "@/store/SnackbarStore";
 import { HandleReturnMessgaeErrorAxios } from "@/requests/return-message-error";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Role } from "@/contants/role";
+import { useQueryClient } from "@tanstack/react-query";
 
 type AccountType = {
   id: string;
@@ -108,6 +109,7 @@ export const AccountTypeDialog = ({
   ]);
 
   const { data: userRoles } = useUserRole();
+  const queryClient = useQueryClient();
 
   const handleTypeSelect = (typeId: string) => {
     setSelectedType(typeId);
@@ -142,6 +144,7 @@ export const AccountTypeDialog = ({
             : "quản trị viên"
         } thành công`
       );
+
       onSelect(selectedType!);
       onOpenChange(false);
     } catch (err) {
@@ -151,6 +154,7 @@ export const AccountTypeDialog = ({
     } finally {
       setIsSubmitting(false);
       hide();
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     }
   };
 

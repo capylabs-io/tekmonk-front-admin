@@ -4,7 +4,15 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Bell, Goal, Home, Newspaper, Settings, ShoppingCart, User } from "lucide-react";
+import {
+  Bell,
+  Goal,
+  Home,
+  Newspaper,
+  Settings,
+  ShoppingCart,
+  User,
+} from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
@@ -114,7 +122,7 @@ export const Navbar = () => {
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
-            title="Thành tích"
+            title="Thành tựu"
             active={usePathname().includes(ROUTE.ACHIEVEMENT)}
             iconElement={<Goal size={20} />}
             url={ROUTE.ACHIEVEMENT}

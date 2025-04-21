@@ -6,7 +6,7 @@ import { EditUserDialog } from "./dialogs/edit-user-dialog";
 import { DeactivateUserDialog } from "./dialogs/deactivate-user-dialog";
 import { DeleteUserDialog } from "./dialogs/delete-user-dialog";
 
-import { useQuery, useMutation } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReqGetUsers, ReqUpdateUser, ReqDeleteUser } from "@/requests/user";
 import qs from "qs";
 import { useSnackbarStore } from "@/store/SnackbarStore";
@@ -46,6 +46,7 @@ export const AccountTable = () => {
     state.success,
     state.error,
   ]);
+  const queryClient = useQueryClient();
   /** UseQuery */
   const { data, refetch, isLoading } = useQuery({
     queryKey: ["users", activeTab, page, pageSize, sortOrder],
@@ -90,6 +91,7 @@ export const AccountTable = () => {
     },
     onSettled: () => {
       hide();
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 
@@ -107,6 +109,7 @@ export const AccountTable = () => {
     },
     onSettled: () => {
       hide();
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 
@@ -125,6 +128,7 @@ export const AccountTable = () => {
     },
     onSettled: () => {
       hide();
+      queryClient.invalidateQueries({ queryKey: ["users"] });
     },
   });
 
@@ -239,6 +243,7 @@ export const AccountTable = () => {
       });
     } catch (err) {
       console.error("Error initiating update:", err);
+    } finally {
       hide();
     }
   };
@@ -252,42 +257,8 @@ export const AccountTable = () => {
     {
       id: "stt",
       header: () => (
-        <div
-          className="flex items-center gap-2 cursor-pointer"
-          onClick={handleSort}
-        >
+        <div className="flex items-center gap-2 cursor-pointer">
           <span>STT</span>
-          <span className="inline-block">
-            {sortOrder === "asc" ? (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m18 15-6-6-6 6" />
-              </svg>
-            ) : (
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m6 9 6 6 6-6" />
-              </svg>
-            )}
-          </span>
         </div>
       ),
       cell: ({ row }) => <span>{(page - 1) * pageSize + row.index + 1}</span>,
@@ -330,21 +301,7 @@ export const AccountTable = () => {
             className="p-2 hover:bg-gray-100 rounded-full text-BodySm text-gray-95"
             onClick={() => handleEdit(row.original)}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="lucide lucide-square-pen"
-            >
-              <path d="M12 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-              <path d="M18.375 2.625a1 1 0 0 1 3 3l-9.013 9.014a2 2 0 0 1-.853.505l-2.873.84a.5.5 0 0 1-.62-.62l.84-2.873a2 2 0 0 1 .506-.852z" />
-            </svg>
+            <Edit className="h-4 w-4" />
           </button>
           <button
             className="p-2 hover:bg-gray-100 rounded-full"

@@ -10,7 +10,7 @@ import { ReqDeleteClass, ReqGetClasses } from "@/requests/class";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { Class } from "@/types/common-types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Edit, PanelLeft, Trash2 } from "lucide-react";
 import qs from "qs";
 import { useState, useEffect } from "react";
@@ -52,6 +52,7 @@ export default function Admin() {
   }, []);
 
   /* UseQuery */
+  const queryClient = useQueryClient();
   const {
     data: classes,
     refetch,
@@ -90,6 +91,7 @@ export default function Admin() {
     },
     onSettled: () => {
       hide();
+      queryClient.invalidateQueries({ queryKey: ["classes"] });
       setDeleteDialogOpen(false);
       setClassToDelete(null);
     },

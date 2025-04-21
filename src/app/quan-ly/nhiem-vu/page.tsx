@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, PanelLeft, UserRoundSearch } from "lucide-react";
+import { Edit, PanelLeft } from "lucide-react";
 import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
@@ -14,7 +14,6 @@ import { useMission } from "@/hooks/useMission";
 import { Mission } from "@/types/mission";
 import { Input } from "@/components/common/Input";
 import { CreateMissionDialog } from "@/components/class/create-mission-dialog";
-import { CommonButton } from "@/components/common/button/CommonButton";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
 import { ReqGetUsersAchievedMission } from "@/requests/user";
 
@@ -175,7 +174,7 @@ export default function Page() {
             >
               <Edit className="h-4 w-4" color="#7C6C80" />
             </button>
-            <button
+            {/* <button
               className="p-2 hover:bg-gray-100 rounded-full"
               onClick={(e) => {
                 e.stopPropagation();
@@ -184,7 +183,7 @@ export default function Page() {
               title="Xem danh sách học viên đã đạt được nhiệm vụ này"
             >
               <UserRoundSearch className="h-4 w-4" color="#7C6C80" />
-            </button>
+            </button> */}
           </div>
         );
       },
@@ -204,14 +203,14 @@ export default function Page() {
             </CommonCard>
             Nhiệm vụ
           </div>
-          {activeTab.id === "Manual" && (
+          {/* {activeTab.id === "Manual" && (
             <CommonButton
               className="h-10"
               onClick={() => setIsOpenCreateModal(true)}
             >
               Tạo mới
             </CommonButton>
-          )}
+          )} */}
         </div>
         <div className="flex items-center gap-x-4 border-b border-gray-20">
           <Tabs

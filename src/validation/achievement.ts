@@ -34,7 +34,7 @@ export const achievementFormSchema = z.object({
     .nullable(),
 
   // Type is required
-  type: z.string().min(1, "Loại thành tích là bắt buộc"),
+  type: z.string().min(1, "Loại Thành tựu là bắt buộc"),
 
   // Description is required with min length
   description: z

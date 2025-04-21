@@ -30,15 +30,15 @@ import { misionFormSchema } from "@/validation/mission";
 import { MissionType } from "@/types/mission";
 
 export type MisionFormData = {
-  title?: string
-  description?: string
-  type?: MissionType,
-  actionType?: string
-  module?: string
-  reward?: string
-  requiredQuantity?: string
-  points?: string
-}
+  title?: string;
+  description?: string;
+  type?: MissionType;
+  actionType?: string;
+  module?: string;
+  reward?: string;
+  requiredQuantity?: string;
+  points?: string;
+};
 
 type Props = {
   open: boolean;
@@ -47,8 +47,12 @@ type Props = {
   onSubmit: (data: MisionFormData) => void;
 };
 
-
-export const CreateMissionModal = ({ open, isEdit, onOpenChange, onSubmit }: Props) => {
+export const CreateMissionModal = ({
+  open,
+  isEdit,
+  onOpenChange,
+  onSubmit,
+}: Props) => {
   const [success, error] = useSnackbarStore((state) => [
     state.success,
     state.error,
@@ -61,9 +65,9 @@ export const CreateMissionModal = ({ open, isEdit, onOpenChange, onSubmit }: Pro
       title: "",
       type: MissionType.MANUAL,
       description: "",
-      reward: '',
-      requiredQuantity: '',
-      points: ''
+      reward: "",
+      requiredQuantity: "",
+      points: "",
     },
   });
 
@@ -89,8 +93,8 @@ export const CreateMissionModal = ({ open, isEdit, onOpenChange, onSubmit }: Pro
     onOpenChange(open);
   };
   const handleSelectChange = (value: string) => {
-    setValue('type', value as MissionType)
-  }
+    setValue("type", value as MissionType);
+  };
   return (
     <Dialog open={open} onOpenChange={handleDialogChange}>
       <DialogContent className="w-[680px] bg-white">
@@ -143,7 +147,9 @@ export const CreateMissionModal = ({ open, isEdit, onOpenChange, onSubmit }: Pro
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-[160px] text-SubheadMd">Số lượng yêu cầu</div>
+                  <div className="w-[160px] text-SubheadMd">
+                    Số lượng yêu cầu
+                  </div>
                   <Controller
                     name="requiredQuantity"
                     control={control}
@@ -179,8 +185,18 @@ export const CreateMissionModal = ({ open, isEdit, onOpenChange, onSubmit }: Pro
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Loại hành động</div>
-                  <CommonSelect disabled={isEdit} className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn loại thành tích" options={[]} value={getValues('type')} onChange={handleSelectChange} />
+                  <div className="min-w-[160px] text-SubheadMd">
+                    Loại hành động
+                  </div>
+                  <CommonSelect
+                    disabled={isEdit}
+                    className="w-full"
+                    selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300"
+                    placeholder="Chọn loại Thành tựu"
+                    options={[]}
+                    value={getValues("type")}
+                    onChange={handleSelectChange}
+                  />
                 </div>
               </div>
               {/* Description Field */}
@@ -214,7 +230,6 @@ export const CreateMissionModal = ({ open, isEdit, onOpenChange, onSubmit }: Pro
               </div>
 
               {/* Category Field */}
-
             </div>
           </form>
         </FormProvider>
