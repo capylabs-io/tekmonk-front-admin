@@ -13,8 +13,6 @@ export default function Admin() {
   };
 
   const handleAccountTypeSelect = (type: string) => {
-    console.log("Selected account type:", type);
-    // Here you can add logic to handle the selected account type
     setIsDialogOpen(false);
   };
 

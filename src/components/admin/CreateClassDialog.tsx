@@ -12,7 +12,7 @@ import { CommonButton } from "../common/button/CommonButton";
 import "@wojtekmaj/react-daterange-picker/dist/DateRangePicker.css";
 import "react-calendar/dist/Calendar.css";
 import { Input } from "../common/Input";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import qs from "qs";
 import { ReqGetUsers } from "@/requests/user";
 import { useLoadingStore } from "@/store/LoadingStore";
@@ -153,6 +153,7 @@ export function CreateClassDialog({
     state.error,
   ]);
   /** UseQuery*/
+  const queryClient = useQueryClient();
   const { data: courseList } = useQuery({
     queryKey: ["courseList"],
     queryFn: async () => {
@@ -255,6 +256,7 @@ export function CreateClassDialog({
         numberClassSession: course?.numberSession || 0,
       });
       success("Thành công", "Tạo mới lớp học thành công");
+      queryClient.invalidateQueries({ queryKey: ["class"] });
       onOpenChange(false);
     } catch (err) {
       console.error("Error creating class:", err);

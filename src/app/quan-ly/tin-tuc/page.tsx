@@ -101,10 +101,9 @@ export default function News() {
       if (currentNews.status === "trash") {
         await ReqDeleteNews(currentNews.id.toString());
       } else {
-        const dataUpdate = {
-          status: "trash",
-        };
-        await ReqUpdateNews(currentNews.id.toString(), dataUpdate);
+        const formData = new FormData();
+        formData.append("status", "trash");
+        await ReqUpdateNews(currentNews.id.toString(), formData);
         success("Thành công", "Đã chuyển bài viết vào thùng rác");
         queryClient.invalidateQueries({ queryKey: ["news"] });
       }

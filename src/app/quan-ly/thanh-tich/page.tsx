@@ -13,7 +13,6 @@ import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import qs from "qs";
 import { Tabs } from "@/components/new/tabs";
-import { useMission } from "@/hooks/useMission";
 import { Mission } from "@/types/mission";
 import {
   ReqGetAllAchievement,
@@ -139,13 +138,13 @@ export default function Page() {
       return await ReqCreateAchievement(formData);
     },
     onSuccess: () => {
-      success("Thành công", "Tạo thành tích thành công!");
+      success("Thành công", "Tạo Thành tựu thành công!");
       setIsCreateModalOpen(false);
       refetchAchievementList();
     },
     onError: (err) => {
       console.error("Error creating achievement:", err);
-      error("Lỗi", "Có lỗi xảy ra khi tạo thành tích");
+      error("Lỗi", "Có lỗi xảy ra khi tạo Thành tựu");
     },
   });
 
@@ -165,14 +164,14 @@ export default function Page() {
       return await ReqUpdateAchievement(selectedAchievement.id, formData);
     },
     onSuccess: () => {
-      success("Thành công", "Cập nhật thành tích thành công!");
+      success("Thành công", "Cập nhật Thành tựu thành công!");
       setIsEditModalOpen(false);
       setSelectedAchievement(null);
       refetchAchievementList();
     },
     onError: (err) => {
       console.error("Error updating achievement:", err);
-      error("Lỗi", "Có lỗi xảy ra khi cập nhật thành tích");
+      error("Lỗi", "Có lỗi xảy ra khi cập nhật Thành tựu");
     },
   });
 
@@ -250,7 +249,7 @@ export default function Page() {
       setIsEditModalOpen(true);
     } else {
       console.log("Cannot edit system achievements");
-      error("Lỗi", "Không thể chỉnh sửa thành tích hệ thống");
+      error("Lỗi", "Không thể chỉnh sửa Thành tựu hệ thống");
     }
   };
 
@@ -276,7 +275,7 @@ export default function Page() {
       ),
     },
     {
-      header: "Tên thành tích",
+      header: "Tên Thành tựu",
       cell: ({ row }) => <span>{row.original.title}</span>,
     },
     {
@@ -293,16 +292,16 @@ export default function Page() {
       cell: ({ row }) => {
         return (
           <div className="flex gap-2">
-            <button
+            {/* <button
               className="p-2 hover:bg-gray-100 rounded-full"
               onClick={(e) => {
                 e.stopPropagation();
                 handleViewStudentsAchieved(row.original);
               }}
-              title="Xem danh sách học viên đã đạt được thành tích này"
+              title="Xem danh sách học viên đã đạt được Thành tựu này"
             >
               <UserRoundSearch className="h-4 w-4" color="#7C6C80" />
-            </button>
+            </button> */}
             <button
               className="p-2 hover:bg-gray-100 rounded-full"
               onClick={() => handleOpenStudentList(row.original)}
@@ -326,8 +325,8 @@ export default function Page() {
               disabled={row.original.type !== "Manual"}
               title={
                 row.original.type !== "Manual"
-                  ? "Không thể chỉnh sửa thành tích hệ thống"
-                  : "Chỉnh sửa thành tích"
+                  ? "Không thể chỉnh sửa Thành tựu hệ thống"
+                  : "Chỉnh sửa Thành tựu"
               }
             >
               <Edit className="h-4 w-4" color="#7C6C80" />
@@ -364,7 +363,7 @@ export default function Page() {
             >
               <PanelLeft width={17} height={17} />
             </CommonCard>
-            Thành tích
+            Thành tựu
           </div>
         </div>
         <div className="flex items-center gap-x-4 border-b border-gray-20">
@@ -395,7 +394,7 @@ export default function Page() {
                 className=""
                 onClick={() => setIsCreateModalOpen(true)}
               >
-                Tạo thành tích
+                Tạo Thành tựu
               </CommonButton>
             )}
           </div>
@@ -458,7 +457,7 @@ export default function Page() {
         <StudentListDialog
           open={isViewStudentsDialogOpen}
           onOpenChange={setIsViewStudentsDialogOpen}
-          title="Danh sách học viên đã đạt được thành tích"
+          title="Danh sách học viên đã đạt được Thành tựu"
           mission={selectedAchievement}
           queryFn={ReqGetAchievementHistory}
           queryKey="achievedAchievement"

@@ -108,7 +108,7 @@ export const CreateAchievementDialog = ({
       <DialogContent className="w-[680px] bg-white">
         <DialogHeader className="px-4">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
-            {achievement ? "Cập nhật thành tích" : "Tạo thành tích mới"}
+            {achievement ? "Cập nhật Thành tựu" : "Tạo Thành tựu mới"}
           </DialogTitle>
         </DialogHeader>
 

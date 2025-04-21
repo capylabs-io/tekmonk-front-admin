@@ -114,7 +114,7 @@ export const Navbar = () => {
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
-            title="Thành tích"
+            title="Thành tựu"
             active={usePathname().includes(ROUTE.ACHIEVEMENT)}
             iconElement={<Goal size={20} />}
             url={ROUTE.ACHIEVEMENT}

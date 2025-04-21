@@ -115,25 +115,30 @@ export const NewsDialogManager = ({
   const handleUpdateNews = async (values: any, status: string) => {
     try {
       // Handle image upload separately if there's a new image
+      const formData = new FormData();
       if (uploadedImage) {
-        const imageFormData = new FormData();
-        imageFormData.append("image", uploadedImage);
-        await ReqUpdateImage(initialData.id.toString(), imageFormData);
+        formData.append("image", uploadedImage);
+        // await ReqUpdateImage(initialData.id.toString(), formData);
       }
 
-      // Update news with JSON data
-      const updateData = {
-        title: values.title,
-        content: values.content,
-        startTime: values.startTime,
-        endTime: values.endTime,
-        type: type,
-        status: status,
-        tags: values.tags,
-        ...(values.salary && { salary: values.salary }),
-      };
+      const { files: imageFiles, replacedDescription: description } =
+        await extractBase64Images(values.content);
 
-      await ReqUpdateNews(initialData.id.toString(), updateData);
+      formData.append("content", description);
+
+      imageFiles.forEach((file) => {
+        formData.append("image_description", file);
+      });
+
+      formData.append("title", values.title);
+      formData.append("startTime", values.startTime);
+      formData.append("endTime", values.endTime);
+      formData.append("type", type);
+      formData.append("status", status);
+      formData.append("tags", values.tags);
+      if (values.salary) formData.append("salary", values.salary);
+
+      await ReqUpdateNews(initialData.id.toString(), formData);
       success("Xong", "Cập nhật bài viết thành công");
 
       // Invalidate queries after successful update
