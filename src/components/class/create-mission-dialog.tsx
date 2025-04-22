@@ -19,13 +19,15 @@ import { Input } from "../common/Input";
 import { InputFileUpdload } from "../common/InputFileUpload";
 import { Mission } from "@/types/mission";
 import { ReqGetClasses } from "@/requests/class";
-import { cn } from "@/lib/utils";
+import { ActionTypeSelector } from "../common/ActionTypeSelector";
+import { ActionTypeMap } from "@/contants/config/action-type";
 
 const missionFormSchema = z.object({
   title: z.string().min(1, "Vui lòng nhập tiêu đề"),
   description: z.string().min(1, "Vui lòng nhập mô tả"),
   imageUrl: z.any().nullable(),
   type: z.string().min(1, "Vui lòng chọn loại nhiệm vụ"),
+  actionType: z.string().min(1, "Vui lòng chọn loại hành động"),
   reward: z.string().min(1, "Vui lòng nhập phần thưởng"),
   points: z.string().min(1, "Vui lòng nhập điểm thưởng"),
   class: z.number().optional(),
@@ -39,12 +41,6 @@ type Props = {
   onSubmit: (data: MissionFormData) => void;
   classId: number;
   mission?: Mission;
-};
-
-// Custom styles to fix z-index issues
-const customPopoverStyles = {
-  content: "z-[9999] w-full",
-  dialog: "z-[50]",
 };
 
 export const CreateMissionDialog = ({
@@ -67,6 +63,7 @@ export const CreateMissionDialog = ({
       description: "",
       imageUrl: null,
       type: "Manual",
+      actionType: "",
       reward: "",
       points: "",
       class: classId,
@@ -82,6 +79,7 @@ export const CreateMissionDialog = ({
         description: mission.description || "",
         imageUrl: null,
         type: "Manual",
+        actionType: mission.actionType || "",
         reward: mission.reward?.toString() || "",
         points: mission.points?.toString() || "",
         class: mission.class?.id || classId,
@@ -93,6 +91,7 @@ export const CreateMissionDialog = ({
         description: "",
         imageUrl: null,
         type: "Manual",
+        actionType: "",
         reward: "",
         points: "",
         class: classId,
@@ -122,10 +121,9 @@ export const CreateMissionDialog = ({
     }
   };
 
-  const { data: classes } = useQuery({
-    queryKey: ["classes"],
-    queryFn: () => ReqGetClasses(),
-  });
+  const handleActionTypeChange = (value: string) => {
+    setValue("actionType", value);
+  };
 
   const createMissionMutation = useMutation({
     mutationFn: async (data: MissionFormData) => {
@@ -134,6 +132,7 @@ export const CreateMissionDialog = ({
       formData.append("title", data.title);
       formData.append("description", data.description);
       formData.append("type", "Manual");
+      formData.append("actionType", data.actionType);
       formData.append("reward", data.reward);
       formData.append("points", data.points);
       formData.append("class", data.class?.toString() || "");
@@ -173,6 +172,7 @@ export const CreateMissionDialog = ({
       if (
         !data.title ||
         !data.description ||
+        !data.actionType ||
         !data.reward ||
         !data.points ||
         (!mission && !data.imageUrl) // Only require image for new missions
@@ -191,15 +191,19 @@ export const CreateMissionDialog = ({
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogChange}>
-      <DialogContent
-        className={cn("w-[680px] bg-white", customPopoverStyles.dialog)}
+    <div
+      className="fixed inset-0 flex items-center justify-center w-screen bg-black/80"
+      onClick={() => handleDialogChange(false)}
+    >
+      <div
+        className="w-[680px] bg-white rounded-xl p-6"
+        onClick={(e) => e.stopPropagation()}
       >
-        <DialogHeader className="px-4">
-          <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
+        <div className="px-4">
+          <div className="!text-HeadingSm !font-semibold text-gray-95">
             {mission ? "Cập nhật nhiệm vụ" : "Tạo nhiệm vụ mới"}
-          </DialogTitle>
-        </DialogHeader>
+          </div>
+        </div>
 
         <FormProvider {...methods}>
           <form className="space-y-4 p-4">
@@ -222,6 +226,30 @@ export const CreateMissionDialog = ({
                       />
                     )}
                   />
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-[160px] text-SubheadMd">
+                    Loại hành động <span className="text-red-500">*</span>
+                  </div>
+                  <div className="flex-1">
+                    <Controller
+                      name="actionType"
+                      control={control}
+                      render={({ field }) => (
+                        <ActionTypeSelector
+                          data={ActionTypeMap}
+                          value={field.value}
+                          onChange={handleActionTypeChange}
+                          error={errors.actionType?.message}
+                          placeholder="Chọn loại hành động"
+                          searchPlaceholder="Tìm kiếm loại hành động..."
+                        />
+                      )}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -343,7 +371,7 @@ export const CreateMissionDialog = ({
             </CommonButton>
           </div>
         </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </div>
   );
 };

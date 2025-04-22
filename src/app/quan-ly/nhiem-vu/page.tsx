@@ -16,6 +16,7 @@ import { Input } from "@/components/common/Input";
 import { CreateMissionDialog } from "@/components/class/create-mission-dialog";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
 import { ReqGetUsersAchievedMission } from "@/requests/user";
+import { CommonButton } from "@/components/common/button/CommonButton";
 
 export default function Page() {
   const {
@@ -203,14 +204,12 @@ export default function Page() {
             </CommonCard>
             Nhiệm vụ
           </div>
-          {/* {activeTab.id === "Manual" && (
-            <CommonButton
-              className="h-10"
-              onClick={() => setIsOpenCreateModal(true)}
-            >
-              Tạo mới
-            </CommonButton>
-          )} */}
+          <CommonButton
+            className="h-10"
+            onClick={() => setIsOpenCreateModal(true)}
+          >
+            Tạo mới
+          </CommonButton>
         </div>
         <div className="flex items-center gap-x-4 border-b border-gray-20">
           <Tabs

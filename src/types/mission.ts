@@ -8,6 +8,8 @@ export interface Mission {
   type: string;
   reward: number;
   points: number;
+  actionType: string;
+  requiredQuantity: number;
   class?: {
     id: number;
     name: string;
