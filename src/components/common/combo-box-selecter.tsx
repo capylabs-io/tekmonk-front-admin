@@ -24,27 +24,25 @@ type Option = {
   label: string;
 };
 
-interface ActionTypeSelectorProps {
+interface ComboBoxSelectorProps {
   data: Option[];
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   searchPlaceholder?: string;
-  emptyMessage?: string;
   className?: string;
   error?: string;
 }
 
-export const ActionTypeSelector = ({
+export const ComboboxSelector = ({
   data = [],
   value,
   onChange,
   placeholder = "Chọn loại hành động",
   searchPlaceholder = "Tìm kiếm loại hành động...",
-  emptyMessage = "Không tìm thấy.",
   className,
   error,
-}: ActionTypeSelectorProps) => {
+}: ComboBoxSelectorProps) => {
   const [open, setOpen] = React.useState(false);
 
   // Safely access data
@@ -74,14 +72,13 @@ export const ActionTypeSelector = ({
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="!w-full p-0 flex-1"
+          className="p-0 flex-1 w-[430px]"
           align="start"
           sideOffset={4}
         >
           <Command>
             <CommandInput placeholder={searchPlaceholder} className="h-9" />
             <CommandList>
-              {/* <CommandEmpty>{emptyMessage}</CommandEmpty> */}
               <CommandGroup className="max-h-[200px] overflow-y-auto">
                 {options.map((option) => (
                   <div

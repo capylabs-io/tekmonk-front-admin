@@ -26,7 +26,7 @@ export enum ActionType {
   MentorSession = "MentorSession",
   CreatePortfolio = "CreatePortfolio",
   PeerSupport = "PeerSupport",
-  Custom = "Custom",
+  // Custom = "Custom",
 }
 
 export const ActionTypeMap: { value: string; label: string }[] = [
@@ -66,5 +66,5 @@ export const ActionTypeMap: { value: string; label: string }[] = [
   { value: ActionType.MentorSession.toString(), label: "Buổi mentoring" },
   { value: ActionType.CreatePortfolio.toString(), label: "Tạo portfolio" },
   { value: ActionType.PeerSupport.toString(), label: "Hỗ trợ bạn bè" },
-  { value: ActionType.Custom.toString(), label: "Tùy chỉnh" },
+  // { value: ActionType.Custom.toString(), label: "Tùy chỉnh" },
 ];
