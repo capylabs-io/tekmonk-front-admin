@@ -253,14 +253,14 @@ export const CreateMissionDialog = ({
                 </div>
               </div>
 
-              <div className="flex justify-between text-sm">
-                <span className="w-[160px] text-SubheadMd">
+              <div className="flex justify-between text-sm gap-2">
+                <div className="w-[160px] text-SubheadMd">
                   Hình ảnh {!mission && <span className="text-red-500">*</span>}
-                </span>
+                </div>
                 <InputFileUpdload
                   value={getValues("imageUrl")}
                   onChange={handleImageUpload}
-                  customClassNames="max-w-[424px]"
+                  customClassNames="flex-1"
                   customInputClassNames="text-sm"
                   error={errors.imageUrl?.message as string}
                   contentImageUpload={
