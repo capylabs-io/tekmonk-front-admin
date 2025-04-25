@@ -86,7 +86,7 @@
 .ql-container {
   min-height: 300px !important;
   max-height: 300px !important;
-  @apply border-b border-gray-300 rounded-b-xl overflow-auto;
+  @apply border-b border-gray-300 rounded-b-xl overflow-hidden;
 }
 
 .ql-editor ul {
