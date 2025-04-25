@@ -1,4 +1,5 @@
 import { ActionType } from "@/contants/config/action-type";
+import { MissionType } from "@/types/mission";
 import { z } from "zod";
 
 export const missionFormSchema = z
@@ -6,7 +7,7 @@ export const missionFormSchema = z
     title: z.string().min(1, "Vui lòng nhập tiêu đề"),
     description: z.string().min(1, "Vui lòng nhập mô tả"),
     imageUrl: z.any().nullable(),
-    type: z.enum(["Manual", "System"], {
+    type: z.enum([MissionType.EVERY_SESSION, MissionType.MANUAL], {
       required_error: "Vui lòng chọn loại nhiệm vụ",
     }),
     actionType: z.string().min(1, "Vui lòng chọn loại hành động"),
@@ -28,7 +29,7 @@ export const missionFormSchema = z
   })
   .refine(
     (data) => {
-      if (data.type === "System") {
+      if (data.type === MissionType.EVERY_SESSION) {
         return data.requiredQuantity !== undefined && data.requiredQuantity > 0;
       }
       return true;
@@ -45,7 +46,7 @@ export const defaultMissionValue: MissionFormData = {
   title: "",
   description: "",
   imageUrl: null,
-  type: "Manual",
+  type: MissionType.MANUAL,
   actionType: ActionType.Attendance,
   reward: 0,
   points: 0,

@@ -10,7 +10,7 @@ import { Controller, FormProvider, useForm } from "react-hook-form";
 import { CommonButton } from "../common/button/CommonButton";
 import { Input } from "../common/Input";
 import { InputFileUpdload } from "../common/InputFileUpload";
-import { Mission } from "@/types/mission";
+import { Mission, MissionType } from "@/types/mission";
 import { ComboboxSelector } from "../common/combo-box-selecter";
 import { ActionType, ActionTypeMap } from "@/contants/config/action-type";
 import {
@@ -18,6 +18,7 @@ import {
   MissionFormData,
   missionFormSchema,
 } from "@/validation/mission";
+import { useLoadingStore } from "@/store/LoadingStore";
 
 type Props = {
   open: boolean;
@@ -45,6 +46,7 @@ export const CreateMissionDialog = ({
     defaultValues: defaultMissionValue,
     mode: "onChange",
   });
+  const [show, hide] = useLoadingStore((state) => [state.show, state.hide]);
 
   // Update form when mission data changes or when opening in edit mode
   useEffect(() => {
@@ -53,7 +55,10 @@ export const CreateMissionDialog = ({
         title: mission.title || "",
         description: mission.description || "",
         imageUrl: null,
-        type: mission.type === "System" ? "System" : "Manual",
+        type:
+          mission.type === MissionType.EVERY_SESSION
+            ? MissionType.EVERY_SESSION
+            : MissionType.MANUAL,
         actionType: mission.actionType || ActionType.Attendance,
         reward: mission.reward
           ? parseInt(mission.reward.toString(), 10) || 0
@@ -105,9 +110,9 @@ export const CreateMissionDialog = ({
   };
 
   const handleTypeChange = (value: string) => {
-    if (value === "Manual" || value === "System") {
+    if (value === MissionType.MANUAL || value === MissionType.EVERY_SESSION) {
       setValue("type", value);
-      if (value === "Manual") {
+      if (value === MissionType.MANUAL) {
         setValue("requiredQuantity", undefined);
       }
     }
@@ -127,7 +132,7 @@ export const CreateMissionDialog = ({
         formData.append("class", data.class?.toString() || "");
       }
 
-      if (data.type === "System" && data.requiredQuantity) {
+      if (data.type === MissionType.EVERY_SESSION && data.requiredQuantity) {
         formData.append("requiredQuantity", data.requiredQuantity.toString());
       }
 
@@ -161,6 +166,7 @@ export const CreateMissionDialog = ({
 
   const onSubmitForm = async (data: MissionFormData) => {
     try {
+      show();
       if (
         !data.title ||
         !data.description ||
@@ -169,7 +175,8 @@ export const CreateMissionDialog = ({
         data.reward === undefined ||
         data.points === undefined ||
         (!mission && !data.imageUrl) ||
-        (data.type === "System" && data.requiredQuantity === undefined)
+        (data.type === MissionType.EVERY_SESSION &&
+          data.requiredQuantity === undefined)
       ) {
         showError("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
         return;
@@ -179,6 +186,8 @@ export const CreateMissionDialog = ({
     } catch (error) {
       console.error("Error submitting form:", error);
       showError("Lỗi", "Có lỗi xảy ra khi tạo nhiệm vụ");
+    } finally {
+      hide();
     }
   };
 
@@ -233,8 +242,14 @@ export const CreateMissionDialog = ({
                       render={({ field }) => (
                         <ComboboxSelector
                           data={[
-                            { value: "Manual", label: "Manual" },
-                            { value: "System", label: "System" },
+                            {
+                              value: MissionType.MANUAL,
+                              label: "Tạo thủ công",
+                            },
+                            {
+                              value: MissionType.EVERY_SESSION,
+                              label: "Thuộc hệ thống",
+                            },
                           ]}
                           value={field.value}
                           onChange={handleTypeChange}
@@ -366,7 +381,7 @@ export const CreateMissionDialog = ({
                 </div>
               </div>
 
-              {missionType === "System" && (
+              {missionType === MissionType.EVERY_SESSION && (
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <div className="w-[160px] text-SubheadMd">
