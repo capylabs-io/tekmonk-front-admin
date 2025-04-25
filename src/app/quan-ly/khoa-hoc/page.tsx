@@ -205,15 +205,19 @@ export default function Courses() {
     },
     {
       header: "Mã",
-      cell: ({ row }) => <div>{row.original.code}</div>,
+      cell: ({ row }) => <span>{get(row, "original.type", "")}</span>,
     },
     {
       header: "Tên khoá",
       cell: ({ row }) => <span>{row.original.name}</span>,
     },
     {
-      header: "Loại",
-      cell: ({ row }) => <span>{get(row, "original.type", "")}</span>,
+      header: "Số buổi học",
+      cell: ({ row }) => <span>{row.original.numberSession}</span>,
+    },
+    {
+      header: "Trạng thái",
+      cell: ({ row }) => <span>{row.original.isDisabled ? "Khóa" : "Mở"}</span>,
     },
     {
       id: "action",

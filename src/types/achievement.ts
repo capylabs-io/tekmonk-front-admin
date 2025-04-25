@@ -19,3 +19,8 @@ export enum AchievementType {
   EVERY_SESSION = "Auto",
   MANUAL = "Manual",
 }
+
+export const AchievementTypeToText = {
+  [AchievementType.EVERY_SESSION]: "Tự động",
+  [AchievementType.MANUAL]: "Thủ công",
+};

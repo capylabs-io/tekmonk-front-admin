@@ -40,14 +40,29 @@ export const InputTags = ({
   const [tags, setTags] = useState<string[]>([]);
   const [inputValue, setInputValue] = useState("");
 
+  // Hàm xử lý việc tách chuỗi thành các tag một cách an toàn
+  const processTagString = (tagString: string): string[] => {
+    if (!tagString || tagString.trim() === "") return [];
+
+    // Nếu chuỗi không chứa dấu phẩy, trả về chuỗi đó như một tag duy nhất
+    if (!tagString.includes(",")) {
+      return [tagString.trim()];
+    }
+
+    // Nếu có dấu phẩy, tách theo dấu phẩy và loại bỏ các giá trị rỗng
+    return tagString
+      .split(",")
+      .map(tag => tag.trim())
+      .filter(tag => tag !== "");
+  };
+
   useEffect(() => {
     // Initialize tags from the value prop
     if (value) {
-      const initialTags = value
-        .split(",")
-        .map((tag) => tag.trim())
-        .filter((tag) => tag !== "");
-      setTags(initialTags);
+      setTags(processTagString(value));
+    } else {
+      // Reset tags khi value là undefined hoặc rỗng
+      setTags([]);
     }
   }, [value]);
 
@@ -55,11 +70,19 @@ export const InputTags = ({
     if (e.key === "Enter" && inputValue.trim() !== "") {
       e.preventDefault();
       e.stopPropagation();
-      if (!tags.includes(inputValue.trim())) {
-        const newTags = [...tags, inputValue.trim()];
+
+      // Xử lý chuỗi đầu vào
+      const newTagValue = inputValue.trim();
+
+      // Kiểm tra nếu tag mới chưa tồn tại trong danh sách
+      if (!tags.includes(newTagValue)) {
+        const newTags = [...tags, newTagValue];
         setTags(newTags);
         setInputValue("");
         onValueChange && onValueChange(newTags.join(", "));
+      } else {
+        // Nếu tag đã tồn tại, chỉ xóa input
+        setInputValue("");
       }
     }
   };
@@ -73,10 +96,10 @@ export const InputTags = ({
   return (
     <TooltipProvider>
       <div className="space-y-1.5 w-full">
-        <div className="relative block sm:flex justify-between  w-full items-start">
+        <div className="relative block sm:flex justify-between  w-full items-center">
           {!hideTitle &&
             <div className="w-full sm:w-1/4 flex text-primary-950 text-SubheadSm items-center">
-              <div className="text-SubheadMd text-gray-60">Tags</div>
+              <div className="text-SubheadSm text-gray-60">Tags</div>
               {isTooltip ? (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -107,7 +130,7 @@ export const InputTags = ({
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
                 className={classNames("flex-1 bg-transparent min-w-[120px] w-full text-BodyMd outline-none bg-grey-50 border-grey-300 mt-1 placeholder:text-gray-70 placeholder:text-BodyMd", customInputClassNames)}
-                placeholder="Nhập tags ..."
+                placeholder={placeholder || "Nhập tags ..."}
               />
             </div>
             <div className="flex flex-wrap gap-2 w-full">

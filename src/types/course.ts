@@ -2,7 +2,7 @@ import { Mission } from "./mission";
 
 export type Course = {
   id: number;
-  code: string;
+  // code: string;
   name: string;
   numberSession: number;
   description?: string;

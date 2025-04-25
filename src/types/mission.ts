@@ -27,3 +27,8 @@ export type MissionHistory = {
   mission?: Mission;
   isClaim: boolean;
 };
+
+export const MissionTypeToText = {
+  [MissionType.EVERY_SESSION]: "Tự động",
+  [MissionType.MANUAL]: "Thủ công",
+};

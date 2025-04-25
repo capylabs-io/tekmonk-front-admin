@@ -1,5 +1,4 @@
 "use client";
-
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { PanelLeft, Trash, Plus, Pencil } from "lucide-react";
 import { CommonCard } from "@/components/common/CommonCard";
@@ -14,7 +13,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
-import { getCertificate, postCertificate, postCertificatePdfConfig, postCertificatePdfConfigField } from "@/requests/certificate";
+import { findCertificatePdfConfig, getCertificate, getCertificatePdfConfig, postCertificate, postCertificatePdfConfig, postCertificatePdfConfigField } from "@/requests/certificate";
 import { Certificate, CertificatePdfFieldConfig, CertificatePdfConfig } from "@/types/certificate";
 import { get } from "lodash";
 import {
@@ -42,7 +41,7 @@ const convertToCertificateField = (fieldConfig: CertificatePdfFieldConfig): Cert
     id: String(fieldConfig.id || Date.now()),
     label: fieldConfig.label || "",
     value: fieldConfig.value || "",
-    htmlContent: fieldConfig.htmlContent || fieldConfig.value || "",
+    htmlContent: fieldConfig.value || "",
     position: {
       x: fieldConfig.positionX || 0,
       y: fieldConfig.positionY || 0
@@ -59,8 +58,7 @@ const convertToCertificateField = (fieldConfig: CertificatePdfFieldConfig): Cert
 const convertToPdfFieldConfig = (field: CertificateField): CertificatePdfFieldConfig => {
   return {
     label: field.label,
-    value: field.value,
-    htmlContent: field.htmlContent,
+    value: field.htmlContent,
     fontSize: String(field.fontSize),
     fontWeight: field.fontWeight,
     color: field.color,
@@ -136,20 +134,29 @@ export default function Page() {
     queryKey: ["certificates", page, limit, textSearch],
     queryFn: async () => {
       try {
-        const queryString = qs.stringify(
-          {
-            filters: {
-              name: {
-                $containsi: textSearch
-              }
-            },
-            populate: ['course', 'certificatePdfConfig', 'certificatePdfConfig.fields'],
-            pagination: {
-              page: page,
-              pageSize: limit,
-            },
-          }
-        )
+        let queryString = "";
+        if (textSearch !== "") {
+          queryString = qs.stringify(
+            {
+              filters: {
+                name: {
+                  $containsi: textSearch
+                }
+              },
+              populate: ['course', 'certificatePdfConfig', 'certificatePdfConfig.fields'],
+              pagination: {
+                page: page,
+                pageSize: limit,
+              },
+            }
+          )
+        } else {
+          queryString = qs.stringify(
+            {
+              populate: ['course', 'certificatePdfConfig', 'certificatePdfConfig.fields'],
+            }
+          )
+        }
         const res = await getCertificate(queryString)
         if (res) {
           setLimit(res.meta.pagination.pageSize)
@@ -165,6 +172,38 @@ export default function Page() {
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
+  const { data: CertificatePdfFieldConfig, refetch: refetchCertificatePdfFieldConfig } = useQuery({
+    queryKey: ["CertificatePdfFieldConfig"],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify(
+          {
+            filters: {
+              certificate: {
+                id: {
+                  $eq: editingCertificate?.certificatePdfConfig?.id
+                }
+              }
+            },
+            populate: ['fields'],
+          }
+        )
+        const res = await findCertificatePdfConfig(queryString)
+        if (res) {
+          setLimit(res.meta.pagination.pageSize)
+          setPage(res.meta.pagination.page)
+          setTotalDocs(res.meta.pagination.total)
+          setTotalPage(res.meta.pagination.pageCount)
+        }
+        return res;
+      } catch (err) {
+        showError("Lỗi", "Không thể lấy thông tin chứng chỉ");
+      }
+    },
+    refetchOnWindowFocus: false,
+    enabled: isMounted, // Only run query when component is mounted
+  });
+
 
   const handleSearch = () => {
     setSearchQuery(textSearch);
@@ -205,22 +244,21 @@ export default function Page() {
 
           // BƯỚC 2: Tạo cấu hình PDF với danh sách trường đã tạo
           const pdfConfigFormData = new FormData();
-          const pdfConfigData = {
-            name: data.name,
-            fields: createdFields.map(field => field.id) // Liên kết đến các trường đã tạo
-          };
 
           // Strapi yêu cầu dữ liệu dưới dạng JSON trong trường "data"
-          pdfConfigFormData.append("data", JSON.stringify(pdfConfigData));
+          pdfConfigFormData.append("name", data.name || "");
+          // Sửa cách gửi fields để đảm bảo là mảng số
+          const fieldIds = createdFields.map(field => Number(field.id));
+          pdfConfigFormData.append("fields", JSON.stringify(fieldIds));
 
           // Thêm hình ảnh nền cho PDF Config nếu có
           if (certificateBackground) {
-            pdfConfigFormData.append("files.backgroundUrl", certificateBackground);
+            pdfConfigFormData.append("backgroundUrl", certificateBackground);
           }
 
           // Tạo cấu hình PDF
           const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigFormData);
-          const createdPdfConfig = pdfConfigResponse.data;
+          const createdPdfConfig = pdfConfigResponse;
           console.log("Created PDF config:", createdPdfConfig);
 
           // BƯỚC 3: Liên kết cấu hình PDF với certificate
@@ -229,10 +267,22 @@ export default function Page() {
         }
 
         // BƯỚC 4: Tạo certificate
-        const certificateFormData = new FormData();
-        certificateFormData.set("data", JSON.stringify(certificateData));
-
+        // const certificateFormData = new FormData();
+        // certificateFormData.set("name", get(certificateData, 'name', ''));
+        // certificateFormData.set("description", get(certificateData, 'description', ''));
+        // certificateFormData.set("isHasValidation", get(certificateData, 'isHasValidation', false));
+        // if (get(certificateData, 'course')) {
+        //   certificateFormData.set("course", get(certificateData, 'course'));
+        // }
+        // certificateFormData.set("certificatePdfConfig", get(certificateData, 'certificatePdfConfig', null));
         // Log data để debug
+        const certificateFormData = {
+          name: get(certificateData, 'name', ''),
+          description: get(certificateData, 'description', ''),
+          isHasValidation: get(certificateData, 'isHasValidation', false),
+          course: Number(get(certificateData, 'course', null)),
+          certificatePdfConfig: get(certificateData, 'certificatePdfConfig', null)
+        }
         console.log("Final certificate data being sent:", certificateData);
 
         // Tạo chứng chỉ
@@ -438,7 +488,7 @@ export default function Page() {
       {
         header: 'Thuộc khoá học',
         cell: ({ row }) => <div>
-          {-
+          {
             get(row, 'original.course.name', '')
           }
         </div>
@@ -500,15 +550,6 @@ export default function Page() {
                   <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                 </svg>
               </button>
-              {/* <button
-                className="p-2 hover:bg-gray-100 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Add edit handler here
-                }}
-              >
-                <Trash2 className="h-4 w-4" color="#7C6C80" />
-              </button> */}
             </div>
           );
         },

@@ -28,7 +28,6 @@ import {
   ReqUpdateNews,
 } from "@/requests/news";
 import { extractBase64Images } from "@/lib/process-base64";
-
 type Props = {
   type: "news" | "event" | "hiring";
   isOpen?: boolean;
@@ -81,7 +80,9 @@ export const NewsDialogManager = ({
       tags: initialData?.tags || "",
       content: initialData?.content || "",
       image: initialData?.image || "",
-      salary: initialData?.salary || "",
+      isDealt: initialData?.isDealt || false,
+      minSalary: initialData?.minSalary || "",
+      maxSalary: initialData?.maxSalary || "",
       startTime: initialData?.startTime || new Date().toISOString(),
       endTime: initialData?.endTime || new Date().toISOString(),
     },
@@ -93,9 +94,11 @@ export const NewsDialogManager = ({
     reset,
     setValue,
     getValues,
+    watch,
     formState: { errors, isSubmitting },
   } = methods;
 
+  const isDealt = watch("isDealt");
   // Update form when initialData changes
   useEffect(() => {
     console.log("init data", initialData);
@@ -105,7 +108,9 @@ export const NewsDialogManager = ({
         tags: initialData.tags || "",
         content: initialData.content || "",
         image: initialData.image || "existing-image",
-        salary: initialData.salary || "",
+        isDealt: initialData.isDealt || false,
+        minSalary: initialData.minSalary || "",
+        maxSalary: initialData.maxSalary || "",
         startTime: initialData.startTime || new Date().toISOString(),
         endTime: initialData.endTime || new Date().toISOString(),
       });
@@ -269,7 +274,9 @@ export const NewsDialogManager = ({
         tags: "",
         content: "",
         image: "",
-        salary: "",
+        isDealt: false,
+        minSalary: "",
+        maxSalary: "",
         startTime: new Date().toISOString(),
         endTime: new Date().toISOString(),
       });
@@ -309,20 +316,18 @@ export const NewsDialogManager = ({
           <DialogHeader>
             <DialogTitle className="text-xl">
               {initialData
-                ? `Chỉnh sửa ${
-                    type === "news"
-                      ? "tin tức"
-                      : type === "event"
-                      ? "sự kiện"
-                      : "tuyển dụng"
-                  }`
-                : `Tạo ${
-                    type === "news"
-                      ? "tin tức"
-                      : type === "event"
-                      ? "sự kiện"
-                      : "tuyển dụng"
-                  } mới`}
+                ? `Chỉnh sửa ${type === "news"
+                  ? "tin tức"
+                  : type === "event"
+                    ? "sự kiện"
+                    : "tuyển dụng"
+                }`
+                : `Tạo ${type === "news"
+                  ? "tin tức"
+                  : type === "event"
+                    ? "sự kiện"
+                    : "tuyển dụng"
+                } mới`}
             </DialogTitle>
           </DialogHeader>
           <Controller
@@ -375,26 +380,67 @@ export const NewsDialogManager = ({
 
           {/* Salary field for hiring type */}
           {type === "hiring" && (
-            <Controller
-              control={control}
-              name="salary"
-              render={({ field: { value, onChange }, fieldState }) => (
-                <InputField
-                  value={value || ""}
-                  onChange={onChange}
-                  title="Mức lương"
-                  type="text"
-                  error={fieldState && fieldState.error?.message}
-                  placeholder="Nhập mức lương"
-                />
-              )}
-            />
+            <>
+              <Controller
+                control={control}
+                name="isDealt"
+                render={({ field: { value, onChange }, fieldState }) => (
+                  <div className="flex items-center gap-2 w-full">
+                    <span className="text-sm text-gray-60 w-1/4">
+                      Đã thoả thuận
+                    </span>
+                    <div className="w-full max-w-3/4 ">
+                      <input
+                        type="checkbox"
+                        checked={value}
+                        onChange={onChange}
+                        className="h-4 w-4 rounded cursor-pointer border-gray-300 text-purple-600 focus:ring-purple-500"
+                      />
+                    </div>
+                  </div>
+                )}
+              />
+              {
+                !isDealt && (
+                  <>
+                    <Controller
+                      control={control}
+                      name="minSalary"
+                      render={({ field: { value, onChange }, fieldState }) => (
+                        <InputField
+                          value={value || ""}
+                          onChange={onChange}
+                          title="Mức lương tối thiểu"
+                          type="text"
+                          error={fieldState && fieldState.error?.message}
+                          placeholder="Nhập mức lương"
+                        />
+                      )}
+                    />
+                    <Controller
+                      control={control}
+                      name="maxSalary"
+                      render={({ field: { value, onChange }, fieldState }) => (
+                        <InputField
+                          value={value || ""}
+                          onChange={onChange}
+                          title="Mức lương tối đa"
+                          type="text"
+                          error={fieldState && fieldState.error?.message}
+                          placeholder="Nhập mức lương"
+                        />
+                      )}
+                    />
+                  </>
+                )
+              }
+            </>
           )}
 
           {/* Date fields for event and hiring types */}
           {type !== "news" && (
-            <div className="flex w-full">
-              <div className="text-sm font-medium mb-2 w-1/4">
+            <div className="flex w-full items-center">
+              <div className="text-sm text-gray-60 font-medium mb-2 w-1/4">
                 Thời gian diễn ra
               </div>
               <div className="w-full">
@@ -504,8 +550,8 @@ export const NewsDialogManager = ({
                 {isSubmitting
                   ? "Đang lưu..."
                   : initialData
-                  ? "Đưa về bản nháp"
-                  : "Lưu bản nháp"}
+                    ? "Đưa về bản nháp"
+                    : "Lưu bản nháp"}
               </CommonButton>
               <CommonButton
                 className={`text-white h-[48px] w-[133px]`}
@@ -518,11 +564,10 @@ export const NewsDialogManager = ({
                 {isSubmitting
                   ? "Đang xử lý..."
                   : initialData
-                  ? "Cập nhật"
-                  : `Đăng ${
-                      type === "news"
-                        ? "tin tức"
-                        : type === "event"
+                    ? "Cập nhật"
+                    : `Đăng ${type === "news"
+                      ? "tin tức"
+                      : type === "event"
                         ? "sự kiện"
                         : "tuyển dụng"
                     }`}

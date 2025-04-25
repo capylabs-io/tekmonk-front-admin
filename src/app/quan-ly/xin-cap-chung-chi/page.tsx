@@ -103,7 +103,7 @@ export default function Page() {
   const listCertificateUnFinnishedRequest = useMemo(() => {
     if (!certificateHistory || !certificates)
       return []
-    const certificateFinnishedRequest = certificateHistory.data.map((item: CertificateHistory) => item.certificate.id)
+    const certificateFinnishedRequest = certificateHistory.data.map((item: CertificateHistory) => item.certificate?.id)
     return certificates.data.filter((item: Certificate) => !certificateFinnishedRequest.includes(item.id))
   }, [certificateHistory, certificates])
 

@@ -158,7 +158,14 @@ export function CreateClassDialog({
     queryKey: ["courseList"],
     queryFn: async () => {
       try {
-        return await ReqGetCourses();
+        const queryString = qs.stringify({
+          filters: {
+            isDisabled: {
+              $eq: false,
+            },
+          },
+        });
+        return await ReqGetCourses(queryString);
       } catch (error) {
         console.log("error when fetching course list", error);
       }
@@ -345,7 +352,7 @@ export function CreateClassDialog({
             className="space-y-4 w-full"
             onSubmit={(e) => e.preventDefault()}
           >
-            <div className="flex items-start justify-center">
+            <div className="flex items-center justify-center">
               <div className="text-SubheadMd text-gray-60 w-[160px]">
                 Khóa học
               </div>
@@ -355,11 +362,10 @@ export function CreateClassDialog({
                   control={step1Form.control}
                   render={({ field }) => (
                     <select
-                      className={`flex-1 w-full p-2 border ${
-                        step1Form.formState.errors.courseId
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      } rounded-md`}
+                      className={`flex-1 w-full p-2 border ${step1Form.formState.errors.courseId
+                        ? "border-red-500"
+                        : "border-gray-300"
+                        } rounded-md`}
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -385,7 +391,7 @@ export function CreateClassDialog({
               </div>
             </div>
 
-            <div className="flex items-start justify-center">
+            <div className="flex items-center justify-center">
               <div className="text-SubheadMd text-gray-60 w-[160px]">
                 Thời gian bắt đầu - kết thúc
               </div>
@@ -405,19 +411,19 @@ export function CreateClassDialog({
                 {step1Form.formState.errors.dateRange && (
                   <p className="text-red-500 text-sm mt-1">
                     {typeof step1Form.formState.errors.dateRange.message ===
-                    "string"
+                      "string"
                       ? step1Form.formState.errors.dateRange.message
                       : step1Form.formState.errors.dateRange?.startDate
-                          ?.message ||
-                        step1Form.formState.errors.dateRange?.endDate
-                          ?.message ||
-                        "Vui lòng chọn thời gian bắt đầu và kết thúc hợp lệ"}
+                        ?.message ||
+                      step1Form.formState.errors.dateRange?.endDate
+                        ?.message ||
+                      "Vui lòng chọn thời gian bắt đầu và kết thúc hợp lệ"}
                   </p>
                 )}
               </div>
             </div>
 
-            <div className="flex items-start justify-center w-full">
+            <div className="flex items-center justify-center w-full">
               <div className="text-SubheadMd text-gray-60 w-[160px]">
                 Số buổi học
               </div>
@@ -429,7 +435,7 @@ export function CreateClassDialog({
               />
             </div>
 
-            <div className="flex items-start justify-center w-full">
+            <div className="flex items-center justify-center w-full">
               <div className="text-SubheadMd text-gray-60 w-[160px] ">
                 Tên lớp
               </div>
@@ -443,11 +449,10 @@ export function CreateClassDialog({
                       type="text"
                       value={field.value}
                       onChange={(e) => field.onChange(e)}
-                      customClassNames={`flex-1 border-${
-                        step1Form.formState.errors.className
-                          ? "red-500"
-                          : "gray-300"
-                      } focus:ring-purple-500 focus:border-transparent`}
+                      customClassNames={`flex-1 border-${step1Form.formState.errors.className
+                        ? "red-500"
+                        : "gray-300"
+                        } focus:ring-purple-500 focus:border-transparent`}
                     />
                   )}
                 />
@@ -459,7 +464,7 @@ export function CreateClassDialog({
               </div>
             </div>
 
-            <div className="flex items-start justify-center">
+            <div className="flex items-center justify-center">
               <div className="text-SubheadMd text-gray-60 w-[160px] cursor-pointer">
                 Giảng viên
               </div>
@@ -484,11 +489,10 @@ export function CreateClassDialog({
                                 setTeacherSearchQuery(value);
                                 setIsTeacherDropdownOpen(true);
                               }}
-                              customClassNames={`flex-1 !w-[464px] border-${
-                                step1Form.formState.errors.teacherId
-                                  ? "red-500"
-                                  : "gray-300"
-                              } focus:ring-purple-500 focus:border-transparent cursor-pointer`}
+                              customClassNames={`flex-1 !w-[464px] border-${step1Form.formState.errors.teacherId
+                                ? "red-500"
+                                : "gray-300"
+                                } focus:ring-purple-500 focus:border-transparent cursor-pointer`}
                             />
                           </div>
                           {isTeacherDropdownOpen && (
@@ -542,8 +546,8 @@ export function CreateClassDialog({
                                             </div>
                                             {field.value ===
                                               teacher.id.toString() && (
-                                              <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
-                                            )}
+                                                <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
+                                              )}
                                           </div>
                                         ))}
                                     </div>

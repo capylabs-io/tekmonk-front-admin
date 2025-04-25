@@ -27,6 +27,7 @@ import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { getMission } from "@/requests/mission";
 import { Mission } from "@/types/mission";
+import { Switch } from "@/components/ui/switch";
 
 // Dynamically import ReactQuill with SSR disabled
 const ReactQuill = dynamic(() => import("react-quill"), {
@@ -67,7 +68,7 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
     <div className="space-y-6 max-h-[60vh] overflow-y-auto custom-scrollbar px-1">
       {/* Course Name Field */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2">
           <div className="w-[160px] text-SubheadMd text-gray-60">
             Tên khoá học
           </div>
@@ -90,7 +91,7 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
 
       {/* Description Field */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2">
           <div className="flex-1">
             <Controller
               name="description"
@@ -119,7 +120,7 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
           </div>
         </div>
       </div>
-      <div className="flex items-start gap-2">
+      <div className="flex items-center gap-2">
         <div className="w-[160px] text-SubheadMd text-gray-60">Số buổi học</div>
         <Controller
           name="numberSession"
@@ -140,7 +141,7 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
       </div>
       {/* Category Field */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2">
           <div className="w-[160px] text-SubheadMd text-gray-60">Loại</div>
           <Controller
             name="type"
@@ -158,8 +159,25 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
           />
         </div>
       </div>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <div className="w-[160px] text-SubheadMd text-gray-60">Trạng thái</div>
+          <Controller
+            name="isDisabled"
+            control={control}
+            render={({ field: { value, onChange } }) => (
+              <div className="flex gap-x-2 items-center text-sm">
+                <Switch checked={value} onCheckedChange={onChange} />
+                <span className="text-BodySm text-gray-60">
+                  {value ? "Khóa" : "Mở"}
+                </span>
+              </div>
+            )}
+          />
+        </div>
+      </div>
       {/* <div className="flex flex-col gap-2">
-        <div className="flex items-start gap-2">
+        <div className="flex items-center gap-2">
           <div className="w-[160px] text-SubheadMd text-gray-60">
             Chứng chỉ của khoá học
           </div>
@@ -223,6 +241,7 @@ export const CreateCourseDialog = ({
         name: "",
         description: "",
         type: "",
+        isDisabled: false,
         numberSession: 0,
       });
     }

@@ -188,8 +188,10 @@ export type TNews = {
   createdAt?: string;
   isActived: boolean;
   priority: boolean;
+  isDealt: boolean;
   totalRead?: number;
-  salary?: string;
+  minSalary?: string;
+  maxSalary?: string;
   status: string;
 };
 
@@ -233,6 +235,7 @@ export type Course = {
   numberSession: number;
   description?: string;
   thumbnail?: string;
+  isDisabled?: boolean;
 };
 
 export type ClassSessionDetail = {

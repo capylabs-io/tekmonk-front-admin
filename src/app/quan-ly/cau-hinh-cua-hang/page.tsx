@@ -24,6 +24,7 @@ import { Suspense } from "react";
 import { CreateShopItem } from "@/components/shop/CreateShopItem";
 import { ReqCreateShopItem, ReqDeleteShopItem, ReqGetShopItem, ReqUpdateShopItem, ReqUpdateShopItemWithImage } from "@/requests/shop";
 import Image from "next/image";
+import { ShopItemEnum } from "@/types/shop";
 
 
 // Simple loading component
@@ -231,7 +232,7 @@ export default function ConfigShop() {
     },
     {
       header: "Số lượng",
-      cell: ({ row }) => <span>{row.original.quantity}</span>,
+      cell: ({ row }) => <span>{row.original.type === ShopItemEnum.VIRTUAL ? 'Không giới hạn' : row.original.quantity}</span>,
     },
     {
       header: "Loại vật phẩm",

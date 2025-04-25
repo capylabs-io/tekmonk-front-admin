@@ -29,7 +29,7 @@ import {
   ReqGetAchievementHistory,
 } from "@/requests/achievement-history";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
-
+import { AchievementTypeToText } from "@/types/achievement";
 export default function Page() {
   const tabs = [
     { id: "Auto", label: "Thuộc hệ thống" },
@@ -284,7 +284,7 @@ export default function Page() {
     },
     {
       header: "Loại",
-      cell: ({ row }) => <div>{row.original.type}</div>,
+      cell: ({ row }) => <div>{AchievementTypeToText[row.original.type as keyof typeof AchievementTypeToText]}</div>,
     },
     {
       id: "action",
@@ -312,7 +312,7 @@ export default function Page() {
                 <></>
               )}
             </button>
-            <button
+            {/* <button
               className={`p-2 hover:bg-gray-100 rounded-full ${
                 row.original.type !== "Manual"
                   ? "opacity-50 cursor-not-allowed"
@@ -330,7 +330,7 @@ export default function Page() {
               }
             >
               <Edit className="h-4 w-4" color="#7C6C80" />
-            </button>
+            </button> */}
           </div>
         );
       },

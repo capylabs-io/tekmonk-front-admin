@@ -2,12 +2,7 @@ import { BASE_URL } from "@/contants/api-url";
 import tekdojoAxios from "./axios.config";
 
 export const postCertificate = async (data: any) => {
-  const response = await tekdojoAxios.post(`${BASE_URL}/certificates`, data,
-    {
-      headers: {
-        "Content-Type": "multipart/form-data",
-      },
-    }
+  const response = await tekdojoAxios.post(`${BASE_URL}/certificates`, { data },
   );
   return response.data;
 };
@@ -23,10 +18,17 @@ export const getCertificate = async (query: string = "") => {
   );
   return response.data;
 };
+
 export const updateCertificate = async (id: number, data: any) => {
   const response = await tekdojoAxios.put(`${BASE_URL}/certificates/${id}`, { data });
   return response.data;
 };
+
+export const deleteCertificate = async (id: number) => {
+  const response = await tekdojoAxios.delete(`${BASE_URL}/certificates/${id}`);
+  return response.data;
+};
+
 export const postCertificateHistory = async (data: any) => {
   const response = await tekdojoAxios.post(`${BASE_URL}/certificate-histories`, { data },
   );
@@ -41,10 +43,14 @@ export const updateCertificateHistory = async (id: number, data: any) => {
   const response = await tekdojoAxios.put(`${BASE_URL}/certificate-histories/${id}`, { data });
   return response.data;
 };
+export const deleteCertificateHistory = async (id: number) => {
+  const response = await tekdojoAxios.delete(`${BASE_URL}/certificate-histories/${id}`);
+  return response.data;
+};
 
 
 export const postCertificatePdfConfig = async (data: any) => {
-  const response = await tekdojoAxios.post(`${BASE_URL}/certificate-pdf-configs`, { data },
+  const response = await tekdojoAxios.post(`${BASE_URL}/certificate-pdf-configs`, data,
     {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -59,6 +65,10 @@ export const getCertificatePdfConfig = async (query: string = "") => {
   return response.data;
 };
 
+export const findCertificatePdfConfig = async (query: string = "") => {
+  const response = await tekdojoAxios.get(`${BASE_URL}/certificate-pdf-configs?${query}`);
+  return response.data;
+};
 export const updateCertificatePdfConfig = async (id: number, data: any) => {
   const response = await tekdojoAxios.put(`${BASE_URL}/certificate-pdf-configs/${id}`, { data });
   return response.data;

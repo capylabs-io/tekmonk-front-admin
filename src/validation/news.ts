@@ -33,7 +33,9 @@ export const hiringSchema = z.object({
     .string({ required_error: "Tên bài viết không được để trống" })
     .min(1, "Tên bài viết phải có ít nhất 1 ký tự"),
   tags: z.string().optional(),
-  salary: z.string().min(1, "Mức lương không được để trống"),
+  isDealt: z.boolean().optional(),
+  maxSalary: z.string().optional(),
+  minSalary: z.string().optional(),
   image: z
     .any()
     .refine((val) => val !== null && val !== undefined && val !== "", {

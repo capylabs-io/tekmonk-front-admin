@@ -79,7 +79,7 @@ export const InputField = forwardRef<
     return (
       <TooltipProvider>
         <div
-          className={`flex flex-wrap sm:flex-nowrap items-start ${customClassNames}`}
+          className={`flex flex-wrap sm:flex-nowrap items-center ${customClassNames}`}
         >
           <label
             htmlFor={name}

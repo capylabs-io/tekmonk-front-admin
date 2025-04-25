@@ -16,6 +16,7 @@ export const courseSchema = z.object({
       const strippedValue = value.replace(/<[^>]*>/g, "").trim();
       return strippedValue.length > 0;
     }, "Vui lòng nhập nội dung mô tả khóa học"),
+  isDisabled: z.boolean().optional(),
   type: z
     .string()
     .min(1, "Vui lòng nhập loại khóa học")

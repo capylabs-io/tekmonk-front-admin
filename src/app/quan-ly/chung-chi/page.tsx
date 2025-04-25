@@ -1,7 +1,7 @@
 "use client";
 
 import { CommonButton } from "@/components/common/button/CommonButton";
-import { CheckCircle, PanelLeft } from "lucide-react";
+import { CheckCircle, PanelLeft, Trash2 } from "lucide-react";
 import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
@@ -14,7 +14,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
-import { getCertificateHistory, updateCertificateHistory } from "@/requests/certificate";
+import { deleteCertificateHistory, getCertificateHistory, updateCertificateHistory } from "@/requests/certificate";
 import { CertificateHistory } from "@/types/certificate";
 import { get } from "lodash";
 import {
@@ -25,6 +25,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import moment from "moment";
+import CustomCertificateEditor from "@/components/certificate/CustomCertificateEditor";
 
 export default function Page() {
   const { totalPage,
@@ -41,6 +43,7 @@ export default function Page() {
   const [textSearch, setTextSearch] = useState("");
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
   const [certificateHistorySelected, setCertificateHistorySelected] = useState<CertificateHistory>()
@@ -67,7 +70,7 @@ export default function Page() {
                 }
               }
             },
-            populate: ['certificate', 'student', 'certificate.course'],
+            populate: ['certificate', 'student', 'certificate.course', 'certificate.certificatePdfConfig', 'certificate.certificatePdfConfig.fields'],
             pagination: {
               page: page,
               pageSize: limit,
@@ -130,6 +133,26 @@ export default function Page() {
     [certificateHistorySelected],
   )
 
+  const handleConfirmDelete = useCallback(
+    async () => {
+      try {
+        showLoading()
+        if (!certificateHistorySelected) return
+        const res = await deleteCertificateHistory(certificateHistorySelected?.id || 0)
+        if (res) {
+          showSuccess('Xóa', 'Chứng chỉ đã được xóa thành công!')
+        }
+      } catch (error) {
+        console.log('error', error);
+        showError('Xóa', 'Chứng chỉ đã được xóa thất bại!')
+      } finally {
+        hideLoading()
+        setIsDeleteOpen(false)
+        refetchCertificateHistory()
+      }
+    },
+    [certificateHistorySelected],
+  )
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -173,18 +196,37 @@ export default function Page() {
         </div>
       },
       {
+        header: 'Ngày tạo',
+        cell: ({ row }) => <div>
+          {
+            moment(get(row, 'original.createdAt', '')).format('DD/MM/YYYY')
+          }
+        </div>
+      },
+      {
         id: 'action',
         header: '',
         cell: ({ row }) => (
-          <button
-            className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
-            onClick={() => {
-              setIsConfirmOpen(true)
-              setCertificateHistorySelected(row.original)
-            }}
-          >
-            <CheckCircle className="h-5 w-5" color="#7C6C80" />
-          </button>
+          <div className="flex gap-2">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
+              onClick={() => {
+                setIsConfirmOpen(true)
+                setCertificateHistorySelected(row.original)
+              }}
+            >
+              <CheckCircle className="h-5 w-5" color="#7C6C80" />
+            </button>
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
+              onClick={() => {
+                setCertificateHistorySelected(row.original)
+                setIsDeleteOpen(true)
+              }}
+            >
+              <Trash2 className="h-5 w-5" color="#7C6C80" />
+            </button>
+          </div>
         )
       },
     ]
@@ -222,6 +264,14 @@ export default function Page() {
         cell: ({ row }) => <div>
           {
             get(row, 'original.student.username', '')
+          }
+        </div>
+      },
+      {
+        header: 'Ngày tạo',
+        cell: ({ row }) => <div>
+          {
+            moment(get(row, 'original.createdAt', '')).format('DD/MM/YYYY')
           }
         </div>
       },
@@ -326,11 +376,62 @@ export default function Page() {
       </div>
 
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
-        <DialogContent className="w-[480px] bg-white">
+        <DialogContent className="w-[1300px] h-[800px] overflow-y-auto bg-white">
           <DialogHeader>
             <DialogTitle>Xác nhận phê duyệt chứng chỉ</DialogTitle>
             <DialogDescription>
-              Bạn có chắc chắn muốn phê duyệt chứng chỉ này không?
+              <div className="mt-4 space-y-3">
+                <div className="grid grid-cols-2  gap-x-4 max-w-[500px]">
+                  <div className="text-base font-medium text-gray-60">
+                    Tên chứng chỉ:
+                  </div>
+                  <div className="text-base">
+                    {certificateHistorySelected?.certificate.name}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 max-w-[500px]">
+                  <div className="text-base font-medium text-gray-60">
+                    Khoá học:
+                  </div>
+                  <div className="text-base">
+                    {certificateHistorySelected?.certificate.course?.name}
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-x-4 max-w-[500px]">
+                  <div className="text-base font-medium text-gray-60">
+                    Ngày tạo:
+                  </div>
+                  <div className="text-base">
+                    {moment(get(certificateHistorySelected, 'createdAt', '')).format('DD/MM/YYYY')}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="text-base font-medium text-gray-60">
+                    Xem trước chứng chỉ:
+                  </div>
+                  <div>
+                    <CustomCertificateEditor
+                      initialFields={certificateHistorySelected?.certificate.certificatePdfConfig?.fields ? certificateHistorySelected?.certificate.certificatePdfConfig?.fields.map((field) => ({
+                        id: String(field.id || Date.now()),
+                        label: field.label || "",
+                        value: field.value || "",
+                        htmlContent: field.value || "",
+                        position: {
+                          x: field.positionX || 0,
+                          y: field.positionY || 0
+                        },
+                        fontSize: Number(field.fontSize) || 18,
+                        fontWeight: field.fontWeight || "normal",
+                        color: field.color || "#000000",
+                        fontFamily: field.fontFamily || "Roboto",
+                        textAlign: field.textAlign || "center",
+                      })) : []}
+                      initialBackgroundImage={certificateHistorySelected?.certificate.certificatePdfConfig?.backgroundUrl || null}
+                      isPreviewCertificate={true}
+                    />
+                  </div>
+                </div>
+              </div>
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -341,6 +442,25 @@ export default function Page() {
               Hủy
             </CommonButton>
             <CommonButton onClick={handleConfirmVerified}>Xác nhận</CommonButton>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <DialogContent className="w-[480px] bg-white">
+          <DialogHeader>
+            <DialogTitle>Từ chối phê duyệt chứng chỉ</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn từ chối phê duyệt chứng chỉ này không?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <CommonButton
+              variant="secondary"
+              onClick={() => setIsDeleteOpen(false)}
+            >
+              Hủy
+            </CommonButton>
+            <CommonButton onClick={handleConfirmDelete}>Xác nhận</CommonButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

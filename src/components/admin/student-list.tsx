@@ -1,7 +1,7 @@
 import { useState } from "react";
 import StudentTablePagination from "./student-table-pagination";
 import { Input } from "../common/Input";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight, Trash } from "lucide-react";
 import { StrapiResponse } from "@/requests/strapi-response-pattern";
 import { EnRollment } from "@/types/common-types";
 
@@ -9,16 +9,22 @@ interface Student {
   id: number;
   name: string;
   username: string;
+  isAllowDeleteStudent?: boolean;
+  handleRemoveStudentFromClass?: (studentId: number) => void;
 }
 
 export default function StudentList({
   data,
   currentPage,
   onPageChange,
+  isAllowDeleteStudent = false,
+  handleRemoveStudentFromClass,
 }: {
   data: StrapiResponse<EnRollment[]>;
   currentPage: number;
   onPageChange: (page: number) => void;
+  isAllowDeleteStudent?: boolean;
+  handleRemoveStudentFromClass?: (studentId: number) => void;
 }) {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +33,7 @@ export default function StudentList({
 
   return (
     <div className="w-full px-4">
-      <div className="flex items-center justify-center py-4">
+      <div className="flex items-center py-4">
         <div className="relative w-64">
           <Input
             type="text"
@@ -39,8 +45,8 @@ export default function StudentList({
         </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden border-none px-4 ">
-        <table className="min-w-full divide-y divide-gray-20 border">
+      <div className="overflow-hidden border-none">
+        <table className="min-w-full divide-y divide-gray-20 border !rounded-lg">
           <thead className="bg-white">
             <tr>
               <th className="px-6 py-3 text-left text-sm font-medium text-gray-900">
@@ -66,11 +72,20 @@ export default function StudentList({
                 <td className="px-6 py-4 whitespace-nowrap text-BodySm text-gray-95">
                   {student.student?.username}
                 </td>
-                <td className="flex items-center h-full justify-end whitespace-nowrap text-BodySm text-gray-95">
-                  <ChevronRight
-                    color="#AC9EB1"
-                    className="my-auto mt-3 cursor-pointer"
-                  />
+                <td className="px-6 py-4 flex items-center h-full justify-end whitespace-nowrap text-BodySm text-gray-95">
+                  {isAllowDeleteStudent ? (
+                    <button
+                      className="p-2 hover:bg-gray-100 rounded-full"
+                      onClick={() => handleRemoveStudentFromClass?.(student.id)}
+                    >
+                      <Trash width={16} height={16} />
+                    </button>
+                  ) : (
+                    <ChevronRight
+                      color="#AC9EB1"
+                      className="my-auto mt-3 cursor-pointer"
+                    />
+                  )}
                 </td>
               </tr>
             ))}

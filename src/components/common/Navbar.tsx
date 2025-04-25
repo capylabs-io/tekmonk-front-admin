@@ -4,13 +4,19 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Bell, Goal, Home, ListOrdered, Newspaper, Settings, ShoppingCart, User } from "lucide-react";
+import { Award, Bell, FileBadge, FileCheck, Flag, Goal, Home, ListOrdered, Newspaper, Settings, ShoppingCart, SlidersHorizontal, Ticket, User } from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
 import { get } from "lodash";
 import { Role } from "@/contants/role";
 import { useNavbarStore } from "@/store/navbar-store";
+import { MyClassIcon } from "./navbar/MyClassIcon";
+import { ClassManagementIcon } from "./navbar/ClassManagementIcon";
+import { CourseManagementIcon } from "./navbar/CourseManagementIcon";
+import { HiringIcon } from "./navbar/HiringIcon";
+import { EventIcon } from "./navbar/EventIcon";
+import { AchievementIcon } from "./navbar/AchievementIcon";
 
 export const Navbar = () => {
   const router = useCustomRouter();
@@ -36,6 +42,9 @@ export const Navbar = () => {
     return allowedRoles.includes(userRole);
   };
 
+
+  const pathname = usePathname();
+
   return (
     <div>
       <div className="h-full md:flex flex-col p-2  xl:w-[248px] w-[64px] hidden">
@@ -49,18 +58,28 @@ export const Navbar = () => {
             onClick={handleRidirectHomePage}
           />
         </div>
-        <div className="flex flex-col grow mt-4 overflow-y-auto">
+        <div className="flex flex-col grow mt-4 overflow-y-auto gap-2">
           <MenuCard
             title="Tài khoản"
-            active={usePathname().includes(ROUTE.ACCOUNT)}
-            iconElement={<Home size={20} />}
+            active={pathname.includes(ROUTE.ACCOUNT)}
+            iconElement={({ isHovered }) => (
+              <User
+                size={20}
+                color={pathname.includes(ROUTE.ACCOUNT) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.ACCOUNT}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])}
           />
           <MenuCard
-            active={usePathname().includes(ROUTE.MY_CLASS)}
+            active={pathname.includes(ROUTE.MY_CLASS)}
             title="Lớp của tôi"
-            iconElement={<Bell size={20} />}
+            iconElement={({ isHovered }) => (
+              <MyClassIcon
+                active={pathname.includes(ROUTE.MY_CLASS)}
+                isHovered={isHovered}
+              />
+            )}
             url={ROUTE.MY_CLASS}
             hidden={!hasAccess([Role.CLASSMANAGEMENT, Role.TEACHER])}
           />
@@ -72,89 +91,160 @@ export const Navbar = () => {
             /> */}
           <MenuCard
             title="Quản lý lớp học"
-            active={usePathname().includes(ROUTE.MANAGE_CLASS)}
+            active={pathname.includes(ROUTE.MANAGE_CLASS)}
             url={ROUTE.MANAGE_CLASS}
-            iconElement={<ShoppingCart size={20} />}
+            iconElement={({ isHovered }) => (
+              <ClassManagementIcon
+                active={pathname.includes(ROUTE.MANAGE_CLASS)}
+                isHovered={isHovered}
+              />
+            )}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Example: only admin and class management can see this
           />
 
           <MenuCard
             title="Tin tức"
-            active={usePathname().includes(ROUTE.NEWS)}
-            iconElement={<Newspaper size={20} />}
+            active={pathname.includes(ROUTE.NEWS)}
+            iconElement={({ isHovered }) => (
+              <Newspaper
+                size={20}
+                color={pathname.includes(ROUTE.NEWS) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.NEWS}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Tuyển dụng"
-            active={usePathname().includes(ROUTE.HIRING)}
-            iconElement={<User size={20} />}
+            active={pathname.includes(ROUTE.HIRING)}
+            iconElement={({ isHovered }) => (
+              <HiringIcon
+                active={pathname.includes(ROUTE.HIRING)}
+                isHovered={isHovered}
+              />
+            )}
             url={ROUTE.HIRING}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Sự kiện"
-            active={usePathname().includes(ROUTE.EVENTS)}
-            iconElement={<User size={20} />}
+            active={pathname.includes(ROUTE.EVENTS)}
+            iconElement={({ isHovered }) => (
+              <EventIcon
+                active={pathname.includes(ROUTE.EVENTS)}
+                isHovered={isHovered}
+              />
+            )}
             url={ROUTE.EVENTS}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Khóa học"
-            active={usePathname().includes(ROUTE.COURSES)}
-            iconElement={<User size={20} />}
+            active={pathname.includes(ROUTE.COURSES)}
+            iconElement={({ isHovered }) => (
+              <CourseManagementIcon
+                active={pathname.includes(ROUTE.COURSES)}
+                isHovered={isHovered}
+              />
+            )}
             url={ROUTE.COURSES}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
-            title="Phê duyệt"
-            active={usePathname().includes(ROUTE.VERIFIED)}
-            iconElement={<Goal size={20} />}
+            title="Phê duyệt bài viết"
+            active={pathname.includes(ROUTE.VERIFIED)}
+            iconElement={({ isHovered }) => (
+              <Flag
+                size={20}
+                color={pathname.includes(ROUTE.VERIFIED) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.VERIFIED}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Thành tựu"
-            active={usePathname().includes(ROUTE.ACHIEVEMENT)}
-            iconElement={<Goal size={20} />}
+            active={pathname.includes(ROUTE.ACHIEVEMENT)}
+            iconElement={({ isHovered }) => (
+              <AchievementIcon
+                active={pathname.includes(ROUTE.ACHIEVEMENT)}
+                isHovered={isHovered}
+              />
+            )}
             url={ROUTE.ACHIEVEMENT}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Nhiệm vụ"
-            active={usePathname().includes(ROUTE.MISSION)}
-            iconElement={<Goal size={20} />}
+            active={pathname.includes(ROUTE.MISSION)}
+            iconElement={({ isHovered }) => (
+              <Goal
+                size={20}
+                color={pathname.includes(ROUTE.MISSION) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.MISSION}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Cấu hình Chứng chỉ"
-            active={usePathname().includes(ROUTE.CERTIFICATE_CONFIG)}
-            iconElement={<Settings size={20} />}
+            active={pathname.includes(ROUTE.CERTIFICATE_CONFIG)}
+            iconElement={({ isHovered }) => (
+              <SlidersHorizontal
+                size={20}
+                color={pathname.includes(ROUTE.CERTIFICATE_CONFIG) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.CERTIFICATE_CONFIG}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Xin cấp Chứng chỉ"
-            active={usePathname().includes(ROUTE.CERTIFICATE_REQUEST)}
-            iconElement={<Goal size={20} />}
+            active={pathname.includes(ROUTE.CERTIFICATE_REQUEST)}
+            iconElement={({ isHovered }) => (
+              <FileCheck
+                size={20}
+                color={pathname.includes(ROUTE.CERTIFICATE_REQUEST) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.CERTIFICATE_REQUEST}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT, Role.TEACHER])} // Visible to all roles
           />
           <MenuCard
             title="Quản lý Chứng chỉ"
-            active={usePathname().includes(ROUTE.CERTIFICATE)}
-            iconElement={<Goal size={20} />}
+            active={pathname.includes(ROUTE.CERTIFICATE)}
+            iconElement={({ isHovered }) => (
+              <Award
+                size={20}
+                color={pathname.includes(ROUTE.CERTIFICATE) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.CERTIFICATE}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Cấu hình Cửa Hàng"
-            active={usePathname().includes(ROUTE.SHOP_CONFIG)}
-            iconElement={<ShoppingCart size={20} />}
+            active={pathname.includes(ROUTE.SHOP_CONFIG)}
+            iconElement={({ isHovered }) => (
+              <ShoppingCart
+                size={20}
+                color={pathname.includes(ROUTE.SHOP_CONFIG) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.SHOP_CONFIG}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
           <MenuCard
             title="Quản lý Cấp vật phẩm"
-            active={usePathname().includes(ROUTE.CLAIMED_ITEM)}
-            iconElement={<ListOrdered size={20} />}
+            active={pathname.includes(ROUTE.CLAIMED_ITEM)}
+            iconElement={({ isHovered }) => (
+              <Ticket
+                size={20}
+                color={pathname.includes(ROUTE.CLAIMED_ITEM) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
             url={ROUTE.CLAIMED_ITEM}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
           />
         </div>
 

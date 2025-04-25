@@ -24,6 +24,7 @@ import { Suspense } from "react";
 import { ReqGetClaimedItem, ReqUpdateClaimedItem } from "@/requests/claimed-item";
 import { ClaimedItemStatusEnum } from "@/types/shop";
 import { Tabs } from "@/components/new/tabs";
+import { Input } from "@/components/common/Input";
 
 // Simple loading component
 const LoadingState = () => (
@@ -55,7 +56,8 @@ export default function VerifyClaimedItem() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isMounted, setIsMounted] = useState(false);
-
+  const [textSearch, setTextSearch] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
     state.error,
@@ -72,7 +74,7 @@ export default function VerifyClaimedItem() {
   ];
   /* UseQuery */
   const { data: courses, refetch } = useQuery({
-    queryKey: ["course", page, pageSize],
+    queryKey: ["course", page, pageSize, searchQuery],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
@@ -80,6 +82,12 @@ export default function VerifyClaimedItem() {
           pagination: {
             page,
             pageSize: pageSize,
+          },
+          filters: {
+            $or: [
+              { code: { $containsi: searchQuery } },
+              { itemCode: { $containsi: searchQuery } },
+            ],
           },
         });
         return await ReqGetClaimedItem(queryString);
@@ -98,6 +106,9 @@ export default function VerifyClaimedItem() {
     setIsMounted(true);
   }, []);
 
+  const handleSearch = () => {
+    setSearchQuery(textSearch);
+  };
 
   const handleOpenEditDialog = (course: any) => {
     setDialogMode("edit");
@@ -198,6 +209,22 @@ export default function VerifyClaimedItem() {
         {
           activeTab.id === 'pending' && (
             <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+              <div className="flex justify-between items-center">
+                <Input
+                  type="text"
+                  isSearch={true}
+                  value={textSearch}
+                  onChange={setTextSearch}
+                  placeholder="Tìm kiếm vật phẩm theo mã quy đổi"
+                  customClassNames="max-w-[410px] h-10 mb-4"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
+                  onSearch={handleSearch}
+                />
+              </div>
               {courses && (
                 <CommonTable
                   data={courses?.data.filter((item: any) => item.status === ClaimedItemStatusEnum.PENDING)}
@@ -217,6 +244,22 @@ export default function VerifyClaimedItem() {
         {
           activeTab.id === 'verified' && (
             <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+              <div className="flex justify-between items-center">
+                <Input
+                  type="text"
+                  isSearch={true}
+                  value={textSearch}
+                  onChange={setTextSearch}
+                  placeholder="Tìm kiếm vật phẩm theo mã quy đổi"
+                  customClassNames="max-w-[410px] h-10 mb-4"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleSearch();
+                    }
+                  }}
+                  onSearch={handleSearch}
+                />
+              </div>
               {courses && (
                 <CommonTable
                   data={courses?.data.filter((item: any) => item.status === ClaimedItemStatusEnum.CLAIMED)}

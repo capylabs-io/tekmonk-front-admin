@@ -14,6 +14,8 @@ export type Certificate = {
   isCommentNeeded?: boolean
   certificatePdfConfig?: CertificatePdfConfig
   user?: User
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type CertificateHistory = {
@@ -30,13 +32,11 @@ export type CertificatePdfFieldConfig = {
   fontSize?: string
   color?: string
   fontFamily?: string
+  textAlign?: string
   fontWeight?: string
-  fontStyle?: string
   positionX?: number
   positionY?: number
   config?: CertificatePdfConfig
-  textAlign?: string
-  htmlContent?: string
 }
 
 export type CertificatePdfConfig = {

@@ -89,13 +89,15 @@ export interface CertificateEditorProps {
   initialBackgroundImage?: string | null
   onFieldsChange?: (fields: CertificateField[]) => void
   onBackgroundChange?: (file: File | null, imageUrl: string | null) => void
+  isPreviewCertificate?: boolean
 }
 
 export default function CertificateEditor({
   initialFields,
   initialBackgroundImage,
   onFieldsChange,
-  onBackgroundChange
+  onBackgroundChange,
+  isPreviewCertificate = false
 }: CertificateEditorProps) {
   // Certificate background image
   const [backgroundImage, setBackgroundImage] = useState<string | null>(initialBackgroundImage || null)
@@ -847,368 +849,426 @@ export default function CertificateEditor({
   return (
     <>
       <FontPreloader />
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-y-auto !bg-white">
-        {/* Certificate Preview */}
-        <div className="lg:col-span-2 h-full">
-          <div className="!bg-white p-4 rounded-lg h-full">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-lg font-medium">Xem trước chứng chỉ</h2>
-              <div className="flex gap-2">
-                <Button onClick={() => setIsOpenAddTextBlock(true)} variant="outline" size="sm">
-                  Thêm khối văn bản
-                </Button>
-                <Button onClick={() => setDebugMode(!debugMode)} variant="outline" size="sm">
-                  {debugMode ? "Tắt debug" : "Bật debug"}
-                </Button>
-                <Button onClick={() => setPDFPreviewMode(!pdfPreviewMode)} variant="outline" size="sm">
-                  {pdfPreviewMode ? "Xem trước bình thường" : "Xem trước PDF"}
-                </Button>
-                <Button onClick={centerAllTextItems} variant="outline" size="sm">
-                  Căn giữa tất cả
-                </Button>
+      {isPreviewCertificate ? (
+        // Chế độ xem trước
+        <div className="bg-white rounded-lg h-full border border-gray-200">
+          <div className="flex gap-2 w-full justify-end p-2">
+            <Button
+              variant="outline"
+              onClick={exportPDFUsingCanvas}
+              disabled={isGeneratingPDF || !backgroundImage}
+              className="bg-primary-60 text-white hover:bg-primary-60/80">
+              <Download className="w-4 h-4 mr-2" />
+              {isGeneratingPDF ? "Đang xử lý..." : "Tải xuống PDF"}
+            </Button>
+          </div>
+          <div
+            ref={certificateRef}
+            data-certificate
+            className="relative bg-white border border-gray-200 rounded-lg overflow-hidden my-4 shadow-lg mx-auto"
+            style={{
+              width: "100%",
+              maxWidth: "1200px", // Giới hạn kích thước tối đa trong chế độ preview
+              maxHeight: "800px",
+              aspectRatio: `${certificateWidth} / ${certificateHeight}`,
+              backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+              backgroundRepeat: "no-repeat",
+              backgroundColor: backgroundImage ? "transparent" : "#f9f9f9",
+            }}
+          >
+            {!backgroundImage && (
+              <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                <p>Không có ảnh nền</p>
               </div>
-            </div>
-            <div
-              ref={certificateRef}
-              data-certificate
-              className="relative bg-white border border-gray-200 rounded-lg overflow-hidden my-4 shadow-lg"
-              style={{
-                width: "100%",
-                aspectRatio: `${certificateWidth} / ${certificateHeight}`,
-                maxWidth: "100%",
-                backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
-                backgroundSize: "cover",
-                backgroundPosition: "center",
-                backgroundRepeat: "no-repeat",
-                backgroundColor: backgroundImage ? "transparent" : "#f9f9f9",
-              }}
-            >
-              {!backgroundImage && (
-                <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-                  <p>Vui lòng tải lên hình nền</p>
-                </div>
-              )}
-              {fields.map((field) => (
-                <Draggable
-                  key={field.id}
-                  position={field.position}
-                  bounds="parent"
-                  onStop={(e, data) => handleDragStop(field.id, e, data)}
-                  nodeRef={fieldRefs.current[field.id]}
-                >
-                  <div
-                    ref={fieldRefs.current[field.id]}
-                    data-id={field.id}
-                    className="absolute cursor-move draggable-field border-2 border-transparent hover:border-blue-400 rounded px-2 py-1 touch-none"
-                    style={{
-                      fontSize: `${field.fontSize}px`,
-                      fontWeight: field.fontWeight,
-                      color: field.color,
-                      fontFamily: field.fontFamily,
-                      width: pdfPreviewMode ? `${field.value.length * field.fontSize * 0.7}px` : "auto",
-                      transform: pdfPreviewMode ? calculatePDFOffset(field) : "none",
-                    }}
-                  >
-                    {previewHtml ? (
-                      <div dangerouslySetInnerHTML={{ __html: field.htmlContent }} />
-                    ) : (
-                      field.value
-                    )}
-                    {debugMode && (
-                      <div className="absolute top-full left-0 bg-black text-white text-xs p-1 opacity-70 pointer-events-none" data-debug>
-                        x: {Math.round(field.position.x)}, y: {Math.round(field.position.y)}
-                      </div>
-                    )}
-                  </div>
-                </Draggable>
-              ))}
-            </div>
-            <div className="flex justify-end gap-2 flex-wrap">
-              <Button
-                variant="outline"
-                onClick={exportAsPDF}
-                disabled={isGeneratingPDF || !backgroundFile}>
-                <Download className="w-4 h-4 mr-2" />
-                {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF (text đơn giản)"}
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={exportPDFHighPrecision}
-                disabled={isGeneratingPDF || !backgroundFile}>
-                <Download className="w-4 h-4 mr-2" />
-                {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF (HTML đầy đủ)"}
-              </Button>
-
-              <Button
-                variant="outline"
-                onClick={exportPDFUsingCanvas}
-                disabled={isGeneratingPDF || !backgroundFile}
-                className="bg-blue-600 text-white hover:bg-blue-700">
-                <Download className="w-4 h-4 mr-2" />
-                {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF - Chính xác nhất"}
-              </Button>
-            </div>
-            <div className="mt-2 text-sm text-gray-500">
-              <p>Khuyến nghị sử dụng tùy chọn &quot;Chính xác nhất&quot; để có kết quả giống hệt như trong trình soạn thảo.</p>
-            </div>
+            )}
+            {fields.map((field) => (
+              <div
+                key={field.id}
+                data-id={field.id}
+                className="absolute border-transparent rounded px-2 py-1"
+                style={{
+                  fontSize: `${field.fontSize}px`,
+                  fontWeight: field.fontWeight,
+                  color: field.color,
+                  fontFamily: field.fontFamily,
+                  textAlign: field.textAlign as any,
+                  width: "auto",
+                  left: `${field.position.x}px`,
+                  top: `${field.position.y}px`,
+                }}
+              >
+                <div dangerouslySetInnerHTML={{ __html: field.htmlContent }} />
+              </div>
+            ))}
           </div>
         </div>
-
-        {/* Editor Controls */}
-        <div className="lg:col-span-1 h-full overflow-y-auto">
-          <Tabs defaultValue="content" value={activeTab} onValueChange={setActiveTab} className="h-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="content">Nội dung</TabsTrigger>
-              <TabsTrigger value="background">Hình nền</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="content" className="space-y-4 !h-[calc(100%-100px)] overflow-y-auto">
-              <Card>
-                <CardContent className="pt-6">
-                  <div className="space-y-6">
-                    {fields.map((field) => (
-                      <div key={field.id} className="space-y-4 pb-4 border-b border-gray-100">
-                        <div className="flex justify-between items-center">
-                          <Label htmlFor={field.id} className="text-base font-medium">
-                            {field.label}
-                          </Label>
-                          <div className="flex gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 px-2 text-muted-foreground"
-                              onClick={() => setActiveTab("position-" + field.id)}
-                            >
-                              <Move className="h-4 w-4 mr-1" />
-                              Vị trí
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 px-2 text-red-500 hover:text-red-600"
-                              onClick={() => deleteField(field.id)}
-                            >
-                              <Trash2 size={14} />
-                            </Button>
-                          </div>
-                        </div>
-                        <div className="mb-4">
-                          <div className="editor-container border rounded-md overflow-hidden">
-                            <ReactQuill
-                              value={field.htmlContent}
-                              onChange={(content, delta, source, editor) => {
-                                if (source === 'user') {
-                                  // Lấy plain text từ editor
-                                  const plainText = editor.getText().trim();
-                                  handleFieldChange(field.id, plainText, content);
-                                }
-                              }}
-                              modules={quillModules}
-                              formats={quillFormats}
-                              placeholder={`Nhập ${field.label.toLowerCase()}`}
-                              theme="snow"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
-                          <div>
-                            <Label htmlFor={`${field.id}-size`} className="text-xs">
-                              Kích thước chữ
-                            </Label>
-                            <Input
-                              id={`${field.id}-size`}
-                              type="number"
-                              value={field.fontSize}
-                              onChange={(e) => handleStyleChange(field.id, "fontSize", Number.parseInt(e.target.value))}
-                              min={8}
-                              max={72}
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor={`${field.id}-weight`} className="text-xs">
-                              Độ dày chữ
-                            </Label>
-                            <select
-                              id={`${field.id}-weight`}
-                              value={field.fontWeight}
-                              onChange={(e) => handleStyleChange(field.id, "fontWeight", e.target.value)}
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              <option value="normal">Normal</option>
-                              <option value="bold">Bold</option>
-                            </select>
-                          </div>
-                          <div>
-                            <Label htmlFor={`${field.id}-color`} className="text-xs">
-                              Màu sắc
-                            </Label>
-                            <Input
-                              id={`${field.id}-color`}
-                              type="color"
-                              value={field.color}
-                              onChange={(e) => handleStyleChange(field.id, "color", e.target.value)}
-                              className="h-10 p-1"
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor={`${field.id}-font`} className="text-xs">
-                              Kiểu chữ
-                            </Label>
-                            <select
-                              id={`${field.id}-font`}
-                              value={field.fontFamily}
-                              onChange={(e) => handleStyleChange(field.id, "fontFamily", e.target.value)}
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                              style={{ fontFamily: field.fontFamily }}
-                            >
-                              {fontOptions.map(font => (
-                                <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
-                                  {font.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          <div>
-                            <Label htmlFor={`${field.id}-align`} className="text-xs">
-                              Căn chỉnh
-                            </Label>
-                            <select
-                              id={`${field.id}-align`}
-                              value={field.textAlign}
-                              onChange={(e) => handleStyleChange(field.id, "textAlign", e.target.value)}
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                            >
-                              <option value="left">Trái</option>
-                              <option value="center">Giữa</option>
-                              <option value="right">Phải</option>
-                            </select>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+      ) : (
+        // Chế độ chỉnh sửa đầy đủ - giữ nguyên UI hiện tại
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-y-auto !bg-white">
+          {/* Certificate Preview */}
+          <div className="lg:col-span-2 h-full">
+            <div className="!bg-white p-4 rounded-lg h-full">
+              <div className="flex justify-between items-center mb-2">
+                <h2 className="text-lg font-medium">Xem trước chứng chỉ</h2>
+                <div className="flex gap-2">
+                  <Button onClick={() => setIsOpenAddTextBlock(true)} variant="outline" size="sm">
+                    Thêm khối văn bản
+                  </Button>
+                  <Button onClick={() => setDebugMode(!debugMode)} variant="outline" size="sm">
+                    {debugMode ? "Tắt debug" : "Bật debug"}
+                  </Button>
+                  <Button onClick={() => setPDFPreviewMode(!pdfPreviewMode)} variant="outline" size="sm">
+                    {pdfPreviewMode ? "Xem trước bình thường" : "Xem trước PDF"}
+                  </Button>
+                  <Button onClick={centerAllTextItems} variant="outline" size="sm">
+                    Căn giữa tất cả
+                  </Button>
+                </div>
+              </div>
+              <div
+                ref={certificateRef}
+                data-certificate
+                className="relative bg-white border border-gray-200 rounded-lg overflow-hidden my-4 shadow-lg"
+                style={{
+                  width: "100%",
+                  aspectRatio: `${certificateWidth} / ${certificateHeight}`,
+                  maxWidth: "100%",
+                  backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
+                  backgroundSize: "cover",
+                  backgroundPosition: "center",
+                  backgroundRepeat: "no-repeat",
+                  backgroundColor: backgroundImage ? "transparent" : "#f9f9f9",
+                }}
+              >
+                {!backgroundImage && (
+                  <div className="absolute inset-0 flex items-center justify-center text-gray-400">
+                    <p>Vui lòng tải lên hình nền</p>
                   </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="background" className="h-max">
-              <Card>
-                <CardContent className="pt-6 space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="background-file">Hình nền</Label>
-                    <input
-                      ref={fileInputRef}
-                      id="background-file"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
-                    />
-                    <div className="grid gap-2">
-                      <Button onClick={handleUploadClick} variant="outline" className="w-full">
-                        <Upload className="w-4 h-4 mr-2" />
-                        Tải lên hình nền
-                      </Button>
-                      {backgroundImage && (
-                        <div className="relative aspect-video w-full overflow-hidden rounded-md border">
-                          <div
-                            className="h-full w-full bg-contain bg-center bg-no-repeat"
-                            style={{ backgroundImage: `url(${backgroundImage})` }}
-                          />
+                )}
+                {fields.map((field) => (
+                  <Draggable
+                    key={field.id}
+                    position={field.position}
+                    bounds="parent"
+                    onStop={(e, data) => handleDragStop(field.id, e, data)}
+                    nodeRef={fieldRefs.current[field.id]}
+                  >
+                    <div
+                      ref={fieldRefs.current[field.id]}
+                      data-id={field.id}
+                      className="absolute cursor-move draggable-field border-2 border-transparent hover:border-blue-400 rounded px-2 py-1 touch-none"
+                      style={{
+                        fontSize: `${field.fontSize}px`,
+                        fontWeight: field.fontWeight,
+                        color: field.color,
+                        fontFamily: field.fontFamily,
+                        width: pdfPreviewMode ? `${field.value.length * field.fontSize * 0.7}px` : "auto",
+                        transform: pdfPreviewMode ? calculatePDFOffset(field) : "none",
+                      }}
+                    >
+                      {previewHtml ? (
+                        <div dangerouslySetInnerHTML={{ __html: field.htmlContent }} />
+                      ) : (
+                        field.value
+                      )}
+                      {debugMode && (
+                        <div className="absolute top-full left-0 bg-black text-white text-xs p-1 opacity-70 pointer-events-none" data-debug>
+                          x: {Math.round(field.position.x)}, y: {Math.round(field.position.y)}
                         </div>
                       )}
                     </div>
-                  </div>
-                  <div className="text-sm text-muted-foreground">
-                    <p>Để đạt kết quả tốt nhất, hãy sử dụng hình ảnh có kích thước chính xác 1200×800 pixels hoặc tỷ lệ 3:2.</p>
-                    <p className="mt-2">Hình ảnh sẽ được tự động điều chỉnh để vừa với khung chứng chỉ, đảm bảo PDF xuất ra giống hệt với thiết kế.</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </TabsContent>
+                  </Draggable>
+                ))}
+              </div>
+              <div className="flex justify-end gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  onClick={exportAsPDF}
+                  disabled={isGeneratingPDF || !backgroundFile}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF (text đơn giản)"}
+                </Button>
 
-            {/* Dynamic position tabs for each field */}
-            {fields.map((field) => (
-              <TabsContent key={`position-${field.id}`} value={`position-${field.id}`}>
+                <Button
+                  variant="outline"
+                  onClick={exportPDFHighPrecision}
+                  disabled={isGeneratingPDF || !backgroundFile}>
+                  <Download className="w-4 h-4 mr-2" />
+                  {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF (HTML đầy đủ)"}
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={exportPDFUsingCanvas}
+                  disabled={isGeneratingPDF || !backgroundFile}
+                  className="bg-blue-600 text-white hover:bg-blue-700">
+                  <Download className="w-4 h-4 mr-2" />
+                  {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF - Chính xác nhất"}
+                </Button>
+              </div>
+              <div className="mt-2 text-sm text-gray-500">
+                <p>Khuyến nghị sử dụng tùy chọn &quot;Chính xác nhất&quot; để có kết quả giống hệt như trong trình soạn thảo.</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Editor Controls */}
+          <div className="lg:col-span-1 h-full overflow-y-auto">
+            <Tabs defaultValue="content" value={activeTab} onValueChange={setActiveTab} className="h-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="content">Nội dung</TabsTrigger>
+                <TabsTrigger value="background">Hình nền</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="content" className="space-y-4 !h-[calc(100%-100px)] overflow-y-auto">
                 <Card>
-                  <CardContent className="pt-6 space-y-4">
-                    <div className="flex justify-between items-center">
-                      <h3 className="text-lg font-medium">Vị trí: {field.label}</h3>
-                      <Button variant="ghost" size="sm" onClick={() => setActiveTab("content")} className="inline-flex items-center gap-2">
-                        <ArrowLeft size={14} />
-                        Quay lại
-                      </Button>
-                    </div>
-
+                  <CardContent className="pt-6">
                     <div className="space-y-6">
-                      {/* X Position */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label htmlFor={`${field.id}-x-position`}>Trục ngang</Label>
-                          <span className="text-sm text-muted-foreground">{Math.round(field.position.x)}px</span>
+                      {fields.map((field) => (
+                        <div key={field.id} className="space-y-4 pb-4 border-b border-gray-100">
+                          <div className="flex justify-between items-center">
+                            <Label htmlFor={field.id} className="text-base font-medium">
+                              {field.label}
+                            </Label>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-muted-foreground"
+                                onClick={() => setActiveTab("position-" + field.id)}
+                              >
+                                <Move className="h-4 w-4 mr-1" />
+                                Vị trí
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 px-2 text-red-500 hover:text-red-600"
+                                onClick={() => deleteField(field.id)}
+                              >
+                                <Trash2 size={14} />
+                              </Button>
+                            </div>
+                          </div>
+                          <div className="mb-4">
+                            <div className="editor-container border rounded-md overflow-hidden">
+                              <ReactQuill
+                                value={field.htmlContent}
+                                onChange={(content, delta, source, editor) => {
+                                  if (source === 'user') {
+                                    // Lấy plain text từ editor
+                                    const plainText = editor.getText().trim();
+                                    handleFieldChange(field.id, plainText, content);
+                                  }
+                                }}
+                                modules={quillModules}
+                                formats={quillFormats}
+                                placeholder={`Nhập ${field.label.toLowerCase()}`}
+                                theme="snow"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <div>
+                              <Label htmlFor={`${field.id}-size`} className="text-xs">
+                                Kích thước chữ
+                              </Label>
+                              <Input
+                                id={`${field.id}-size`}
+                                type="number"
+                                value={field.fontSize}
+                                onChange={(e) => handleStyleChange(field.id, "fontSize", Number.parseInt(e.target.value))}
+                                min={8}
+                                max={72}
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`${field.id}-weight`} className="text-xs">
+                                Độ dày chữ
+                              </Label>
+                              <select
+                                id={`${field.id}-weight`}
+                                value={field.fontWeight}
+                                onChange={(e) => handleStyleChange(field.id, "fontWeight", e.target.value)}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <option value="normal">Normal</option>
+                                <option value="bold">Bold</option>
+                              </select>
+                            </div>
+                            <div>
+                              <Label htmlFor={`${field.id}-color`} className="text-xs">
+                                Màu sắc
+                              </Label>
+                              <Input
+                                id={`${field.id}-color`}
+                                type="color"
+                                value={field.color}
+                                onChange={(e) => handleStyleChange(field.id, "color", e.target.value)}
+                                className="h-10 p-1"
+                              />
+                            </div>
+                            <div>
+                              <Label htmlFor={`${field.id}-font`} className="text-xs">
+                                Kiểu chữ
+                              </Label>
+                              <select
+                                id={`${field.id}-font`}
+                                value={field.fontFamily}
+                                onChange={(e) => handleStyleChange(field.id, "fontFamily", e.target.value)}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                                style={{ fontFamily: field.fontFamily }}
+                              >
+                                {fontOptions.map(font => (
+                                  <option key={font.value} value={font.value} style={{ fontFamily: font.value }}>
+                                    {font.label}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                            <div>
+                              <Label htmlFor={`${field.id}-align`} className="text-xs">
+                                Căn chỉnh
+                              </Label>
+                              <select
+                                id={`${field.id}-align`}
+                                value={field.textAlign}
+                                onChange={(e) => handleStyleChange(field.id, "textAlign", e.target.value)}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <option value="left">Trái</option>
+                                <option value="center">Giữa</option>
+                                <option value="right">Phải</option>
+                              </select>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Slider
-                            id={`${field.id}-x-position`}
-                            min={0}
-                            max={containerSize.width || 1200}
-                            step={1}
-                            value={[field.position.x]}
-                            onValueChange={(value) => handlePositionChange(field.id, "x", value[0])}
-                            className="flex-1"
-                          />
-                          <Input
-                            type="number"
-                            value={Math.round(field.position.x)}
-                            onChange={(e) => handlePositionChange(field.id, "x", Number.parseInt(e.target.value) || 0)}
-                            className="w-20"
-                            min={0}
-                            max={containerSize.width || 1200}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Y Position */}
-                      <div className="space-y-2">
-                        <div className="flex justify-between">
-                          <Label htmlFor={`${field.id}-y-position`}>Trục dọc</Label>
-                          <span className="text-sm text-muted-foreground">{Math.round(field.position.y)}px</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Slider
-                            id={`${field.id}-y-position`}
-                            min={0}
-                            max={containerSize.height || 800}
-                            step={1}
-                            value={[field.position.y]}
-                            onValueChange={(value) => handlePositionChange(field.id, "y", value[0])}
-                            className="flex-1"
-                          />
-                          <Input
-                            type="number"
-                            value={Math.round(field.position.y)}
-                            onChange={(e) => handlePositionChange(field.id, "y", Number.parseInt(e.target.value) || 0)}
-                            className="w-20"
-                            min={0}
-                            max={containerSize.height || 800}
-                          />
-                        </div>
-                      </div>
-
-                      <div className="p-4 bg-muted rounded-md">
-                        <p className="text-sm text-muted-foreground">
-                          Tip: Bạn cũng có thể kéo văn bản trực tiếp trên chứng chỉ để đặt vị trí.
-                        </p>
-                      </div>
+                      ))}
                     </div>
                   </CardContent>
                 </Card>
               </TabsContent>
-            ))}
-          </Tabs>
+
+              <TabsContent value="background" className="h-max">
+                <Card>
+                  <CardContent className="pt-6 space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="background-file">Hình nền</Label>
+                      <input
+                        ref={fileInputRef}
+                        id="background-file"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      <div className="grid gap-2">
+                        <Button onClick={handleUploadClick} variant="outline" className="w-full">
+                          <Upload className="w-4 h-4 mr-2" />
+                          Tải lên hình nền
+                        </Button>
+                        {backgroundImage && (
+                          <div className="relative aspect-video w-full overflow-hidden rounded-md border">
+                            <div
+                              className="h-full w-full bg-contain bg-center bg-no-repeat"
+                              style={{ backgroundImage: `url(${backgroundImage})` }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      <p>Để đạt kết quả tốt nhất, hãy sử dụng hình ảnh có kích thước chính xác 1200×800 pixels hoặc tỷ lệ 3:2.</p>
+                      <p className="mt-2">Hình ảnh sẽ được tự động điều chỉnh để vừa với khung chứng chỉ, đảm bảo PDF xuất ra giống hệt với thiết kế.</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Dynamic position tabs for each field */}
+              {fields.map((field) => (
+                <TabsContent key={`position-${field.id}`} value={`position-${field.id}`}>
+                  <Card>
+                    <CardContent className="pt-6 space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-lg font-medium">Vị trí: {field.label}</h3>
+                        <Button variant="ghost" size="sm" onClick={() => setActiveTab("content")} className="inline-flex items-center gap-2">
+                          <ArrowLeft size={14} />
+                          Quay lại
+                        </Button>
+                      </div>
+
+                      <div className="space-y-6">
+                        {/* X Position */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor={`${field.id}-x-position`}>Trục ngang</Label>
+                            <span className="text-sm text-muted-foreground">{Math.round(field.position.x)}px</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Slider
+                              id={`${field.id}-x-position`}
+                              min={0}
+                              max={containerSize.width || 1200}
+                              step={1}
+                              value={[field.position.x]}
+                              onValueChange={(value) => handlePositionChange(field.id, "x", value[0])}
+                              className="flex-1"
+                            />
+                            <Input
+                              type="number"
+                              value={Math.round(field.position.x)}
+                              onChange={(e) => handlePositionChange(field.id, "x", Number.parseInt(e.target.value) || 0)}
+                              className="w-20"
+                              min={0}
+                              max={containerSize.width || 1200}
+                            />
+                          </div>
+                        </div>
+
+                        {/* Y Position */}
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <Label htmlFor={`${field.id}-y-position`}>Trục dọc</Label>
+                            <span className="text-sm text-muted-foreground">{Math.round(field.position.y)}px</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Slider
+                              id={`${field.id}-y-position`}
+                              min={0}
+                              max={containerSize.height || 800}
+                              step={1}
+                              value={[field.position.y]}
+                              onValueChange={(value) => handlePositionChange(field.id, "y", value[0])}
+                              className="flex-1"
+                            />
+                            <Input
+                              type="number"
+                              value={Math.round(field.position.y)}
+                              onChange={(e) => handlePositionChange(field.id, "y", Number.parseInt(e.target.value) || 0)}
+                              className="w-20"
+                              min={0}
+                              max={containerSize.height || 800}
+                            />
+                          </div>
+                        </div>
+
+                        <div className="p-4 bg-muted rounded-md">
+                          <p className="text-sm text-muted-foreground">
+                            Tip: Bạn cũng có thể kéo văn bản trực tiếp trên chứng chỉ để đặt vị trí.
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </div>
         </div>
-      </div>
+      )}
       <Dialog open={isOpenAddTextBlock} onOpenChange={setIsOpenAddTextBlock}>
         <DialogContent className="bg-white h-max w-[500px]">
           <DialogHeader>
