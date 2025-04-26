@@ -96,6 +96,7 @@ export default function Page() {
 
   // Thêm state để theo dõi chứng chỉ đang chỉnh sửa
   const [editingCertificate, setEditingCertificate] = useState<Certificate | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
 
@@ -317,6 +318,101 @@ export default function Page() {
     createCertificateMutation(data);
   }
 
+  // Xử lý khi cập nhật chứng chỉ
+  const handleUpdateCertificate = async (data: CertificateFormData) => {
+    showLoading();
+    try {
+      // Chuẩn bị dữ liệu cơ bản cho certificate
+      const certificateData: any = {
+        name: data.name,
+        description: data.description,
+        isHasValidation: data.isHasValidation
+      };
+
+      // Thêm course nếu có
+      if (data.course) {
+        certificateData.course = data.course;
+      }
+
+      // Kiểm tra xem có dữ liệu từ CertificateEditor không
+      if (certificateFields.length > 0) {
+        // BƯỚC 1: Tạo các trường config PDF
+        const pdfFieldConfigs = certificateFields.map(convertToPdfFieldConfig);
+        const createdFieldsPromises = pdfFieldConfigs.map(async (field) => {
+          // Tạm thời loại bỏ id nếu có (vì đang tạo mới)
+          const fieldData = { ...field };
+          delete fieldData.id;
+
+          const response = await postCertificatePdfConfigField(fieldData);
+          return response.data;
+        });
+
+        // Chờ tất cả các trường được tạo
+        const createdFields = await Promise.all(createdFieldsPromises);
+        console.log("Created field configs:", createdFields);
+
+        // BƯỚC 2: Tạo/cập nhật cấu hình PDF với danh sách trường đã tạo
+        const pdfConfigFormData = new FormData();
+
+        // Thêm name và các trường khác
+        pdfConfigFormData.append("name", data.name || "");
+
+        // Sửa cách gửi fields để đảm bảo là mảng số
+        const fieldIds = createdFields.map(field => Number(field.id));
+        pdfConfigFormData.append("fields", JSON.stringify(fieldIds));
+
+        // Thêm hình ảnh nền cho PDF Config nếu có
+        if (certificateBackground) {
+          pdfConfigFormData.append("backgroundUrl", certificateBackground);
+        }
+
+        // Tạo/cập nhật cấu hình PDF
+        const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigFormData);
+        const updatedPdfConfig = pdfConfigResponse;
+
+        // BƯỚC 3: Liên kết cấu hình PDF với certificate
+        certificateData.certificatePdfConfig = updatedPdfConfig.id;
+      }
+
+      // BƯỚC 4: Cập nhật certificate
+      const certificateFormData = {
+        name: get(certificateData, 'name', ''),
+        description: get(certificateData, 'description', ''),
+        isHasValidation: get(certificateData, 'isHasValidation', false),
+        course: Number(get(certificateData, 'course', null)),
+        certificatePdfConfig: get(certificateData, 'certificatePdfConfig', null)
+      }
+
+      // TODO: Thêm hàm updateCertificate vào requests/certificate.ts và gọi ở đây
+      // const result = await updateCertificate(editingCertificate?.id, certificateFormData);
+
+      showSuccess('Cập nhật', 'Cập nhật chứng chỉ thành công!');
+      refetchCertificates();
+      setIsEditMode(false);
+      setEditingCertificate(null);
+      setIsOpenCreateModal(false);
+
+      // Reset các state
+      setCertificateFields([]);
+      setCertificateBackground(null);
+      setCertificateBackgroundUrl(null);
+    } catch (error) {
+      console.error('Lỗi khi cập nhật chứng chỉ:', error);
+      showError('Cập nhật', 'Cập nhật chứng chỉ thất bại!');
+    } finally {
+      hideLoading();
+    }
+  }
+
+  // Xử lý nộp form (tạo mới hoặc cập nhật)
+  const handleFormSubmit = async (data: CertificateFormData) => {
+    if (isEditMode && editingCertificate) {
+      handleUpdateCertificate(data);
+    } else {
+      handlePostCertificate(data);
+    }
+  }
+
   const handleConfirmCertificateForm = () => {
     setIsOpenChooseCertificateForm(false);
 
@@ -326,131 +422,6 @@ export default function Page() {
       // @ts-ignore
       handleConfirmWithCertificateModal(window.currentCertificateModal);
     }
-
-    // Nếu đang chỉnh sửa chứng chỉ hiện có, cập nhật trực tiếp
-    // if (editingCertificate) {
-    //   try {
-    //     showLoading();
-
-    //     // Cập nhật chứng chỉ với quy trình tương tự
-    //     const updateCertificate = async () => {
-    //       // Chuẩn bị dữ liệu cơ bản
-    //       const certificateData: any = {
-    //         name: editingCertificate.name,
-    //         description: editingCertificate.description
-    //       };
-
-    //       // Chuyển đổi các trường thành cấu trúc PdfFieldConfig
-    //       const pdfFieldConfigs = certificateFields.map(convertToPdfFieldConfig);
-
-    //       // Chuẩn bị formData cho việc tải lên
-    //       const formData = new FormData();
-
-    //       if (editingCertificate.certificatePdfConfig?.id) {
-    //         // Nếu đã có certificatePdfConfig, cập nhật các trường và cấu hình
-
-    //         // Tạo các trường config mới
-    //         const createdFieldsPromises = pdfFieldConfigs.map(async (field) => {
-    //           // Loại bỏ id để tạo mới
-    //           const fieldData = { ...field };
-
-    //           // Liên kết với config hiện có
-
-    //           const response = await postCertificatePdfConfigField(fieldData);
-    //           return response.data;
-    //         });
-
-    //         // Chờ tất cả các trường được tạo
-    //         const createdFields = await Promise.all(createdFieldsPromises);
-    //         console.log("Updated field configs:", createdFields);
-
-    //         // 2. Cập nhật cấu hình PDF
-    //         const pdfConfigData = {
-    //           id: existingConfigId,
-    //           name: editingCertificate.name,
-    //           backgroundUrl: certificateBackgroundUrl,
-    //           fields: createdFields.map(field => field.id)
-    //         };
-
-    //         // Cập nhật cấu hình PDF
-    //         try {
-    //           await postCertificatePdfConfig(pdfConfigData);
-    //           console.log("Updated PDF config successfully");
-
-    //           // Liên kết với certificate (sử dụng đúng kiểu)
-    //           certificateData.certificatePdfConfig = { id: existingConfigId };
-    //         } catch (configError) {
-    //           console.error("Lỗi khi cập nhật config PDF:", configError);
-
-    //           // Fallback: lưu dưới dạng JSON
-    //           certificateData.certificateFields = JSON.stringify(certificateFields);
-    //         }
-    //       } else {
-    //         // Nếu chưa có, tạo mới theo quy trình tương tự như tạo chứng chỉ mới
-
-    //         // 1. Tạo các trường config trước
-    //         const createdFieldsPromises = pdfFieldConfigs.map(async (field) => {
-    //           const fieldData = { ...field };
-    //           delete fieldData.id;
-
-    //           const response = await postCertificatePdfConfigField(fieldData);
-    //           return response.data;
-    //         });
-
-    //         // Chờ tất cả các trường được tạo
-    //         const createdFields = await Promise.all(createdFieldsPromises);
-
-    //         // 2. Tạo cấu hình PDF với các trường đã tạo
-    //         const pdfConfigData = {
-    //           name: editingCertificate.name,
-    //           backgroundUrl: certificateBackgroundUrl,
-    //           fields: createdFields.map(field => field.id)
-    //         };
-
-    //         try {
-    //           const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigData);
-    //           const createdConfig = pdfConfigResponse.data;
-
-    //           // 3. Liên kết với certificate (sử dụng đúng kiểu)
-    //           certificateData.certificatePdfConfig = { id: createdConfig.id };
-    //         } catch (configError) {
-    //           console.error("Lỗi khi tạo config PDF:", configError);
-
-    //           // Fallback: lưu dưới dạng JSON
-    //           certificateData.certificateFields = JSON.stringify(certificateFields);
-    //         }
-    //       }
-
-    //       // Thêm dữ liệu vào formData
-    //       formData.append("data", JSON.stringify(certificateData));
-
-    //       // Thêm file ảnh nền nếu có
-    //       if (certificateBackground) {
-    //         formData.append("files.imgUrl", certificateBackground);
-    //       }
-
-    //       // TODO: Thêm hàm updateCertificate vào certificate.ts và gọi ở đây
-    //       // const result = await updateCertificate(editingCertificate.id, formData);
-
-    //       hideLoading();
-    //       showSuccess('Cập nhật', 'Cập nhật chứng chỉ thành công!');
-    //       setEditingCertificate(null);
-    //     };
-
-    //     // Gọi hàm cập nhật
-    //     updateCertificate().catch(error => {
-    //       console.error('Lỗi khi cập nhật chứng chỉ:', error);
-    //       hideLoading();
-    //       showError('Lỗi', 'Không thể cập nhật chứng chỉ');
-    //       setEditingCertificate(null);
-    //     });
-    //   } catch (error) {
-    //     console.error('Lỗi xử lý:', error);
-    //     hideLoading();
-    //     showError('Lỗi', 'Không thể xử lý yêu cầu');
-    //     setEditingCertificate(null);
-    //   }
-    // }
 
     // Xử lý logic hiện tại
     console.log("Certificate fields:", certificateFields);
@@ -508,6 +479,7 @@ export default function Page() {
 
                   // Lưu chứng chỉ đang chỉnh sửa
                   setEditingCertificate(certificateData);
+                  setIsEditMode(true);
 
                   // Kiểm tra và tải thông tin cấu hình PDF nếu có
                   if (certificateData.certificatePdfConfig) {
@@ -541,8 +513,8 @@ export default function Page() {
                     setCertificateBackground(null); // Reset file
                   }
 
-                  // Mở form chỉnh sửa
-                  setIsOpenChooseCertificateForm(true);
+                  // Mở modal chỉnh sửa
+                  setIsOpenCreateModal(true);
                 }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" color="#7C6C80">
@@ -607,10 +579,23 @@ export default function Page() {
         </div>
 
       </div>
-      <CreateCertificateModal open={isOpenCreateModal} onOpenChange={(value) => { setIsOpenCreateModal(value) }} onSubmit={handlePostCertificate} onChooseCertificateForm={() => {
-        // Mở cửa sổ chọn form chứng chỉ và sử dụng dữ liệu hiện tại
-        setIsOpenChooseCertificateForm(true)
-      }} />
+      <CreateCertificateModal
+        open={isOpenCreateModal}
+        onOpenChange={(value) => {
+          setIsOpenCreateModal(value);
+          if (!value) {
+            setIsEditMode(false);
+            setEditingCertificate(null);
+          }
+        }}
+        onSubmit={handleFormSubmit}
+        onChooseCertificateForm={() => {
+          // Mở cửa sổ chọn form chứng chỉ và sử dụng dữ liệu hiện tại
+          setIsOpenChooseCertificateForm(true)
+        }}
+        isEditMode={isEditMode}
+        editingCertificate={editingCertificate}
+      />
       {isOpenChooseCertificateForm && (
         <Dialog open={isOpenChooseCertificateForm} onOpenChange={setIsOpenChooseCertificateForm}>
           <DialogContent className="max-w-[80%] h-[80vh] overflow-y-auto !bg-white">

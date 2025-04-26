@@ -47,10 +47,19 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   onSubmit: (data: CertificateFormData) => void;
   onChooseCertificateForm?: () => void;
+  isEditMode?: boolean;
+  editingCertificate?: any;
 };
 
 
-export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseCertificateForm }: Props) => {
+export const CreateCertificateModal = ({
+  open,
+  onOpenChange,
+  onSubmit,
+  onChooseCertificateForm,
+  isEditMode = false,
+  editingCertificate = null
+}: Props) => {
   const [success, error] = useSnackbarStore((state) => [
     state.success,
     state.error,
@@ -146,6 +155,32 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
     () => dynamic(() => import("react-quill"), { ssr: false }),
     []
   );
+
+  // Điền dữ liệu từ editingCertificate vào form khi ở chế độ chỉnh sửa
+  useEffect(() => {
+    if (isEditMode && editingCertificate) {
+      // Điền các trường cơ bản
+      setValue("name", editingCertificate.name || "");
+      setValue("description", editingCertificate.description || "");
+      setValue("isHasValidation", editingCertificate.isHasValidation || false);
+
+      // Điền trường course nếu có
+      if (editingCertificate.course?.id) {
+        setValue("course", editingCertificate.course.id.toString());
+      }
+
+      // Đánh dấu đã chọn form chứng chỉ nếu có certificatePdfConfig
+      if (editingCertificate.certificatePdfConfig) {
+        setCertificateFormSelected(true);
+      }
+
+      // Lưu ID của certificatePdfConfig nếu có
+      if (editingCertificate.certificatePdfConfig?.id) {
+        setValue("certificatePdfConfigId", editingCertificate.certificatePdfConfig.id);
+      }
+    }
+  }, [isEditMode, editingCertificate, setValue]);
+
   // Reset form when dialog closes
   const handleDialogChange = (open: boolean) => {
     if (!open) {
@@ -160,18 +195,18 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
     }
     onOpenChange(open);
   };
+
   const handleImageUpload = (file: File | null) => {
     if (file) setValue("imgUrl", file as any)
   }
-  // const handleSelectChange = (value: string) => {
-  //   setValue('type', value)
-  // }
+
   const handleSelectCourseChange = (value: string) => {
     const selectedCourse = courses?.data.find((course) => course.id === parseInt(value))
     if (selectedCourse) {
       setValue('course', selectedCourse.id.toString())
     }
   }
+
   useEffect(() => {
     setIsMounted(true);
   }, []);
@@ -206,7 +241,7 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
       <DialogContent className="w-[680px] h-[calc(100vh-10%)] bg-white">
         <DialogHeader className="px-4 overflow-y-auto hide-scrollbar">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
-            Tạo chứng chỉ mới
+            {isEditMode ? "Chỉnh sửa chứng chỉ" : "Tạo chứng chỉ mới"}
           </DialogTitle>
           <FormProvider {...methods}>
             <form className="space-y-4 p-4 h-max">
@@ -231,21 +266,6 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
                     />
                   </div>
                 </div>
-                {/* <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="min-w-[160px] text-SubheadMd">Hình nền</div>
-                    <InputFileUpdload
-                      value={getValues("imgUrl")}
-                      onChange={handleImageUpload}
-                      customInputClassNames="text-sm min-h-[50px] max-h-max !items-start"
-                      contentImageUpload={
-                        <>
-                          <p className="flex items-center gap-2 text-base  !font-light text-gray-70 w-full justify-start !self-start"><Plus size={16}></Plus>Thêm ảnh</p>
-                        </>
-                      }
-                    />
-                  </div>
-                </div> */}
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <div className="min-w-[160px] text-SubheadMd">Form chứng chỉ</div>
@@ -341,7 +361,9 @@ export const CreateCertificateModal = ({ open, onOpenChange, onSubmit, onChooseC
               disabled={isSubmitting}
               onClick={handleSubmit(onSubmit)}
             >
-              {isSubmitting ? "Đang tạo..." : "Tạo mới"}
+              {isSubmitting
+                ? (isEditMode ? "Đang cập nhật..." : "Đang tạo...")
+                : (isEditMode ? "Cập nhật" : "Tạo mới")}
             </CommonButton>
           </div>
         </DialogFooter>

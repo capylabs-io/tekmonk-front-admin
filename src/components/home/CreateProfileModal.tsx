@@ -150,13 +150,14 @@ export const CreateProfileModal = () => {
                   <div className="w-[424px]">
                     <InputTags
                       hideTitle
+                      isTooltip={true}
+                      tooltipContent="Vui lòng tag và ấn enter trên bàn phím để tạo tag mới"
                       value={value}
                       error={fieldState?.error?.message}
                       onValueChange={(tagsString) => {
                         onChange(tagsString)
                       }}
                       customInputClassNames="text-sm"
-                      tooltipContent="Vui lòng nhập tag và ấn Enter"
                     />
                   </div>
                 )}

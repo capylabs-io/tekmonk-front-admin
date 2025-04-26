@@ -117,7 +117,7 @@ const FormSubmitContest = React.forwardRef<
     // return contestSubmission.data.length > 0;
   };
 
-  const onSubmit = async (data: any) => {};
+  const onSubmit = async (data: any) => { };
 
   const closeDialog = () => {
     // warn("Warning", "Bạn đã nộp bài thi rồi!");
@@ -249,8 +249,7 @@ const FormSubmitContest = React.forwardRef<
               onValueChange={onValueTagChange}
               isTooltip={true}
               isRequired
-              // tooltipContent="Để nhập một tag, hãy viết tên tag sau đó ấn enter trên bàn phím"
-              tooltipContent="Thí sinh bổ sung thêm tag để có thể tìm kiếm bài dự thi của mình dễ dàng hơn!"
+              tooltipContent="Vui lòng tag và ấn enter trên bàn phím để tạo tag mới"
             />
 
             <InputField
@@ -281,7 +280,7 @@ const FormSubmitContest = React.forwardRef<
                 className="w-[260px]"
                 outlined={false}
                 style={{ borderRadius: "4rem" }}
-                // onClick={handleSubmit(onSubmit)}
+              // onClick={handleSubmit(onSubmit)}
               >
                 Nộp bài
               </Button>

@@ -360,6 +360,8 @@ export const NewsDialogManager = ({
               <InputTags
                 value={value}
                 error={fieldState?.error?.message}
+                isTooltip={true}
+                tooltipContent="Vui lòng tag và ấn enter trên bàn phím để tạo tag mới"
                 onValueChange={(tagsString: string) => {
                   onChange(tagsString);
 
