@@ -6,8 +6,8 @@ import { ReqCreateMissionHistory } from "@/requests/mission-history";
 import { ReqGetUserHaveNotAchievedMission } from "@/requests/user";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
-import { Mission } from "@/types/mission";
-import { useQuery } from "@tanstack/react-query";
+import { Mission, MissionType } from "@/types/mission";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
 import { UserPlus } from "lucide-react";
 import qs from "qs";
@@ -15,6 +15,9 @@ import { useEffect, useState } from "react";
 import { CommonButton } from "../common/button/CommonButton";
 import { Input } from "../common/Input";
 import { CreateMissionDialog } from "./create-mission-dialog";
+import { updateMission } from "@/requests/mission";
+import { MissionFormData } from "@/validation/mission";
+import { postMission } from "@/requests/mission";
 
 interface CreateMissionProps {
   courseMissionManualList: Mission[];
@@ -40,6 +43,7 @@ export const CreateMission = ({
   const [isCreateMissionDialogOpen, setIsCreateMissionDialogOpen] =
     useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
+  const [isEditMode, setIsEditMode] = useState(false);
 
   // Students dialog state
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
@@ -111,17 +115,74 @@ export const CreateMission = ({
     }
   };
 
-  const handleCreateMission = async (data: any) => {
-    try {
-      showLoading("Đang tạo nhiệm vụ...");
-      await refetchCourseMissionManualList();
+  const createMissionMutation = useMutation({
+    mutationFn: async (data: MissionFormData) => {
+      const formData = new FormData();
+
+      formData.append("title", data.title);
+      formData.append("description", data.description);
+      formData.append("type", data.type);
+      if (data.type === MissionType.EVERY_SESSION) {
+        formData.append("actionType", data.actionType || "");
+      }
+      formData.append("reward", data.reward?.toString() || "");
+      formData.append("points", data.points?.toString() || "");
+      if (data.class || data.class !== 0) {
+        formData.append("class", data.class?.toString() || "");
+      }
+
+      if (data.type === MissionType.EVERY_SESSION && data.requiredQuantity) {
+        formData.append("requiredQuantity", data.requiredQuantity.toString());
+      }
+
+      if (data.imageUrl instanceof File) {
+        formData.append("image", data.imageUrl);
+      } else if (
+        selectedMission?.imageUrl &&
+        typeof data.imageUrl === "string"
+      ) {
+        formData.append("imageUrl", selectedMission.imageUrl);
+      }
+      if (selectedMission) {
+        return await updateMission(selectedMission.id, formData);
+      } else {
+        return await postMission(formData);
+      }
+    },
+    onSuccess: () => {
       showSuccess("Thành công", "Tạo nhiệm vụ thành công");
-    } catch (error) {
+    },
+    onError: (error) => {
+      console.error("Error details:", error);
       showError("Lỗi", "Có lỗi xảy ra khi tạo nhiệm vụ");
-    } finally {
-      hideLoading();
+    },
+    onSettled: () => {
+      refetchCourseMissionManualList();
       setIsCreateMissionDialogOpen(false);
+    },
+  });
+
+  // Handle edit mission
+  const handleEditMission = (mission: Mission) => {
+    setSelectedMission(mission);
+    setIsEditMode(true);
+    setIsCreateMissionDialogOpen(true);
+  };
+
+  // Handle create new mission
+  const handleOpenCreateDialog = () => {
+    setSelectedMission(null);
+    setIsEditMode(false);
+    setIsCreateMissionDialogOpen(true);
+  };
+
+  // Handle close dialog
+  const handleCloseDialog = (open: boolean) => {
+    if (!open) {
+      setSelectedMission(null);
+      setIsEditMode(false);
     }
+    setIsCreateMissionDialogOpen(open);
   };
 
   // UseQuery
@@ -168,15 +229,34 @@ export const CreateMission = ({
       id: "action",
       header: "",
       cell: ({ row }) => (
-        <button
-          className="p-2 hover:bg-gray-100 rounded-full"
-          onClick={() => {
-            setSelectedMission(row.original);
-            setShowStudentListDialog(true);
-          }}
-        >
-          <UserPlus className="h-4 w-4" color="#7C6C80" />
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={() => {
+              setSelectedMission(row.original);
+              setShowStudentListDialog(true);
+            }}
+          >
+            <UserPlus className="h-4 w-4" color="#7C6C80" />
+          </button>
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full"
+            onClick={() => handleEditMission(row.original)}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M2 11.5V14H4.5L11.8733 6.62667L9.37333 4.12667L2 11.5ZM13.8067 4.69333C14.0667 4.43333 14.0667 4.01333 13.8067 3.75333L12.2467 2.19333C11.9867 1.93333 11.5667 1.93333 11.3067 2.19333L10.0867 3.41333L12.5867 5.91333L13.8067 4.69333Z"
+                fill="#7C6C80"
+              />
+            </svg>
+          </button>
+        </div>
       ),
     },
   ];
@@ -202,7 +282,7 @@ export const CreateMission = ({
             isSearch
           />
           <CommonButton
-            onClick={() => setIsCreateMissionDialogOpen(true)}
+            onClick={handleOpenCreateDialog}
             className=""
             variant="secondary"
           >
@@ -246,9 +326,10 @@ export const CreateMission = ({
 
       <CreateMissionDialog
         open={isCreateMissionDialogOpen}
-        onOpenChange={setIsCreateMissionDialogOpen}
-        onSubmit={handleCreateMission}
+        onOpenChange={handleCloseDialog}
+        onSubmit={createMissionMutation.mutate}
         classId={classId}
+        mission={isEditMode && selectedMission ? selectedMission : undefined}
       />
     </>
   );

@@ -1,7 +1,7 @@
 import { PostType } from "@/types";
 import tekdojoAxios from "./axios.config";
 import { BASE_URL } from "@/contants/api-url";
-import { AxiosResponse } from 'axios'
+import { AxiosResponse } from "axios";
 import { StrapiResponse } from "./strapi-response-pattern";
 
 const fakeData = [
@@ -30,17 +30,15 @@ export const getListPost = async (query?: any) => {
     console.log("Error: ", error);
     return Promise.reject(error);
   }
-
 };
 export const getListPostCustom = async (query?: any) => {
   try {
     const res = await tekdojoAxios.get(`/get-custom-list-posts?${query}`);
-    return res.data;
+    return res.data as StrapiResponse<PostType[]>;
   } catch (error) {
     console.log("Error: ", error);
     return Promise.reject(error);
   }
-
 };
 
 export const uploadPost = async (data: any) => {

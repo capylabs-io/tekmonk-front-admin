@@ -5,10 +5,7 @@ import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
-import {
-  AchievementFormData,
-  CreateAchievementDialog,
-} from "@/components/achievement/CreateAchievementModal";
+import { CreateAchievementDialog } from "@/components/achievement/CreateAchievementModal";
 import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import qs from "qs";
@@ -29,6 +26,8 @@ import {
   ReqGetAchievementHistory,
 } from "@/requests/achievement-history";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
+import { AchievementType, TAchievement } from "@/types/achievement";
+import { AchievementFormData } from "@/validation/achievement";
 
 export default function Page() {
   const tabs = [
@@ -42,7 +41,7 @@ export default function Page() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [showStudentListDialog, setShowStudentListDialog] = useState(false);
   const [selectedAchievement, setSelectedAchievement] =
-    useState<Mission | null>(null);
+    useState<TAchievement | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
   const [studentCurrentPage, setStudentCurrentPage] = useState(1);
   const [studentItemsPerPage, setStudentItemsPerPage] = useState(10);
@@ -131,10 +130,17 @@ export default function Page() {
       if (data.imageUrl) {
         formData.append("imageUrl", data.imageUrl);
       }
-      formData.append("type", "Manual");
+      formData.append("type", data.type);
       formData.append("description", data.description);
-      formData.append("reward", data.reward);
-      formData.append("points", data.points);
+      formData.append("reward", data.reward.toString());
+      formData.append("points", data.points.toString());
+      if (data.type === AchievementType.EVERY_SESSION) {
+        formData.append("actionType", data.actionType || "");
+        formData.append(
+          "requiredQuantity",
+          data.requiredQuantity?.toString() || ""
+        );
+      }
       return await ReqCreateAchievement(formData);
     },
     onSuccess: () => {
@@ -159,8 +165,15 @@ export default function Page() {
       }
       formData.append("type", "Manual");
       formData.append("description", data.description);
-      formData.append("reward", data.reward);
-      formData.append("points", data.points);
+      formData.append("reward", data.reward.toString());
+      formData.append("points", data.points.toString());
+      if (data.type === AchievementType.EVERY_SESSION) {
+        formData.append("actionType", data.actionType || "");
+        formData.append(
+          "requiredQuantity",
+          data.requiredQuantity?.toString() || ""
+        );
+      }
       return await ReqUpdateAchievement(selectedAchievement.id, formData);
     },
     onSuccess: () => {
@@ -237,14 +250,14 @@ export default function Page() {
     }
   };
 
-  const handleOpenStudentList = (achievement: Mission) => {
+  const handleOpenStudentList = (achievement: TAchievement) => {
     setSelectedAchievement(achievement);
     setShowStudentListDialog(true);
   };
 
-  const handleEdit = (achievement: Mission) => {
+  const handleEdit = (achievement: TAchievement) => {
     // Only allow editing achievements with type "Manual"
-    if (achievement.type === "Manual") {
+    if (achievement.type === AchievementType.MANUAL) {
       setSelectedAchievement(achievement);
       setIsEditModalOpen(true);
     } else {
@@ -253,12 +266,12 @@ export default function Page() {
     }
   };
 
-  const handleViewStudentsAchieved = (achievement: Mission) => {
+  const handleViewStudentsAchieved = (achievement: TAchievement) => {
     setSelectedAchievement(achievement);
     setIsViewStudentsDialogOpen(true);
   };
 
-  const columns: ColumnDef<Mission>[] = [
+  const columns: ColumnDef<TAchievement>[] = [
     {
       header: "STT",
       cell: ({ row }) => <span>{row.index + 1}</span>,
@@ -365,6 +378,9 @@ export default function Page() {
             </CommonCard>
             Thành tựu
           </div>
+          <CommonButton className="" onClick={() => setIsCreateModalOpen(true)}>
+            Tạo Thành tựu
+          </CommonButton>
         </div>
         <div className="flex items-center gap-x-4 border-b border-gray-20">
           <Tabs
@@ -389,14 +405,6 @@ export default function Page() {
               isSearch={true}
               onKeyDown={handleKeyPress}
             />
-            {activeTab.id === "Manual" && (
-              <CommonButton
-                className=""
-                onClick={() => setIsCreateModalOpen(true)}
-              >
-                Tạo Thành tựu
-              </CommonButton>
-            )}
           </div>
 
           {achievementList && (

@@ -11,6 +11,7 @@ type Props = {
   error?: string;
   onChange?: (file: File | null) => void;
   onBlur?: () => void;
+  onRemove?: () => void;
 };
 const ALLOWED_FILE_TYPES = ["image/png", "image/jpeg", "image/svg+xml"];
 const BASE_CLASS =
@@ -23,6 +24,7 @@ export const InputFileUpdload = ({
   customInputClassNames,
   contentImageUpload,
   customClassNames,
+  onRemove,
 }: Props) => {
   const hiddenFileInput = React.useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(value);
@@ -40,7 +42,6 @@ export const InputFileUpdload = ({
         return;
       }
       setFile(selectedFile);
-      console.log("selectedFile", selectedFile);
 
       onChange?.(selectedFile);
     }
@@ -53,6 +54,7 @@ export const InputFileUpdload = ({
   };
   const removeImg = () => {
     setFile(null);
+    onRemove && onRemove();
     onChange?.(null);
   };
 

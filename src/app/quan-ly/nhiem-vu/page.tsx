@@ -6,29 +6,23 @@ import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { useState } from "react";
-import { getMission } from "@/requests/mission";
-import { useQuery } from "@tanstack/react-query";
+import { getMission, postMission, updateMission } from "@/requests/mission";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { Tabs } from "@/components/new/tabs";
 import { useMission } from "@/hooks/useMission";
-import { Mission } from "@/types/mission";
+import { Mission, MissionType } from "@/types/mission";
 import { Input } from "@/components/common/Input";
 import { CreateMissionDialog } from "@/components/class/create-mission-dialog";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
 import { ReqGetUsersAchievedMission } from "@/requests/user";
 import { CommonButton } from "@/components/common/button/CommonButton";
+import { MissionFormData } from "@/validation/mission";
+import { useMissionQuery } from "@/queries/mission-query";
+import { useSnackbarStore } from "@/store/SnackbarStore";
 
 export default function Page() {
-  const {
-    totalPage,
-    totalDocs,
-    limit,
-    page,
-    isOpenCreateModal,
-    setLimit,
-    setPage,
-    setIsOpenCreateModal,
-  } = useMission();
+  const { setIsOpenCreateModal, isOpenCreateModal } = useMission();
   const tabs = [
     { id: "EverySession", label: "Thuộc hệ thống" },
     { id: "Manual", label: "Cấu hình ngoài" },
@@ -44,53 +38,17 @@ export default function Page() {
   const [isViewStudentsDialogOpen, setIsViewStudentsDialogOpen] =
     useState(false);
 
-  const { data: missionList, refetch: refetchMissionList } = useQuery({
-    queryKey: [
-      "missionList",
-      activeTab.id,
-      currentPage,
-      itemsPerPage,
-      searchQuery,
-    ],
-    queryFn: async () => {
-      try {
-        const filters = {
-          type: activeTab.id,
-        };
+  const { data: missionList, refetch: refetchMissionList } = useMissionQuery(
+    activeTab,
+    currentPage,
+    itemsPerPage,
+    searchQuery
+  );
 
-        // Only add search filter if searchQuery is not empty
-        if (searchQuery) {
-          Object.assign(filters, {
-            $or: [
-              {
-                title: {
-                  $containsi: searchQuery,
-                },
-              },
-              {
-                description: {
-                  $containsi: searchQuery,
-                },
-              },
-            ],
-          });
-        }
-
-        const queryString = qs.stringify({
-          filters,
-          populate: ["class", "teacher"],
-          pagination: {
-            page: currentPage,
-            pageSize: itemsPerPage,
-          },
-        });
-        return await getMission(queryString);
-      } catch (error) {
-        console.log("error when fetching mission list", error);
-      }
-    },
-    refetchOnWindowFocus: false,
-  });
+  const [showSuccess, showError] = useSnackbarStore((state) => [
+    state.success,
+    state.error,
+  ]);
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
@@ -117,16 +75,53 @@ export default function Page() {
     }
   };
 
-  const handleViewStudents = (mission: Mission) => {
-    setSelectedMission(mission);
-    setIsViewStudentsDialogOpen(true);
-  };
+  const createMissionMutation = useMutation({
+    mutationFn: async (data: MissionFormData) => {
+      const formData = new FormData();
 
-  const handleUpdateSuccess = () => {
-    refetchMissionList();
-    setIsOpenEditModal(false);
-    setSelectedMission(null);
-  };
+      formData.append("title", data.title);
+      formData.append("description", data.description);
+      formData.append("type", data.type);
+      if (data.type === MissionType.EVERY_SESSION) {
+        formData.append("actionType", data.actionType || "");
+      }
+      formData.append("reward", data.reward?.toString() || "");
+      formData.append("points", data.points?.toString() || "");
+      if (data.class || data.class !== 0) {
+        formData.append("class", data.class?.toString() || "");
+      }
+
+      if (data.type === MissionType.EVERY_SESSION && data.requiredQuantity) {
+        formData.append("requiredQuantity", data.requiredQuantity.toString());
+      }
+
+      if (data.imageUrl instanceof File) {
+        formData.append("image", data.imageUrl);
+      } else if (
+        selectedMission?.imageUrl &&
+        typeof data.imageUrl === "string"
+      ) {
+        formData.append("imageUrl", selectedMission.imageUrl);
+      }
+      if (selectedMission) {
+        return await updateMission(selectedMission.id, formData);
+      } else {
+        return await postMission(formData);
+      }
+    },
+    onSuccess: () => {
+      showSuccess("Thành công", "Tạo nhiệm vụ thành công");
+    },
+    onError: (error) => {
+      console.error("Error details:", error);
+      showError("Lỗi", "Có lỗi xảy ra khi tạo nhiệm vụ");
+    },
+    onSettled: () => {
+      refetchMissionList();
+      setIsOpenCreateModal(false);
+      setIsOpenEditModal(false);
+    },
+  });
 
   const handleCreateSuccess = () => {
     refetchMissionList();
@@ -255,7 +250,7 @@ export default function Page() {
         <CreateMissionDialog
           open={isOpenCreateModal}
           onOpenChange={setIsOpenCreateModal}
-          onSubmit={handleCreateSuccess}
+          onSubmit={createMissionMutation.mutate}
           classId={0} // Default class ID, you might want to change this
         />
       )}
@@ -264,7 +259,7 @@ export default function Page() {
         <CreateMissionDialog
           open={isOpenEditModal}
           onOpenChange={setIsOpenEditModal}
-          onSubmit={handleUpdateSuccess}
+          onSubmit={createMissionMutation.mutate}
           classId={selectedMission.class?.id || 0}
           mission={selectedMission}
         />

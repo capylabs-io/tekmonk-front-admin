@@ -1,9 +1,7 @@
 "use client";
 import { DialogFooter } from "@/components/ui/dialog";
-import { postMission, updateMission } from "@/requests/mission";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
 import { ImagePlus } from "lucide-react";
 import { useEffect } from "react";
 import { Controller, FormProvider, useForm } from "react-hook-form";
@@ -19,6 +17,7 @@ import {
   missionFormSchema,
 } from "@/validation/mission";
 import { useLoadingStore } from "@/store/LoadingStore";
+import { cn } from "@/lib/utils";
 
 type Props = {
   open: boolean;
@@ -28,6 +27,12 @@ type Props = {
   mission?: Mission;
 };
 
+const explainEverySession =
+  "Tạo nhiệm vụ thuộc hệ thống, hệ thống sẽ tự động tính điểm cho học viên khi hoàn thành nhiệm vụ";
+
+const explainManual =
+  "Tạo nhiệm vụ tạo thủ công, dùng để tạo nhiệm vụ cho học viên thực hiện một lần";
+
 export const CreateMissionDialog = ({
   open,
   onOpenChange,
@@ -36,18 +41,13 @@ export const CreateMissionDialog = ({
   mission,
 }: Props) => {
   // UseStore
-  const [showSuccess, showError] = useSnackbarStore((state) => [
-    state.success,
-    state.error,
-  ]);
+  const [showError] = useSnackbarStore((state) => [state.error]);
 
   const methods = useForm<MissionFormData>({
     resolver: zodResolver(missionFormSchema),
     defaultValues: defaultMissionValue,
     mode: "onChange",
   });
-  const [show, hide] = useLoadingStore((state) => [state.show, state.hide]);
-
   // Update form when mission data changes or when opening in edit mode
   useEffect(() => {
     if (mission && open) {
@@ -60,19 +60,12 @@ export const CreateMissionDialog = ({
             ? MissionType.EVERY_SESSION
             : MissionType.MANUAL,
         actionType: mission.actionType || ActionType.Attendance,
-        reward: mission.reward
-          ? parseInt(mission.reward.toString(), 10) || 0
-          : 0,
-        points: mission.points
-          ? parseInt(mission.points.toString(), 10) || 0
-          : undefined,
-        requiredQuantity: mission.requiredQuantity
-          ? parseInt(mission.requiredQuantity.toString(), 10) || 0
-          : 0,
+        reward: mission.reward,
+        points: mission.points,
+        requiredQuantity: mission.requiredQuantity,
         class: mission.class?.id || classId,
       });
     } else if (!mission && open) {
-      // Reset form for create mode
       methods.reset({
         ...defaultMissionValue,
         class: classId,
@@ -82,7 +75,6 @@ export const CreateMissionDialog = ({
 
   const {
     control,
-    handleSubmit,
     reset,
     getValues,
     setValue,
@@ -94,7 +86,11 @@ export const CreateMissionDialog = ({
 
   const handleDialogChange = (open: boolean) => {
     if (!open) {
-      reset();
+      // Only reset when closing to avoid losing entered data when re-opening
+      reset({
+        ...defaultMissionValue,
+        class: classId,
+      });
     }
     onOpenChange(open);
   };
@@ -118,97 +114,45 @@ export const CreateMissionDialog = ({
     }
   };
 
-  const createMissionMutation = useMutation({
-    mutationFn: async (data: MissionFormData) => {
-      const formData = new FormData();
-
-      formData.append("title", data.title);
-      formData.append("description", data.description);
-      formData.append("type", data.type);
-      formData.append("actionType", data.actionType);
-      formData.append("reward", data.reward?.toString() || "");
-      formData.append("points", data.points?.toString() || "");
-      if (data.class || data.class !== 0) {
-        formData.append("class", data.class?.toString() || "");
-      }
-
-      if (data.type === MissionType.EVERY_SESSION && data.requiredQuantity) {
-        formData.append("requiredQuantity", data.requiredQuantity.toString());
-      }
-
-      if (data.imageUrl instanceof File) {
-        formData.append("image", data.imageUrl);
-      } else if (mission?.imageUrl && typeof data.imageUrl === "string") {
-        formData.append("imageUrl", mission.imageUrl);
-      }
-
-      if (mission) {
-        return await updateMission(mission.id, formData);
-      }
-      return await postMission(formData);
-    },
-    onSuccess: () => {
-      showSuccess(
-        "Thành công",
-        mission ? "Cập nhật nhiệm vụ thành công" : "Tạo nhiệm vụ thành công"
-      );
-      handleDialogChange(false);
-      onSubmit(getValues());
-    },
-    onError: (error) => {
-      console.error("Error details:", error);
-      showError(
-        "Lỗi",
-        mission ? "Cập nhật nhiệm vụ thất bại" : "Tạo nhiệm vụ thất bại"
-      );
-    },
-  });
-
   const onSubmitForm = async (data: MissionFormData) => {
     try {
-      show();
-      if (
-        !data.title ||
-        !data.description ||
-        !data.type ||
-        !data.actionType ||
-        data.reward === undefined ||
-        data.points === undefined ||
-        (!mission && !data.imageUrl) ||
-        (data.type === MissionType.EVERY_SESSION &&
-          data.requiredQuantity === undefined)
-      ) {
+      if (!data.title || !data.description || (!mission && !data.imageUrl)) {
         showError("Lỗi", "Vui lòng điền đầy đủ thông tin bắt buộc");
         return;
       }
 
-      createMissionMutation.mutate(data);
+      onSubmit(data);
     } catch (error) {
       console.error("Error submitting form:", error);
       showError("Lỗi", "Có lỗi xảy ra khi tạo nhiệm vụ");
     } finally {
-      hide();
     }
   };
 
   return (
     <div
-      className="fixed inset-0 flex items-center justify-center w-screen bg-black/80"
+      className={cn(
+        "fixed inset-0 flex items-center justify-center w-screen bg-black/80 transition-opacity duration-200 p-4",
+        open ? "opacity-100 z-50" : "opacity-0 pointer-events-none -z-10"
+      )}
       onClick={() => handleDialogChange(false)}
     >
       <div
-        className="w-[680px] bg-white rounded-xl p-6"
+        className="w-full max-w-[680px] max-h-[90vh] bg-white rounded-xl transform transition-transform duration-200 flex flex-col"
+        style={{
+          transform: open ? "scale(1)" : "scale(0.95)",
+        }}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="px-4">
+        <div className="px-4 py-4 flex-shrink-0 border-b">
           <div className="!text-HeadingSm !font-semibold text-gray-95">
             {mission ? "Cập nhật nhiệm vụ" : "Tạo nhiệm vụ mới"}
           </div>
         </div>
 
         <FormProvider {...methods}>
-          <form className="space-y-4 p-4">
-            <div className="space-y-6">
+          <form className="flex-1 overflow-hidden flex flex-col">
+            <div className="space-y-6 p-4 overflow-y-auto">
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-[160px] text-SubheadMd">
@@ -230,62 +174,95 @@ export const CreateMissionDialog = ({
                 </div>
               </div>
 
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-[160px] text-SubheadMd">
-                    Loại nhiệm vụ <span className="text-red-500">*</span>
-                  </div>
-                  <div className="flex-1">
-                    <Controller
-                      name="type"
-                      control={control}
-                      render={({ field }) => (
-                        <ComboboxSelector
-                          data={[
-                            {
-                              value: MissionType.MANUAL,
-                              label: "Tạo thủ công",
-                            },
-                            {
-                              value: MissionType.EVERY_SESSION,
-                              label: "Thuộc hệ thống",
-                            },
-                          ]}
-                          value={field.value}
-                          onChange={handleTypeChange}
-                          error={errors.type?.message}
-                          placeholder="Chọn loại nhiệm vụ"
-                          searchPlaceholder="Tìm kiếm loại..."
-                        />
-                      )}
-                    />
+              {!classId && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start gap-2">
+                    <div className="w-[160px] text-SubheadMd mt-3">
+                      Loại nhiệm vụ <span className="text-red-500">*</span>
+                    </div>
+                    <div className="flex-1 flex flex-col items-start justify-start">
+                      <Controller
+                        name="type"
+                        control={control}
+                        render={({ field }) => (
+                          <ComboboxSelector
+                            data={[
+                              {
+                                value: MissionType.MANUAL,
+                                label: "Tạo thủ công",
+                              },
+                              {
+                                value: MissionType.EVERY_SESSION,
+                                label: "Thuộc hệ thống",
+                              },
+                            ]}
+                            value={field.value}
+                            onChange={handleTypeChange}
+                            error={errors.type?.message}
+                            placeholder="Chọn loại nhiệm vụ"
+                            searchPlaceholder="Tìm kiếm loại..."
+                          />
+                        )}
+                      />
+                      <div className="text-gray-70 text-SubheadSm">
+                        {missionType === MissionType.EVERY_SESSION
+                          ? explainEverySession
+                          : explainManual}
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
 
-              <div className="flex flex-col gap-2">
-                <div className="flex items-center gap-2">
-                  <div className="w-[160px] text-SubheadMd">
-                    Loại hành động <span className="text-red-500">*</span>
+              {watch("type") === MissionType.EVERY_SESSION && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[160px] text-SubheadMd">
+                      Loại hành động <span className="text-red-500">*</span>
+                    </div>
+                    <div className="flex-1">
+                      <Controller
+                        name="actionType"
+                        control={control}
+                        render={({ field }) => (
+                          <ComboboxSelector
+                            data={ActionTypeMap}
+                            value={field.value || ""}
+                            onChange={handleActionTypeChange}
+                            error={errors.actionType?.message}
+                            placeholder="Chọn loại hành động"
+                            searchPlaceholder="Tìm kiếm loại hành động..."
+                          />
+                        )}
+                      />
+                    </div>
                   </div>
-                  <div className="flex-1">
+                </div>
+              )}
+
+              {missionType === MissionType.EVERY_SESSION && (
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-[160px] text-SubheadMd">
+                      Số lượng yêu cầu <span className="text-red-500">*</span>
+                    </div>
                     <Controller
-                      name="actionType"
+                      name="requiredQuantity"
                       control={control}
                       render={({ field }) => (
-                        <ComboboxSelector
-                          data={ActionTypeMap}
-                          value={field.value}
-                          onChange={handleActionTypeChange}
-                          error={errors.actionType?.message}
-                          placeholder="Chọn loại hành động"
-                          searchPlaceholder="Tìm kiếm loại hành động..."
+                        <Input
+                          {...field}
+                          value={field.value?.toString() ?? ""}
+                          type="number"
+                          placeholder="Nhập số lượng yêu cầu"
+                          customClassNames="flex-1"
+                          error={errors.requiredQuantity?.message}
                         />
                       )}
                     />
                   </div>
                 </div>
-              </div>
+              )}
 
               <div className="flex justify-center items-center text-sm gap-2">
                 <div className="w-[160px] text-SubheadMd">
@@ -297,6 +274,7 @@ export const CreateMissionDialog = ({
                   customClassNames="flex-1"
                   customInputClassNames="text-sm"
                   error={errors.imageUrl?.message as string}
+                  onRemove={() => setValue("imageUrl", null)}
                   contentImageUpload={
                     <>
                       <div className="rounded-full p-5 w-max mx-auto flex items-center justify-center relative bg-gray-20">
@@ -380,36 +358,12 @@ export const CreateMissionDialog = ({
                   />
                 </div>
               </div>
-
-              {missionType === MissionType.EVERY_SESSION && (
-                <div className="flex flex-col gap-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-[160px] text-SubheadMd">
-                      Số lượng yêu cầu <span className="text-red-500">*</span>
-                    </div>
-                    <Controller
-                      name="requiredQuantity"
-                      control={control}
-                      render={({ field }) => (
-                        <Input
-                          {...field}
-                          value={field.value?.toString() ?? ""}
-                          type="number"
-                          placeholder="Nhập số lượng yêu cầu"
-                          customClassNames="flex-1"
-                          error={errors.requiredQuantity?.message}
-                        />
-                      )}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           </form>
         </FormProvider>
 
-        <DialogFooter className="px-4">
-          <div className="flex justify-between items-center mt-6 border-t pt-4 w-full">
+        <DialogFooter className="px-4 flex-shrink-0">
+          <div className="flex justify-between items-center p-4 w-full">
             <CommonButton
               variant="secondary"
               className="h-11"
@@ -421,7 +375,7 @@ export const CreateMissionDialog = ({
             <CommonButton
               className="h-11 w-[139px]"
               disabled={isSubmitting}
-              onClick={handleSubmit(onSubmitForm)}
+              onClick={() => onSubmitForm(getValues())}
             >
               {isSubmitting
                 ? "Đang xử lý..."
