@@ -15,7 +15,7 @@ export default function Page() {
   const router = useCustomRouter();
   const [activeTab, setActiveTab] = useState("teaching");
   const [userInfo] = useUserStore((state) => [state.userInfo]);
-  const [setCurrentClass] = useClassStore((state) => [state.setCurrentClass])
+  const [setCurrentClass] = useClassStore((state) => [state.setCurrentClass]);
   /**
    * UseQuery
    */
@@ -71,19 +71,21 @@ export default function Page() {
       {/* Tab Navigation */}
       <div className="flex gap-4 border-b border-gray-200">
         <button
-          className={`pb-4 px-2 ${activeTab === "teaching"
-            ? "text-primary-70 border-b-4 border-primary-70 font-medium"
-            : "text-gray-70"
-            }`}
+          className={`pb-4 px-2 ${
+            activeTab === "teaching"
+              ? "text-primary-70 border-b-4 border-primary-70 font-medium"
+              : "text-gray-70"
+          }`}
           onClick={() => setActiveTab("teaching")}
         >
           Đang dạy
         </button>
         <button
-          className={`pb-4 px-2 ${activeTab === "ended"
-            ? "text-primary-70 border-b-4 border-primary-70 font-medium"
-            : "text-gray-70"
-            }`}
+          className={`pb-4 px-2 ${
+            activeTab === "ended"
+              ? "text-primary-70 border-b-4 border-primary-70 font-medium"
+              : "text-gray-70"
+          }`}
           onClick={() => setActiveTab("ended")}
         >
           Đã kết thúc
@@ -97,11 +99,9 @@ export default function Page() {
             <CommonCard
               key={classItem.id}
               onClick={() => {
-                console.log('classItem', classItem)
-                setCurrentClass(classItem)
-                router.push(`/quan-ly/lop-hoc-cua-toi/${classItem.id}`)
-              }
-              }
+                setCurrentClass(classItem);
+                router.push(`/quan-ly/lop-hoc-cua-toi/${classItem.id}`);
+              }}
               className="bg-white rounded-xl p-4 shadow-sm hover:shadow-md transition-shadow cursor-pointer h-[152px] flex flex-col items-start"
             >
               <div className="text-gray-95 font-medium mb-2 h-[48px] w-full overflow-hidden">

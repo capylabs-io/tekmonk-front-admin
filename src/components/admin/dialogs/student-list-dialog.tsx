@@ -13,12 +13,13 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Mission } from "@/types/mission";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
+import { TAchievement } from "@/types/achievement";
 
 interface StudentListDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
-  mission?: Mission | null; // Could be a mission or achievement
+  mission?: Mission | TAchievement | null; // Could be a mission or achievement
   queryFn: (queryString: string) => Promise<any>;
   queryKey: string;
 }
