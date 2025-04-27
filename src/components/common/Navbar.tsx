@@ -58,7 +58,7 @@ export const Navbar = () => {
             onClick={handleRidirectHomePage}
           />
         </div>
-        <div className="flex flex-col grow mt-4 overflow-y-auto gap-2">
+        <div className="flex flex-col grow mt-4 overflow-y-auto gap-2 custom-scrollbar">
           <MenuCard
             title="Tài khoản"
             active={pathname.includes(ROUTE.ACCOUNT)}
@@ -81,7 +81,7 @@ export const Navbar = () => {
               />
             )}
             url={ROUTE.MY_CLASS}
-            hidden={!hasAccess([Role.CLASSMANAGEMENT, Role.TEACHER])}
+            hidden={!hasAccess([Role.TEACHER])}
           />
           {/* <MenuCard
               title="Phê duyệt"

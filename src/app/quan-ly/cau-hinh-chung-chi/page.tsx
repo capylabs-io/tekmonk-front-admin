@@ -1,6 +1,6 @@
 "use client";
 import { CommonButton } from "@/components/common/button/CommonButton";
-import { PanelLeft, Trash, Plus, Pencil } from "lucide-react";
+import { PanelLeft } from "lucide-react";
 import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
@@ -26,8 +26,6 @@ import {
 import { appendFormData } from "@/lib/utils";
 import CertificateEditor, { CertificateField } from "@/components/certificate/CustomCertificateEditor";
 import { useForm } from "react-hook-form";
-import { useRouter } from "next/navigation";
-import { Pagination } from "@/components/common/Pagination";
 import { Button } from "@/components/ui/button";
 
 // Mở rộng kiểu CertificateFormData để thêm các trường thiếu

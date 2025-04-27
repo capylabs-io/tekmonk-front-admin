@@ -26,6 +26,7 @@ import { DialogFooter, DialogHeader } from "../ui/dialog";
 import { get } from "lodash";
 import { InputTags } from "./InputTags";
 import { ContestGroupStage } from "@/types/common-types";
+import { useCustomRouter } from "../common/router/CustomRouter";
 
 const submissionSchema = z.object({
   title: z
@@ -49,7 +50,7 @@ const FormSubmitContest = React.forwardRef<
   const SIZE_FILE_LIMIT = parseInt(
     process.env.NEXT_PUBLIC_MAX_FILE_SIZE || "100"
   );
-  const router = useRouter();
+  const router = useCustomRouter();
   //use state
   // const [progress, setProgress] = useState({
   //   currentProgress: 0,

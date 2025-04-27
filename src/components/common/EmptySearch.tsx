@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { useRouter } from "next/navigation"; // Optional: If you want to provide a navigation action
+import { useCustomRouter } from "./router/CustomRouter";
 
 type Props = {
   customClassName?: string;
@@ -14,7 +15,7 @@ export const EmptySearch = ({
   buttonText,
   onAction,
 }: Props) => {
-  const router = useRouter();
+  const router = useCustomRouter();
 
   // Default action: Navigate to home if no custom onAction is provided
   const handleAction = () => {

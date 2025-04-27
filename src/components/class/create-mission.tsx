@@ -9,7 +9,7 @@ import { useSnackbarStore } from "@/store/SnackbarStore";
 import { Mission, MissionType } from "@/types/mission";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ColumnDef } from "@tanstack/react-table";
-import { UserPlus } from "lucide-react";
+import { Edit, UserPlus } from "lucide-react";
 import qs from "qs";
 import { useEffect, useState } from "react";
 import { CommonButton } from "../common/button/CommonButton";
@@ -243,18 +243,7 @@ export const CreateMission = ({
             className="p-2 hover:bg-gray-100 rounded-full"
             onClick={() => handleEditMission(row.original)}
           >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                d="M2 11.5V14H4.5L11.8733 6.62667L9.37333 4.12667L2 11.5ZM13.8067 4.69333C14.0667 4.43333 14.0667 4.01333 13.8067 3.75333L12.2467 2.19333C11.9867 1.93333 11.5667 1.93333 11.3067 2.19333L10.0867 3.41333L12.5867 5.91333L13.8067 4.69333Z"
-                fill="#7C6C80"
-              />
-            </svg>
+            <Edit className="h-4 w-4" color="#7C6C80" />
           </button>
         </div>
       ),

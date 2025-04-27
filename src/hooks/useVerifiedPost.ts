@@ -78,8 +78,8 @@ export const useVerifiedPost = () => {
   const listPost = useMemo(() => {
     return data
       ? data?.data?.filter(
-          (item: PostType) => item.isVerified === PostVerificationType.PENDING
-        )
+        (item: PostType) => item.isVerified === PostVerificationType.PENDING
+      )
       : [];
   }, [data]);
 

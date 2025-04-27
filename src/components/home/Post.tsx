@@ -8,6 +8,7 @@ import { CommonButton } from "../common/button/CommonButton";
 import { get } from "lodash";
 import { useRouter } from "next/navigation";
 import { ConvertoStatusPostToText } from "@/lib/utils";
+import { useCustomRouter } from "../common/router/CustomRouter";
 
 type Props = {
   data?: PostType | null;
@@ -50,7 +51,7 @@ export const Post = ({
   onVerifiedPost,
   onLikedPostClick,
 }: Props) => {
-  const router = useRouter();
+  const router = useCustomRouter();
   const handleOnClick = (value: any) => {
     onVerifiedPost?.(value);
   };

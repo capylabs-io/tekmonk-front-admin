@@ -2,6 +2,7 @@
 import React from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useCustomRouter } from "../common/router/CustomRouter";
 
 type Props = {
   imageUrl: string;
@@ -10,7 +11,7 @@ type Props = {
   id?: string;
 };
 export const EventCard = ({ imageUrl, title, createdAt, id }: Props) => {
-  const router = useRouter();
+  const router = useCustomRouter();
 
   const handleOnClick = () => {
     id && router.push(`event/${id}`);

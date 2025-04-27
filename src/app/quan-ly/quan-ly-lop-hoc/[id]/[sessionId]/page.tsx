@@ -23,10 +23,11 @@ import {
 import { ColumnDef } from "@tanstack/react-table";
 import { ReqGetCourseMissions } from "@/requests/course-mission";
 import { useClassStore } from "@/store/class-store";
-import { get } from "lodash";
+import { filter, get } from "lodash";
 import { CommonTable } from "@/components/common/CommonTable";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { getMission } from "@/requests/mission";
+import { Mission } from "@/types/mission";
 
 export default function SessionDetailPage({
   params,
@@ -138,9 +139,31 @@ export default function SessionDetailPage({
     if (!everySessionMission) {
       return [];
     }
-    return everySessionMission.data.filter(
+    const filterData = everySessionMission.data.filter(
       (item) => item.type === "EverySession"
     );
+
+    // Group missions by actionType
+    const missionsByActionType = filterData.reduce((acc, mission) => {
+      if (!acc[mission.actionType]) {
+        acc[mission.actionType] = [];
+      }
+      acc[mission.actionType].push(mission);
+      return acc;
+    }, {} as Record<string, Mission[]>);
+
+    // For each actionType, select the mission with minimum requiredQuantity
+    const uniqueDataWithEachActionType: Mission[] = Object.values(
+      missionsByActionType
+    ).map((missions) => {
+      return missions.reduce((minMission, currentMission) => {
+        return currentMission.requiredQuantity < minMission.requiredQuantity
+          ? currentMission
+          : minMission;
+      }, missions[0]);
+    });
+
+    return uniqueDataWithEachActionType;
   }, [everySessionMission]);
 
   // Add updateClassSession mutation
@@ -174,9 +197,9 @@ export default function SessionDetailPage({
         // If the mission exists in the record, mark it as checked and disabled
         const missionStatus = record.mission
           ? {
-              [missionKey]: true,
-              [`${missionKey}_disable`]: true,
-            }
+            [missionKey]: true,
+            [`${missionKey}_disable`]: true,
+          }
           : {};
 
         if (existingRecord) {
@@ -452,7 +475,7 @@ export default function SessionDetailPage({
         return {
           header: item.title || "Nhiệm vụ",
           cell: ({ row }: { row: any }) => (
-            <span>
+            <span className="flex items-center justify-center">
               <input
                 type="checkbox"
                 checked={!!row.original[title]}

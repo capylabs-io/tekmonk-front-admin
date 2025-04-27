@@ -11,9 +11,10 @@ import { Button } from "@/components/common/button/Button";
 import { forgotPasswordRequest } from "@/requests/forgot-password";
 import { MoveRight } from "lucide-react";
 import { get } from "lodash";
+import { useCustomRouter } from "@/components/common/router/CustomRouter";
 
 export default function ForgotPassword() {
-  const router = useRouter();
+  const router = useCustomRouter();
 
   const [isSendMail, setIsSendMail] = useState(false);
   const [error] = useSnackbarStore((state) => [state.error]);

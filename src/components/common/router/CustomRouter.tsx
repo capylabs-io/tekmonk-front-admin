@@ -26,8 +26,10 @@ export const useCustomRouter = () => {
         await router.push(path);
 
         // Once navigation is done, stop the loading bar
+        nProgress.done();
       } catch (error) {
         // If there's an error, stop the loading bar as well
+        nProgress.done();
         console.error("Failed to navigate:", error);
       }
     },

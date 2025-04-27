@@ -4,6 +4,7 @@ import { MoreHorizontal } from "lucide-react";
 import { useUserStore } from "@/store/UserStore";
 import { LogOut } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@radix-ui/react-dialog";
+import { useCustomRouter } from "./router/CustomRouter";
 
 type UserProfileLinkProps = {
   userName: string;
@@ -14,7 +15,7 @@ const UserProfileLink: React.FC<UserProfileLinkProps> = ({
   userName,
   userRank,
 }) => {
-  const router = useRouter();
+  const router = useCustomRouter();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

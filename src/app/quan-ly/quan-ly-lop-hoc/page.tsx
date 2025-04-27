@@ -11,7 +11,7 @@ import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { Class } from "@/types/common-types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Edit, PanelLeft, Trash2 } from "lucide-react";
+import { Edit, PanelLeft, Settings, Trash2 } from "lucide-react";
 import qs from "qs";
 import { useState, useEffect } from "react";
 import { CommonTable } from "@/components/common/CommonTable";
@@ -179,7 +179,7 @@ export default function Admin() {
               router.push(`${ROUTE.MANAGE_CLASS}/${row.original.id}`);
             }}
           >
-            <Edit className="h-4 w-4" />
+            <Settings className="h-4 w-4" />
           </button>
           <button
             className="p-2 hover:bg-gray-100 rounded-full"

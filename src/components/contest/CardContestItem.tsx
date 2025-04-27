@@ -3,6 +3,7 @@
 import Tag from "@/components/contest/Tag";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useCustomRouter } from "../common/router/CustomRouter";
 
 type Props = {
   id: string;
@@ -21,7 +22,7 @@ export default function CardContestItem({
   startDate,
   endDate,
 }: Props) {
-  const router = useRouter();
+  const router = useCustomRouter();
 
   const handleOnClick = () => {
     router.push(`/listContest/${id}`);
