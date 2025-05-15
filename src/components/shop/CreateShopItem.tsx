@@ -137,7 +137,7 @@ export const CreateShopItem = ({
   }, []);
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[680px] bg-white">
+      <DialogContent className="w-[680px] !h-[90vh] bg-white overflow-y-auto">
         <DialogHeader className="px-4">
           <DialogTitle className="!text-HeadingSm !font-semibold text-gray-95">
             {isEdit ? "Chỉnh sửa vật phẩm" : "Tạo vật phẩm mới"}
@@ -178,7 +178,7 @@ export const CreateShopItem = ({
                     contentImageUpload={
                       <>
                         {initialData?.image ? (
-                          <img src={initialData.image} alt="ảnh" className="w-full h-full object-cover" />
+                          <img src={initialData.image} alt="ảnh" className="w-[100px] h-[100px] object-cover" />
                         )
                           :
                           <>

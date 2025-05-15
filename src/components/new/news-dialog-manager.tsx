@@ -141,7 +141,11 @@ export const NewsDialogManager = ({
       formData.append("type", type);
       formData.append("status", status);
       formData.append("tags", values.tags);
-      if (values.salary) formData.append("salary", values.salary);
+      formData.append("isDealt", values.isDealt);
+      if (type === "hiring") {
+        if (values.minSalary) formData.append("minSalary", values.minSalary);
+        if (values.maxSalary) formData.append("maxSalary", values.maxSalary);
+      }
 
       await ReqUpdateNews(initialData.id.toString(), formData);
       success("Xong", "Cập nhật bài viết thành công");
@@ -174,7 +178,11 @@ export const NewsDialogManager = ({
       formData.append("type", type);
       formData.append("status", status);
       formData.append("tags", values.tags);
-      if (values.salary) formData.append("salary", values.salary);
+      if (type === "hiring") {
+        formData.append("isDealt", values.isDealt);
+        if (values.minSalary) formData.append("minSalary", values.minSalary);
+        if (values.maxSalary) formData.append("maxSalary", values.maxSalary);
+      }
       if (uploadedImage) {
         formData.append("image", uploadedImage);
       }

@@ -137,10 +137,10 @@ export default function VerifyClaimedItem() {
       header: "Mã quy đổi",
       cell: ({ row }) => <div>{get(row.original, "code", "Không có")}</div>,
     },
-    {
-      header: "Mã vật phẩm",
-      cell: ({ row }) => <span>{get(row.original, "itemCode", "Không có")}</span>,
-    },
+    // {
+    //   header: "Mã vật phẩm",
+    //   cell: ({ row }) => <span>{get(row.original, "itemCode", "Không có")}</span>,
+    // },
     {
       header: "Số lượng",
       cell: ({ row }) => <span>{get(row.original, "quantity", "Không có")}</span>,

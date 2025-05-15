@@ -70,7 +70,13 @@ export const findCertificatePdfConfig = async (query: string = "") => {
   return response.data;
 };
 export const updateCertificatePdfConfig = async (id: number, data: any) => {
-  const response = await tekdojoAxios.put(`${BASE_URL}/certificate-pdf-configs/${id}`, { data });
+  const response = await tekdojoAxios.put(`${BASE_URL}/certificate-pdf-configs/${id}`, data,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
   return response.data;
 };
 

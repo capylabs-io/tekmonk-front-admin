@@ -13,7 +13,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
-import { findCertificatePdfConfig, getCertificate, getCertificatePdfConfig, postCertificate, postCertificatePdfConfig, postCertificatePdfConfigField } from "@/requests/certificate";
+import { findCertificatePdfConfig, getCertificate, getCertificatePdfConfig, postCertificate, postCertificatePdfConfig, postCertificatePdfConfigField, updateCertificate, updateCertificatePdfConfig, updateCertificatePdfConfigField } from "@/requests/certificate";
 import { Certificate, CertificatePdfFieldConfig, CertificatePdfConfig } from "@/types/certificate";
 import { get } from "lodash";
 import {
@@ -55,6 +55,7 @@ const convertToCertificateField = (fieldConfig: CertificatePdfFieldConfig): Cert
 // Hàm chuyển đổi từ CertificateField sang CertificatePdfFieldConfig
 const convertToPdfFieldConfig = (field: CertificateField): CertificatePdfFieldConfig => {
   return {
+    id: Number(field.id),
     label: field.label,
     value: field.htmlContent,
     fontSize: String(field.fontSize),
@@ -104,6 +105,9 @@ export default function Page() {
   const [showError, showSuccess] = useSnackbarStore((state) => [state.error, state.success])
 
   const { handleSubmit } = useForm();
+
+  // Thêm ref cho CertificateEditor
+  const certificateEditorRef = useRef<{ clearData: () => void }>(null);
 
   // Handler cho việc cập nhật fields từ CertificateEditor
   const handleCertificateFieldsChange = (fields: CertificateField[]) => {
@@ -301,6 +305,9 @@ export default function Page() {
       setCertificateFields([]);
       setCertificateBackground(null);
       setCertificateBackgroundUrl(null);
+      if (certificateEditorRef.current) {
+        certificateEditorRef.current.clearData();
+      }
     },
     onError: (error) => {
       console.error('Lỗi khi tạo chứng chỉ:', error);
@@ -337,17 +344,20 @@ export default function Page() {
         // BƯỚC 1: Tạo các trường config PDF
         const pdfFieldConfigs = certificateFields.map(convertToPdfFieldConfig);
         const createdFieldsPromises = pdfFieldConfigs.map(async (field) => {
-          // Tạm thời loại bỏ id nếu có (vì đang tạo mới)
           const fieldData = { ...field };
-          delete fieldData.id;
-
-          const response = await postCertificatePdfConfigField(fieldData);
-          return response.data;
+          // Nếu có id thì cập nhật, không có thì tạo mới
+          if (fieldData.id) {
+            const response = await updateCertificatePdfConfigField(Number(fieldData.id), fieldData);
+            return response.data;
+          } else {
+            const response = await postCertificatePdfConfigField(fieldData);
+            return response.data;
+          }
         });
 
-        // Chờ tất cả các trường được tạo
+        // Chờ tất cả các trường được tạo/cập nhật
         const createdFields = await Promise.all(createdFieldsPromises);
-        console.log("Created field configs:", createdFields);
+        console.log("Created/Updated field configs:", createdFields);
 
         // BƯỚC 2: Tạo/cập nhật cấu hình PDF với danh sách trường đã tạo
         const pdfConfigFormData = new FormData();
@@ -359,13 +369,16 @@ export default function Page() {
         const fieldIds = createdFields.map(field => Number(field.id));
         pdfConfigFormData.append("fields", JSON.stringify(fieldIds));
 
-        // Thêm hình ảnh nền cho PDF Config nếu có
-        if (certificateBackground) {
+        // Thêm hình ảnh nền cho PDF Config chỉ khi là file mới
+        if (certificateBackground instanceof File) {
           pdfConfigFormData.append("backgroundUrl", certificateBackground);
         }
 
         // Tạo/cập nhật cấu hình PDF
-        const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigFormData);
+        const pdfConfigResponse = await updateCertificatePdfConfig(
+          editingCertificate?.certificatePdfConfig?.id || 0,
+          pdfConfigFormData
+        );
         const updatedPdfConfig = pdfConfigResponse;
 
         // BƯỚC 3: Liên kết cấu hình PDF với certificate
@@ -381,16 +394,21 @@ export default function Page() {
         certificatePdfConfig: get(certificateData, 'certificatePdfConfig', null)
       }
 
-      // TODO: Thêm hàm updateCertificate vào requests/certificate.ts và gọi ở đây
-      // const result = await updateCertificate(editingCertificate?.id, certificateFormData);
+      // Kiểm tra id trước khi cập nhật
+      if (!editingCertificate?.id) {
+        throw new Error('Không tìm thấy ID chứng chỉ cần cập nhật');
+      }
+
+      await updateCertificate(editingCertificate.id, certificateFormData);
 
       showSuccess('Cập nhật', 'Cập nhật chứng chỉ thành công!');
       refetchCertificates();
       setIsEditMode(false);
       setEditingCertificate(null);
       setIsOpenCreateModal(false);
-
-      // Reset các state
+      if (certificateEditorRef.current) {
+        certificateEditorRef.current.clearData();
+      }
       setCertificateFields([]);
       setCertificateBackground(null);
       setCertificateBackgroundUrl(null);
@@ -420,10 +438,7 @@ export default function Page() {
       // @ts-ignore
       handleConfirmWithCertificateModal(window.currentCertificateModal);
     }
-
     // Xử lý logic hiện tại
-    console.log("Certificate fields:", certificateFields);
-    console.log("Certificate background:", certificateBackground);
   };
 
   const handleConfirmData = () => {
@@ -558,7 +573,20 @@ export default function Page() {
             <CommonButton
               variant="primary"
               className="h-9 !w-max px-6"
-              onClick={() => setIsOpenCreateModal(true)}
+              onClick={() => {
+                // Clear data trước khi mở modal
+                if (certificateEditorRef.current) {
+                  certificateEditorRef.current.clearData();
+                }
+                // Reset các state
+                setCertificateFields([]);
+                setCertificateBackground(null);
+                setCertificateBackgroundUrl(null);
+                setIsEditMode(false);
+                setEditingCertificate(null);
+                // Mở modal
+                setIsOpenCreateModal(true);
+              }}
             >
               Tạo mới
             </CommonButton>
@@ -582,13 +610,19 @@ export default function Page() {
         onOpenChange={(value) => {
           setIsOpenCreateModal(value);
           if (!value) {
+            // Clear data khi đóng modal
+            if (certificateEditorRef.current) {
+              certificateEditorRef.current.clearData();
+            }
+            setCertificateFields([]);
+            setCertificateBackground(null);
+            setCertificateBackgroundUrl(null);
             setIsEditMode(false);
             setEditingCertificate(null);
           }
         }}
         onSubmit={handleFormSubmit}
         onChooseCertificateForm={() => {
-          // Mở cửa sổ chọn form chứng chỉ và sử dụng dữ liệu hiện tại
           setIsOpenChooseCertificateForm(true)
         }}
         isEditMode={isEditMode}
@@ -609,6 +643,7 @@ export default function Page() {
               initialBackgroundImage={certificateBackgroundUrl}
               onFieldsChange={handleCertificateFieldsChange}
               onBackgroundChange={handleCertificateBackgroundChange}
+              editorRef={certificateEditorRef}
             />
 
             <DialogFooter>

@@ -12,7 +12,7 @@ export const ConvertoStatusPostToText = (value: string) => {
       return 'Đợi duyệt'
     case PostVerificationType.DENIED:
       return 'Từ chối'
-    case PostVerificationType.PENDING:
+    case PostVerificationType.ACCEPTED:
       return 'Đã duyệt'
   }
 }

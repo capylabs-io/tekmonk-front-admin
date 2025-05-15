@@ -90,6 +90,7 @@ export interface CertificateEditorProps {
   onFieldsChange?: (fields: CertificateField[]) => void
   onBackgroundChange?: (file: File | null, imageUrl: string | null) => void
   isPreviewCertificate?: boolean
+  editorRef?: React.MutableRefObject<{ clearData: () => void } | null>
 }
 
 export default function CertificateEditor({
@@ -97,7 +98,8 @@ export default function CertificateEditor({
   initialBackgroundImage,
   onFieldsChange,
   onBackgroundChange,
-  isPreviewCertificate = false
+  isPreviewCertificate = false,
+  editorRef
 }: CertificateEditorProps) {
   // Certificate background image
   const [backgroundImage, setBackgroundImage] = useState<string | null>(initialBackgroundImage || null)
@@ -845,6 +847,21 @@ export default function CertificateEditor({
       setIsGeneratingPDF(false);
     }
   };
+
+  const clearEditorData = () => {
+    setFields([]);
+    setBackgroundImage(null);
+    setBackgroundFile(null);
+    setTextBlockName("");
+  };
+
+  useEffect(() => {
+    if (editorRef) {
+      editorRef.current = {
+        clearData: clearEditorData
+      };
+    }
+  }, []);
 
   return (
     <>

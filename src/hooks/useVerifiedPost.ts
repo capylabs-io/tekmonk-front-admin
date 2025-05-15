@@ -25,7 +25,7 @@ export const useVerifiedPost = () => {
   const [page, setPage] = useState(1);
   const [togglePostDialog, setTogglePostDialog] = useState(false);
   const [toggleConfirmDialog, setToggleConfirmDialog] = useState(false);
-  const [selectedType, setSelectedType] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
 
   const { data, isLoading, isError, refetch } = useQuery({
     refetchOnWindowFocus: false,

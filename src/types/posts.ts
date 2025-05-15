@@ -14,10 +14,17 @@ export type PostType = {
   isVerified?: PostVerificationType;
   isLiked?: boolean
   createdAt?: string
+  tagged_users?: User[]
+  type?: PostTypeEnum
 };
 
 export enum PostVerificationType {
   PENDING = "pending",
   DENIED = "denied",
   ACCEPTED = "accepted",
+}
+
+export enum PostTypeEnum {
+  PROJECT = "project",
+  POST = "normal",
 }

@@ -185,7 +185,7 @@ export default function Page() {
                     onVerifiedPost={handleVerifiedPost}
                     imageUrl="bg-[url('/image/home/profile-pic.png')]"
                     thumbnailUrl={get(item, 'thumbnail') || ''}
-                    userName={userInfo?.username || 'User'}
+                    userName={get(item, 'postedBy.username', '') || 'User'}
                     specialName={get(item, 'postedBy.skills', '')}
                     userRank={
                       <span
