@@ -212,8 +212,10 @@ export function CreateClassDialog({
             },
           },
           populate: "user_role",
-          page: currentPage,
-          pageSize: itemsPerPage,
+          pagination: {
+            page: currentPage,
+            pageSize: itemsPerPage,
+          },
         });
         return await ReqGetUsers(queryString);
       } catch (error) {

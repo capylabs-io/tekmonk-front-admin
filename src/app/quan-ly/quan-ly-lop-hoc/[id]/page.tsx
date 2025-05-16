@@ -82,7 +82,6 @@ export default function ClassManagementDetail() {
     { id: "info", label: "Thông tin khóa học" },
   ];
 
-
   /** UseQuery */
   const { data: classDetail } = useQuery({
     queryKey: ["class-detail", classId],
@@ -100,8 +99,9 @@ export default function ClassManagementDetail() {
           setFormData({
             courseName: classDetail.course?.name || "",
             classNames: classDetail.name || "",
-            duration: `${classDetail.startTime || ""} - ${classDetail.endTime || ""
-              }`,
+            duration: `${classDetail.startTime || ""} - ${
+              classDetail.endTime || ""
+            }`,
             teacherName: classDetail.teacher?.fullName || "",
             status:
               new Date(classDetail.endTime) > new Date()
@@ -190,8 +190,10 @@ export default function ClassManagementDetail() {
             },
           },
           populate: "user_role",
-          page: 1,
-          pageSize: 10,
+          pagination: {
+            page: 1,
+            pageSize: 10,
+          },
         });
         return await ReqGetUsers(queryString);
       } catch (error) {
@@ -368,93 +370,108 @@ export default function ClassManagementDetail() {
   const renderTabContent = () => {
     switch (activeTab) {
       case "progress":
-        return <div className="space-y-6 p-4">
-          <div className="flex flex-wrap gap-4">
-            {classSession &&
-              classSession.data.map((session, index) => (
-                <CommonCard
-                  key={session.id}
-                  className={`w-[200px] h-20 p-4`}
-                  onClick={() => handleSessionClick(session.id)}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-SubheadMd text-gray-95">
-                      Buổi {index + 1}
-                    </span>
-                    <CommonRadioCheck onChecked={session.status === "done"} />
-                  </div>
-                  <div className="text-BodySm">
-                    Trạng thái:{" "}
-                    {session.status === "done"
-                      ? "Đã hoàn thành"
-                      : "Chưa diễn ra"}
-                  </div>
-                </CommonCard>
-              ))}
+        return (
+          <div className="space-y-6 p-4">
+            <div className="flex flex-wrap gap-4">
+              {classSession &&
+                classSession.data.map((session, index) => (
+                  <CommonCard
+                    key={session.id}
+                    className={`w-[200px] h-20 p-4`}
+                    onClick={() => handleSessionClick(session.id)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-SubheadMd text-gray-95">
+                        Buổi {index + 1}
+                      </span>
+                      <CommonRadioCheck onChecked={session.status === "done"} />
+                    </div>
+                    <div className="text-BodySm">
+                      Trạng thái:{" "}
+                      {session.status === "done"
+                        ? "Đã hoàn thành"
+                        : "Chưa diễn ra"}
+                    </div>
+                  </CommonCard>
+                ))}
+            </div>
           </div>
-        </div>
+        );
       case "mission":
-        return studentMissionManualList && <CreateMission
-          courseMissionManualList={studentMissionManualList.data}
-          refetchCourseMissionManualList={refetchStudentMissionManualList}
-          classId={Number(classId)}
-        />
-      case "students":
-        return enrollmentData &&
-          <div className="relative">
-            <button
-              className="flex items-center justify-center gap-1 h-9 px-4 border border-[#D0D5DD] rounded-lg hover:bg-gray-50 absolute top-4 right-4"
-              onClick={handleOpenAddStudentDialog}
-            >
-              <span>Thêm học viên</span>
-              <UserRoundPlus width={16} height={16} />
-            </button>
-            <StudentList
-              data={enrollmentData}
-              currentPage={currentPageStudent}
-              onPageChange={(page) => setCurrentPageStudent(page)}
-              handleRemoveStudentFromClass={handleRemoveStudentFromClass}
-              isAllowDeleteStudent
+        return (
+          studentMissionManualList && (
+            <CreateMission
+              courseMissionManualList={studentMissionManualList.data}
+              refetchCourseMissionManualList={refetchStudentMissionManualList}
+              classId={Number(classId)}
             />
-          </div>
-      case "teacher":
-        return classDetail && <TeacherList data={classDetail} />
-      case "info":
-        return classDetail &&
-          <div className="flex justify-between">
-            <div className="p-6 flex gap-4">
-
-              <Image
-                alt="course Image"
-                src={classDetail.course?.thumbnail || "/image/app-logox3.png"}
-                width={300}
-                height={200}
-                className="w-[300px] h-[200px] object-contain rounded-xl border border-gray-20"
+          )
+        );
+      case "students":
+        return (
+          enrollmentData && (
+            <div className="relative">
+              <button
+                className="flex items-center justify-center gap-1 h-9 px-4 border border-[#D0D5DD] rounded-lg hover:bg-gray-50 absolute top-4 right-4"
+                onClick={handleOpenAddStudentDialog}
+              >
+                <span>Thêm học viên</span>
+                <UserRoundPlus width={16} height={16} />
+              </button>
+              <StudentList
+                data={enrollmentData}
+                currentPage={currentPageStudent}
+                onPageChange={(page) => setCurrentPageStudent(page)}
+                handleRemoveStudentFromClass={handleRemoveStudentFromClass}
+                isAllowDeleteStudent
               />
-              <div className="flex flex-col gap-2">
-                {/* <div >
+            </div>
+          )
+        );
+      case "teacher":
+        return classDetail && <TeacherList data={classDetail} />;
+      case "info":
+        return (
+          classDetail && (
+            <div className="flex justify-between">
+              <div className="p-6 flex gap-4">
+                <Image
+                  alt="course Image"
+                  src={classDetail.course?.thumbnail || "/image/app-logox3.png"}
+                  width={300}
+                  height={200}
+                  className="w-[300px] h-[200px] object-contain rounded-xl border border-gray-20"
+                />
+                <div className="flex flex-col gap-2">
+                  {/* <div >
                   
                 </div> */}
-                <span className="text-SubheadLg text-gray-95">
-                  {classDetail.course?.name}
-                </span>
-                <span
-                  className="text-BodyMd text-gray-95"
-                  dangerouslySetInnerHTML={{
-                    __html: classDetail.course?.description || "",
-                  }}
-                />
+                  <span className="text-SubheadLg text-gray-95">
+                    {classDetail.course?.name}
+                  </span>
+                  <span
+                    className="text-BodyMd text-gray-95"
+                    dangerouslySetInnerHTML={{
+                      __html: classDetail.course?.description || "",
+                    }}
+                  />
+                </div>
+              </div>
+              <div>
+                <CommonButton
+                  variant="secondary"
+                  className="!h-max"
+                  onClick={handleEditCourse}
+                >
+                  <Edit width={16} height={16} />
+                  <div>Cập nhật</div>
+                </CommonButton>
               </div>
             </div>
-            <div>
-              <CommonButton variant="secondary" className="!h-max" onClick={handleEditCourse}>
-                <Edit width={16} height={16} />
-                <div>Cập nhật</div>
-              </CommonButton>
-            </div>
-          </div>
+          )
+        );
     }
-  }
+  };
   return (
     <div className="w-full h-full border-r border-gray-20 overflow-y-auto">
       <div className="flex items-center justify-between p-4 border-b">
@@ -478,10 +495,11 @@ export default function ClassManagementDetail() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`py-4 px-1 border-b-4 font-medium text-sm ${activeTab === tab.id
-                ? "border-primary-60 text-primary-95"
-                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
+              className={`py-4 px-1 border-b-4 font-medium text-sm ${
+                activeTab === tab.id
+                  ? "border-primary-60 text-primary-95"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
             >
               {tab.label}
             </button>
@@ -539,8 +557,8 @@ export default function ClassManagementDetail() {
         open={editCourseModalOpen}
         setOpen={setEditCourseModalOpen}
         classId={classId as string}
-        courseList={courseList && courseList.data || []}
-        teacherList={teacherList && teacherList.data || []}
+        courseList={(courseList && courseList.data) || []}
+        teacherList={(teacherList && teacherList.data) || []}
       />
     </div>
   );

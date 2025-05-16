@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { CommonTag } from "../common/CommonTag";
 import StudentTablePagination from "./student-table-pagination";
-import { ReqGetClassUserRemaining, ReqGetUsers } from "@/requests/user";
+import { ReqGetClassUserRemainingInClass, ReqGetUsers } from "@/requests/user";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
 import { Input } from "../common/Input";
@@ -37,7 +37,7 @@ export const AddStudentToClass = ({
             page: currentPage,
             limit: itemsPerPage,
           });
-          return await ReqGetClassUserRemaining(queryString);
+          return await ReqGetClassUserRemainingInClass(queryString);
         }
         const queryString = qs.stringify({
           filters: {
