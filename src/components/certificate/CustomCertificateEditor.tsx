@@ -14,7 +14,7 @@ import {
   TabsList,
   TabsTrigger,
 } from "@/components/common/Tabs";
-import { Download, Upload, Move, ArrowLeft, Trash2 } from "lucide-react"
+import { Download, Upload, Move, ArrowLeft, Trash2, Plus } from "lucide-react"
 import { Slider } from "@/components/ui/slider"
 import { CommonButton } from "@/components/common/button/CommonButton";
 import jsPDF from 'jspdf';
@@ -107,8 +107,8 @@ export default function CertificateEditor({
   const [isOpenAddTextBlock, setIsOpenAddTextBlock] = useState(false)
   const [textBlockName, setTextBlockName] = useState("")
   // Certificate dimensions
-  const certificateWidth = 1200
-  const certificateHeight = 800
+  const certificateWidth = 900
+  const certificateHeight = 600
 
   // Thêm ref để theo dõi thay đổi và tránh vòng lặp vô hạn
   const onFieldsChangeRef = useRef<string | null>(null);
@@ -339,7 +339,7 @@ export default function CertificateEditor({
       img.onload = () => {
         const canvas = document.createElement('canvas')
 
-        // Luôn tạo canvas với kích thước 1200x800
+        // Luôn tạo canvas với kích thước 900x600
         canvas.width = certificateWidth;
         canvas.height = certificateHeight;
 
@@ -353,7 +353,7 @@ export default function CertificateEditor({
         ctx.imageSmoothingEnabled = true;
         ctx.imageSmoothingQuality = 'high';
 
-        // Tính toán tỷ lệ để vẽ ảnh đầy đủ vào khung 1200x800
+        // Tính toán tỷ lệ để vẽ ảnh đầy đủ vào khung 900x600
         const hRatio = canvas.width / img.width;
         const vRatio = canvas.height / img.height;
         const ratio = Math.max(hRatio, vRatio);
@@ -389,89 +389,6 @@ export default function CertificateEditor({
   const handleUploadClick = () => {
     fileInputRef.current?.click()
   }
-
-  // Export as PDF using jsPDF with better error handling
-  const exportAsPDF = async () => {
-    if (!backgroundImage) {
-      alert("Vui lòng tải lên hình nền trước");
-      return;
-    }
-
-    setIsGeneratingPDF(true);
-
-    try {
-      // Tạo một PDF mới với kích thước phù hợp
-      const pdf = new jsPDF({
-        orientation: certificateWidth > certificateHeight ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [certificateWidth, certificateHeight]
-      });
-
-      // Đầu tiên, thêm ảnh nền
-      if (backgroundImage) {
-        // Chuyển đổi hình ảnh thành dataURL nếu cần
-        let imageDataUrl = backgroundImage;
-        // Nếu là blob URL, cần chuyển sang dataURL
-        if (backgroundImage.startsWith('blob:')) {
-          const img = await loadImage(backgroundImage);
-          const canvas = document.createElement('canvas');
-          canvas.width = certificateWidth;
-          canvas.height = certificateHeight;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, certificateWidth, certificateHeight);
-          imageDataUrl = canvas.toDataURL('image/png');
-        }
-
-        // Thêm ảnh nền vào PDF
-        pdf.addImage(imageDataUrl, 'PNG', 0, 0, certificateWidth, certificateHeight);
-      }
-
-      // Thêm từng văn bản vào PDF với vị trí chính xác
-      fields.forEach(field => {
-        // Thiết lập font chữ
-        let fontName = 'helvetica'; // Font mặc định của jsPDF
-        if (field.fontWeight === 'bold') {
-          fontName = 'helvetica-bold';
-        }
-
-        // Đặt font size và màu
-        pdf.setFont(fontName);
-        pdf.setFontSize(field.fontSize);
-
-        // Chuyển đổi màu từ hex sang RGB
-        const hexToRgb = (hex: string): [number, number, number] => {
-          const r = parseInt(hex.slice(1, 3), 16);
-          const g = parseInt(hex.slice(3, 5), 16);
-          const b = parseInt(hex.slice(5, 7), 16);
-          return [r, g, b];
-        };
-
-        const [r, g, b] = hexToRgb(field.color);
-        pdf.setTextColor(r, g, b);
-
-        // Xác định textAlign cho jsPDF
-        let align: 'left' | 'center' | 'right' = 'left';
-        if (field.textAlign === 'center') align = 'center';
-        if (field.textAlign === 'right') align = 'right';
-
-        // Thêm text vào PDF, sử dụng vị trí từ editor
-        pdf.text(field.value, field.position.x, field.position.y, {
-          align: align,
-          baseline: 'middle'
-        });
-      });
-
-      // Lưu file PDF
-      pdf.save('certificate.pdf');
-
-    } catch (error) {
-      console.error('Lỗi khi tạo PDF:', error);
-      alert('Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
   // Helper function để load image
   const loadImage = (src: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
@@ -603,239 +520,165 @@ export default function CertificateEditor({
     alert("Đã căn giữa tất cả các khối văn bản theo khung chứng chỉ");
   };
 
-  // Thêm phương thức xuất PDF sử dụng HTML2Canvas - Phương pháp chính xác nhất
+  // Thêm vào trước khi tạo PDF
+  const imgToBase64 = async (url: string) => {
+    try {
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+      const loadPromise = new Promise((resolve, reject) => {
+        img.onload = resolve;
+        img.onerror = reject;
+      });
+      img.src = url;
+      await loadPromise;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx?.drawImage(img, 0, 0);
+      return canvas.toDataURL('image/png');
+    } catch (e) {
+      console.error("Không thể chuyển đổi ảnh:", e);
+      return url;
+    }
+  };
+
   const exportPDFUsingCanvas = async () => {
     if (!backgroundImage) {
       alert("Vui lòng tải lên hình nền trước");
       return;
     }
 
-    setIsGeneratingPDF(true);
-
     try {
+      setIsGeneratingPDF(true);
+
       const certificate = certificateRef.current;
       if (!certificate) {
         throw new Error("Không tìm thấy chứng chỉ");
       }
 
-      // Tạo một bản sao sâu của certificate để chỉnh sửa không ảnh hưởng đến UI
-      const certificateClone = certificate.cloneNode(true) as HTMLElement;
-
-      // Thiết lập kích thước và vị trí
-      certificateClone.style.position = 'fixed';
-      certificateClone.style.top = '-9999px';
-      certificateClone.style.left = '-9999px';
-      certificateClone.style.width = `${certificateWidth}px`;
-      certificateClone.style.height = `${certificateHeight}px`;
-
-      // Sao chép style background từ certificate
-      certificateClone.style.backgroundImage = certificate.style.backgroundImage;
-      certificateClone.style.backgroundSize = 'cover';
-      certificateClone.style.backgroundPosition = 'center';
-      certificateClone.style.backgroundColor = '#ffffff';
-
-      document.body.appendChild(certificateClone);
-
-      // Đảm bảo mọi khối draggable được hiển thị đúng vị trí
-      const draggables = certificateClone.querySelectorAll('.draggable-field');
-      draggables.forEach((el: Element) => {
-        const draggable = el as HTMLElement;
-        const id = draggable.getAttribute('data-id');
-        const field = fields.find(f => f.id === id);
-
-        if (field) {
-          draggable.style.transform = 'none';
-          draggable.style.left = `${field.position.x}px`;
-          draggable.style.top = `${field.position.y}px`;
-          draggable.style.position = 'absolute';
-          draggable.style.border = 'none'; // Xóa border hover
-        }
-
-        // Xóa các vị trí debug nếu có
-        const debugElements = draggable.querySelectorAll('[data-debug]');
-        debugElements.forEach(debug => debug.remove());
-      });
-
-      // Tạo canvas từ certificate đã được clone với kích thước chính xác
-      const canvas = await html2canvas(certificateClone, {
-        scale: 2, // Tăng độ phân giải
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: null,
-        logging: false,
-        width: certificateWidth,
-        height: certificateHeight,
-      });
-
-      // Xóa clone khỏi DOM
-      document.body.removeChild(certificateClone);
-
-      // Tạo PDF với kích thước chính xác
+      // Tạo PDF với kích thước đúng
       const pdf = new jsPDF({
-        orientation: 'landscape',
+        orientation: certificateWidth > certificateHeight ? 'landscape' : 'portrait',
         unit: 'px',
         format: [certificateWidth, certificateHeight]
       });
 
-      // Thêm canvas vào PDF với kích thước đầy đủ
+      // Xử lý hình nền từ S3
+      if (backgroundImage) {
+        try {
+          // Nếu là link S3, sử dụng fetch để tải về dưới dạng blob
+          const isS3Link = backgroundImage.includes('amazonaws.com') || backgroundImage.startsWith('https://s3.');
+
+          if (isS3Link) {
+            // Tải hình ảnh thông qua fetch để tránh vấn đề CORS
+            const response = await fetch(backgroundImage, {
+              mode: 'cors',
+              credentials: 'same-origin'
+            });
+
+            if (!response.ok) {
+              throw new Error(`Không thể tải hình ảnh từ S3: ${response.statusText}`);
+            }
+
+            const blob = await response.blob();
+            const imageUrl = URL.createObjectURL(blob);
+
+            // Tạo đối tượng hình ảnh từ blob
+            const backgroundImg = new Image();
+            await new Promise((resolve, reject) => {
+              backgroundImg.onload = resolve;
+              backgroundImg.onerror = reject;
+              backgroundImg.src = imageUrl;
+            });
+
+            // Thêm hình nền vào PDF
+            pdf.addImage(
+              backgroundImg,
+              'PNG',
+              0,
+              0,
+              certificateWidth,
+              certificateHeight
+            );
+
+            // Giải phóng URL của đối tượng
+            URL.revokeObjectURL(imageUrl);
+          } else {
+            // Xử lý như trước đối với hình ảnh không phải từ S3
+            const backgroundImg = new Image();
+            backgroundImg.crossOrigin = "anonymous";
+
+            await new Promise((resolve, reject) => {
+              backgroundImg.onload = resolve;
+              backgroundImg.onerror = reject;
+              backgroundImg.src = backgroundImage;
+            });
+
+            pdf.addImage(
+              backgroundImg,
+              'PNG',
+              0,
+              0,
+              certificateWidth,
+              certificateHeight
+            );
+          }
+        } catch (imageError) {
+          console.error('Lỗi khi xử lý hình nền:', imageError);
+          alert('Không thể tải hình nền. Vui lòng thử lại sau.');
+          setIsGeneratingPDF(false);
+          return;
+        }
+      }
+
+      // PHƯƠNG PHÁP 2: Tạo một bản sao của certificate chỉ chứa các phần tử văn bản
+      const textClone = document.createElement('div');
+      textClone.style.position = 'absolute';
+      textClone.style.left = '-9999px';
+      textClone.style.width = `${certificateWidth}px`;
+      textClone.style.height = `${certificateHeight}px`;
+      textClone.style.backgroundColor = 'transparent';
+
+      // Thêm các phần tử văn bản vào bản sao
+      fields.forEach(field => {
+        const textDiv = document.createElement('div');
+        textDiv.style.position = 'absolute';
+        textDiv.style.left = `${field.position.x}px`;
+        textDiv.style.top = `${field.position.y}px`;
+        textDiv.style.fontSize = `${field.fontSize}px`;
+        textDiv.style.fontWeight = field.fontWeight;
+        textDiv.style.color = field.color;
+        textDiv.style.fontFamily = field.fontFamily;
+        textDiv.style.textAlign = field.textAlign;
+        textDiv.innerHTML = field.htmlContent;
+        textClone.appendChild(textDiv);
+      });
+
+      document.body.appendChild(textClone);
+
+      // Tạo canvas từ các phần tử văn bản
+      const textCanvas = await html2canvas(textClone, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null,
+        logging: false
+      });
+
+      // Xóa phần tử tạm khỏi DOM
+      document.body.removeChild(textClone);
+
+      // Thêm canvas văn bản vào PDF
       pdf.addImage(
-        canvas.toDataURL('image/png', 1.0),
+        textCanvas.toDataURL('image/png', 1.0),
         'PNG',
         0,
         0,
         certificateWidth,
         certificateHeight
       );
-
-      // Lưu PDF
-      pdf.save('certificate.pdf');
-
-    } catch (error) {
-      console.error('Lỗi khi tạo PDF:', error);
-      alert('Có lỗi xảy ra khi tạo PDF. Vui lòng thử lại.');
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
-  // Thêm phương thức exportPDFHighPrecision
-  const exportPDFHighPrecision = async () => {
-    if (!backgroundImage) {
-      alert("Vui lòng tải lên hình nền trước");
-      return;
-    }
-
-    setIsGeneratingPDF(true);
-
-    try {
-      // Sử dụng đúng kích thước 1200x800
-      const pdfWidth = certificateWidth;
-      const pdfHeight = certificateHeight;
-
-      // Tạo PDF mới với kích thước chính xác bằng với editor
-      const pdf = new jsPDF({
-        orientation: pdfWidth > pdfHeight ? 'landscape' : 'portrait',
-        unit: 'px',
-        format: [pdfWidth, pdfHeight]
-      });
-
-      // Xử lý ảnh nền dựa trên nguồn (File hoặc URL)
-      let backgroundDataUrl;
-      if (backgroundFile) {
-        // Nếu có file nền, chuyển đổi từ File
-        backgroundDataUrl = await blobToDataURL(backgroundFile);
-      } else if (backgroundImage) {
-        // Nếu có URL ảnh nền, tải và chuyển đổi thành dataURL
-        try {
-          const img = await loadImage(backgroundImage);
-          const canvas = document.createElement('canvas');
-          canvas.width = pdfWidth;
-          canvas.height = pdfHeight;
-          const ctx = canvas.getContext('2d');
-          ctx?.drawImage(img, 0, 0, pdfWidth, pdfHeight);
-          backgroundDataUrl = canvas.toDataURL('image/png');
-        } catch (err) {
-          console.error('Lỗi khi xử lý ảnh nền từ URL:', err);
-          // Vẫn tiếp tục xử lý mà không có ảnh nền
-        }
-      }
-
-      // Thêm ảnh nền với kích thước đúng với editor
-      if (backgroundDataUrl) {
-        pdf.addImage(
-          backgroundDataUrl,
-          'PNG',
-          0,
-          0,
-          pdfWidth,
-          pdfHeight
-        );
-      }
-
-      // Xử lý từng text field với vị trí giữ nguyên
-      for (const field of fields) {
-        try {
-          // Tạo một div tạm để render HTML content
-          const tempDiv = document.createElement('div');
-          tempDiv.innerHTML = field.htmlContent;
-          tempDiv.style.position = 'absolute';
-          tempDiv.style.left = '-9999px';
-          tempDiv.style.top = '-9999px';
-          tempDiv.style.fontSize = `${field.fontSize}px`;
-          tempDiv.style.fontWeight = field.fontWeight;
-          tempDiv.style.color = field.color;
-          tempDiv.style.fontFamily = field.fontFamily;
-          tempDiv.style.textAlign = field.textAlign;
-          // Thêm vào DOM để có thể render
-          document.body.appendChild(tempDiv);
-
-          // Tạo một canvas để vẽ nội dung HTML
-          const canvas = await html2canvas(tempDiv, {
-            backgroundColor: null,
-            scale: 2,
-            logging: false,
-            allowTaint: true,
-            useCORS: true
-          });
-
-          // Xóa div tạm
-          document.body.removeChild(tempDiv);
-
-          // Chuyển canvas thành dataURL
-          const imgData = canvas.toDataURL('image/png');
-
-          // Tính toán vị trí cho image trong PDF - giữ nguyên tỷ lệ vị trí
-          let adjustedX = field.position.x;
-          const adjustedY = field.position.y;
-
-          // Điều chỉnh vị trí theo textAlign
-          if (field.textAlign === 'center') {
-            adjustedX = field.position.x - (canvas.width / 4);
-          } else if (field.textAlign === 'right') {
-            adjustedX = field.position.x - (canvas.width / 2);
-          }
-
-          // Thêm ảnh vào PDF tại vị trí của field
-          pdf.addImage(
-            imgData,
-            'PNG',
-            adjustedX,
-            adjustedY - (canvas.height / 4),
-            canvas.width / 2,
-            canvas.height / 2
-          );
-        } catch (fieldError) {
-          console.error(`Lỗi khi xử lý field ${field.id}:`, fieldError);
-
-          // Fallback: sử dụng text thông thường
-          const fontStyle = field.fontWeight === 'bold' ? 'bold' : 'normal';
-          pdf.setFont('helvetica', fontStyle);
-          pdf.setFontSize(field.fontSize);
-
-          // Chuyển màu
-          const hexToRgb = (hex: string) => {
-            const bigint = parseInt(hex.slice(1), 16);
-            const r = (bigint >> 16) & 255;
-            const g = (bigint >> 8) & 255;
-            const b = bigint & 255;
-            return [r, g, b];
-          };
-
-          const [r, g, b] = hexToRgb(field.color);
-          pdf.setTextColor(r, g, b);
-
-          // Xác định căn chỉnh
-          let align: 'left' | 'center' | 'right' = 'left';
-          if (field.textAlign === 'center') align = 'center';
-          if (field.textAlign === 'right') align = 'right';
-
-          // Thêm text vào PDF
-          pdf.text(field.value, field.position.x, field.position.y, {
-            align: align,
-            baseline: 'middle'
-          });
-        }
-      }
 
       // Lưu PDF
       pdf.save('certificate.pdf');
@@ -882,12 +725,10 @@ export default function CertificateEditor({
           <div
             ref={certificateRef}
             data-certificate
-            className="relative bg-white border border-gray-200 rounded-lg overflow-hidden my-4 shadow-lg mx-auto"
+            className="relative bg-white border border-gray-200 rounded-lg my-4 shadow-lg mx-auto"
             style={{
-              width: "100%",
-              maxWidth: "1200px", // Giới hạn kích thước tối đa trong chế độ preview
-              maxHeight: "800px",
-              aspectRatio: `${certificateWidth} / ${certificateHeight}`,
+              width: "900px",
+              height: "600px",
               backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
               backgroundSize: "cover",
               backgroundPosition: "center",
@@ -923,23 +764,29 @@ export default function CertificateEditor({
         </div>
       ) : (
         // Chế độ chỉnh sửa đầy đủ - giữ nguyên UI hiện tại
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-full overflow-y-auto !bg-white">
+        <div className="flex max-2xl:flex-col items-start gap-6 h-full overflow-y-auto !bg-white">
           {/* Certificate Preview */}
-          <div className="lg:col-span-2 h-full">
+          <div className="w-full">
             <div className="!bg-white p-4 rounded-lg h-full">
               <div className="flex justify-between items-center mb-2">
                 <h2 className="text-lg font-medium">Xem trước chứng chỉ</h2>
-                <div className="flex gap-2">
+                <div className="flex gap-2 flex-wrap">
                   <Button onClick={() => setIsOpenAddTextBlock(true)} variant="outline" size="sm">
-                    Thêm khối văn bản
+                    <div className="flex items-center !text-xs gap-2">
+                      <Plus className="w-3 h-3" />
+                      Thêm khối văn bản
+                    </div>
                   </Button>
-                  <Button onClick={() => setDebugMode(!debugMode)} variant="outline" size="sm">
-                    {debugMode ? "Tắt debug" : "Bật debug"}
+                  <Button
+                    variant="outline"
+                    onClick={exportPDFUsingCanvas}
+                    disabled={isGeneratingPDF}
+
+                    className="bg-blue-600 text-white hover:bg-blue-700 !text-x">
+                    <Download className="w-3 h-3 mr-2" />
+                    {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF"}
                   </Button>
-                  <Button onClick={() => setPDFPreviewMode(!pdfPreviewMode)} variant="outline" size="sm">
-                    {pdfPreviewMode ? "Xem trước bình thường" : "Xem trước PDF"}
-                  </Button>
-                  <Button onClick={centerAllTextItems} variant="outline" size="sm">
+                  <Button onClick={centerAllTextItems} variant="outline" size="sm" className="!text-xs">
                     Căn giữa tất cả
                   </Button>
                 </div>
@@ -947,11 +794,10 @@ export default function CertificateEditor({
               <div
                 ref={certificateRef}
                 data-certificate
-                className="relative bg-white border border-gray-200 rounded-lg overflow-hidden my-4 shadow-lg"
+                className="relative bg-white border border-gray-200 rounded-lg my-4 shadow-lg mx-auto"
                 style={{
-                  width: "100%",
-                  aspectRatio: `${certificateWidth} / ${certificateHeight}`,
-                  maxWidth: "100%",
+                  width: "900px",
+                  height: "600px",
                   backgroundImage: backgroundImage ? `url(${backgroundImage})` : "none",
                   backgroundSize: "cover",
                   backgroundPosition: "center",
@@ -999,47 +845,18 @@ export default function CertificateEditor({
                   </Draggable>
                 ))}
               </div>
-              <div className="flex justify-end gap-2 flex-wrap">
-                <Button
-                  variant="outline"
-                  onClick={exportAsPDF}
-                  disabled={isGeneratingPDF || !backgroundFile}>
-                  <Download className="w-4 h-4 mr-2" />
-                  {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF (text đơn giản)"}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={exportPDFHighPrecision}
-                  disabled={isGeneratingPDF || !backgroundFile}>
-                  <Download className="w-4 h-4 mr-2" />
-                  {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF (HTML đầy đủ)"}
-                </Button>
-
-                <Button
-                  variant="outline"
-                  onClick={exportPDFUsingCanvas}
-                  disabled={isGeneratingPDF || !backgroundFile}
-                  className="bg-blue-600 text-white hover:bg-blue-700">
-                  <Download className="w-4 h-4 mr-2" />
-                  {isGeneratingPDF ? "Đang xử lý..." : "Xuất PDF - Chính xác nhất"}
-                </Button>
-              </div>
-              <div className="mt-2 text-sm text-gray-500">
-                <p>Khuyến nghị sử dụng tùy chọn &quot;Chính xác nhất&quot; để có kết quả giống hệt như trong trình soạn thảo.</p>
-              </div>
             </div>
           </div>
 
           {/* Editor Controls */}
-          <div className="lg:col-span-1 h-full overflow-y-auto">
-            <Tabs defaultValue="content" value={activeTab} onValueChange={setActiveTab} className="h-full">
+          <div className="w-full py-4 max-2xl:px-4 2xl:h-[768px]">
+            <Tabs defaultValue="content" value={activeTab} onValueChange={setActiveTab} className="2xl:h-[calc(100%-16px)]">
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="content">Nội dung</TabsTrigger>
                 <TabsTrigger value="background">Hình nền</TabsTrigger>
               </TabsList>
 
-              <TabsContent value="content" className="space-y-4 !h-[calc(100%-100px)] overflow-y-auto">
+              <TabsContent value="content" className="space-y-4 2xl:h-[calc(100%-40px)] overflow-y-auto">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="space-y-6">
@@ -1197,7 +1014,7 @@ export default function CertificateEditor({
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground">
-                      <p>Để đạt kết quả tốt nhất, hãy sử dụng hình ảnh có kích thước chính xác 1200×800 pixels hoặc tỷ lệ 3:2.</p>
+                      <p>Để đạt kết quả tốt nhất, hãy sử dụng hình ảnh có kích thước chính xác 900×600 pixels hoặc tỷ lệ 3:2.</p>
                       <p className="mt-2">Hình ảnh sẽ được tự động điều chỉnh để vừa với khung chứng chỉ, đảm bảo PDF xuất ra giống hệt với thiết kế.</p>
                     </div>
                   </CardContent>
@@ -1228,7 +1045,7 @@ export default function CertificateEditor({
                             <Slider
                               id={`${field.id}-x-position`}
                               min={0}
-                              max={containerSize.width || 1200}
+                              max={containerSize.width || 900}
                               step={1}
                               value={[field.position.x]}
                               onValueChange={(value) => handlePositionChange(field.id, "x", value[0])}
@@ -1240,7 +1057,7 @@ export default function CertificateEditor({
                               onChange={(e) => handlePositionChange(field.id, "x", Number.parseInt(e.target.value) || 0)}
                               className="w-20"
                               min={0}
-                              max={containerSize.width || 1200}
+                              max={containerSize.width || 900}
                             />
                           </div>
                         </div>
@@ -1255,7 +1072,7 @@ export default function CertificateEditor({
                             <Slider
                               id={`${field.id}-y-position`}
                               min={0}
-                              max={containerSize.height || 800}
+                              max={containerSize.height || 600}
                               step={1}
                               value={[field.position.y]}
                               onValueChange={(value) => handlePositionChange(field.id, "y", value[0])}
@@ -1267,7 +1084,7 @@ export default function CertificateEditor({
                               onChange={(e) => handlePositionChange(field.id, "y", Number.parseInt(e.target.value) || 0)}
                               className="w-20"
                               min={0}
-                              max={containerSize.height || 800}
+                              max={containerSize.height || 600}
                             />
                           </div>
                         </div>

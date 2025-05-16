@@ -6,14 +6,14 @@ import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/common/Input";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback } from "react";
 import { useCertificate } from "@/hooks/useCertificate";
 import { SelectStudentListDialog } from "@/components/class/SelectStudentListDialog";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
-import { getCertificate, getCertificateHistory, postCertificateHistory } from "@/requests/certificate";
+import { deleteCertificateHistory, getCertificate, getCertificateHistory, postCertificateHistory } from "@/requests/certificate";
 import { Certificate, CertificateHistory } from "@/types/certificate";
 import { get } from "lodash";
 
@@ -100,13 +100,11 @@ export default function Page() {
     enabled: isMounted, // Only run query when component is mounted
   });
 
-  const listCertificateUnFinnishedRequest = useMemo(() => {
-    if (!certificateHistory || !certificates)
+  const listStudentHasCertificateSelected = useMemo(() => {
+    if (!certificateHistory || !certificateSelected)
       return []
-    const certificateFinnishedRequest = certificateHistory.data.map((item: CertificateHistory) => item.certificate?.id)
-    return certificates.data.filter((item: Certificate) => !certificateFinnishedRequest.includes(item.id))
-  }, [certificateHistory, certificates])
-
+    return certificateHistory.data.filter((item: CertificateHistory) => item.certificate.id === certificateSelected?.id)
+  }, [certificateHistory, certificateSelected])
 
   const { mutate: addStudentMutation } = useMutation({
     mutationFn: async (studentIds: string[]) => {
@@ -132,17 +130,44 @@ export default function Page() {
       hideLoading();
     },
   });
+  const { mutate: deleteStudentMutation } = useMutation({
+    mutationFn: async (studentIds: string[]) => {
+      const certificateData = studentIds.map((studentId) => ({
+        student: Number(studentId),
+      }));
+      const res = certificateData.map(async (item) => {
+        return await deleteCertificateHistory(item.student);
+      })
+      return await Promise.all(res)
+    },
+    onSuccess: () => {
+      showSuccess("Thành công", "Đã thêm học viên vào chứng chỉ");
+      refetchCertificateHistory()
+      setShowStudentListDialog(false);
+    },
+    onError: (err) => {
+      console.error("Error adding students:", err);
+      showError("Lỗi", "Có lỗi xảy ra khi thêm học viên vào chứng chỉ");
+    },
+    onSettled: () => {
+      hideLoading();
+    },
+  });
   const handleSearch = () => {
     setSearchQuery(textSearch);
   };
-  const handleAddStudents = (data: string[]) => {
-    if (data.length === 0) {
+  const handleAddStudents = useCallback((data: string[]) => {
+    const StudentHasCertificateSelected = listStudentHasCertificateSelected.map((item: CertificateHistory) => item.student?.id)
+    let dataFilter = data.filter((item: string) => !StudentHasCertificateSelected.includes(item))
+    let dataDelete = data.filter((item: string) => StudentHasCertificateSelected.includes(item))
+    if (dataFilter.length === 0) {
       showError("Lỗi", "Vui lòng chọn ít nhất một học viên");
       return;
     }
     showLoading();
-    addStudentMutation(data);
-  };
+    addStudentMutation(dataFilter);
+    deleteStudentMutation(dataDelete);
+  }, [addStudentMutation, listStudentHasCertificateSelected])
 
   useEffect(() => {
     setIsMounted(true);
@@ -226,7 +251,7 @@ export default function Page() {
             />
           </div>
           <CommonTable
-            data={listCertificateUnFinnishedRequest}
+            data={certificates?.data || []}
             isLoading={false}
             columns={columnsRequestList}
             page={page}
@@ -245,6 +270,7 @@ export default function Page() {
         openDialogClick={setShowStudentListDialog}
         closeDialogClick={() => setShowStudentListDialog(false)}
         handleAddStudent={handleAddStudents}
+        listStudentHasCertificateSelected={listStudentHasCertificateSelected}
       />
     </>
   );

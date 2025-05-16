@@ -630,7 +630,7 @@ export default function Page() {
       />
       {isOpenChooseCertificateForm && (
         <Dialog open={isOpenChooseCertificateForm} onOpenChange={setIsOpenChooseCertificateForm}>
-          <DialogContent className="max-w-[80%] h-[80vh] overflow-y-auto !bg-white">
+          <DialogContent className="max-w-[1300px] h-[90vh] overflow-y-auto !bg-white">
             <DialogHeader>
               <DialogTitle className="text-xl">Tùy chỉnh mẫu chứng chỉ</DialogTitle>
               <DialogDescription>
