@@ -115,6 +115,7 @@
 
 .custom-scrollbar {
   display: block;
+  overflow-y: auto;
 }
 
 .custom-scrollbar::-webkit-scrollbar {

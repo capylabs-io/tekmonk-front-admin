@@ -1,12 +1,11 @@
 import { getListPost, getListPostCustom, updatePost } from "@/requests/post";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
-import { useUserStore } from "@/store/UserStore";
-import { PostType, PostVerificationType } from "@/types";
-import { useQuery } from "@tanstack/react-query";
+import { PostType, PostTypeEnum, PostVerificationType } from "@/types";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { get } from "lodash";
 import qs from "qs";
-import React, { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 export const useVerifiedPost = () => {
   // const [listPost, setListPost] = useState<PostType[]>()
@@ -78,21 +77,28 @@ export const useVerifiedPost = () => {
   const listPost = useMemo(() => {
     return data
       ? data?.data?.filter(
-        (item: PostType) => item.isVerified === PostVerificationType.PENDING
-      )
+          (item: PostType) => item.isVerified === PostVerificationType.PENDING
+        )
       : [];
   }, [data]);
 
   const handleSelectChange = (value: string) => {
     setSelectedType(value);
   };
-  const handleVerified = async (data: PostType | null) => {
+  const handleVerified = async (
+    data: PostType | null,
+    rejectReason: string
+  ) => {
     try {
       showLoading();
       if (!data) return;
       const { id, ...form } = data;
+      const payload = {
+        ...form,
+        rejectReason,
+      };
       if (!id) return;
-      const res = await updatePost(id, form);
+      const res = await updatePost(id, payload);
       if (res) {
         showSuccess("Thành công", "Phê duyệt bài viết thành công!");
       }
@@ -109,7 +115,7 @@ export const useVerifiedPost = () => {
       setCurrentPost(data);
       setToggleConfirmDialog(true);
     } else {
-      handleVerified(data);
+      handleVerified(data, "");
     }
   };
 
@@ -133,4 +139,53 @@ export const useVerifiedPost = () => {
     handleVerifiedPost,
     handleVerified,
   };
+};
+
+type UseInfiniteLatestPostProps = {
+  page: number;
+  limit: number;
+  type?: PostTypeEnum;
+  isVerified: PostVerificationType;
+  authorId?: number;
+};
+
+export const useInfiniteLatestPost = ({
+  page,
+  limit,
+  type,
+  isVerified = PostVerificationType.ACCEPTED,
+  authorId,
+}: UseInfiniteLatestPostProps) => {
+  return useInfiniteQuery({
+    queryKey: ["latest-sell-post", page, limit, type, isVerified, authorId],
+    queryFn: async ({ pageParam = page }) => {
+      try {
+        const queryString = qs.stringify(
+          {
+            page: pageParam,
+            limit,
+            sort: "desc",
+            isVerified: isVerified,
+            type: type,
+            authorId: authorId,
+          },
+          { encodeValuesOnly: true }
+        );
+        const result = await getListPostCustom(queryString);
+
+        return result;
+      } catch (error) {
+        console.error("Error fetching posts:", error);
+        throw error;
+      }
+    },
+    getNextPageParam: (lastPage: any) => {
+      const currentPage = lastPage?.meta?.pagination?.page ?? 1;
+      const pageCount = lastPage?.meta?.pagination?.pageCount ?? 1;
+      const nextPage = currentPage < pageCount ? currentPage + 1 : undefined;
+      return nextPage;
+    },
+    initialPageParam: page,
+    refetchOnWindowFocus: false,
+  });
 };
