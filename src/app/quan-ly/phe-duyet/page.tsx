@@ -30,32 +30,12 @@ import {
   useInfiniteLatestPost,
   useVerifiedPost,
 } from "@/hooks/useVerifiedPost";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/common/Input";
 import { useInView } from "react-intersection-observer";
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
 export default function Page() {
-  const {
-    page,
-    totalPage,
-    totalDocs,
-    togglePostDialog,
-    toggleConfirmDialog,
-    listPost,
-    currentPost,
-    selectedType,
-    limit,
-    listPostHistory,
-    setLimit,
-    handleSelectChange,
-    setPage,
-    setCurrentPost,
-    setTogglePostDialog,
-    setToggleConfirmDialog,
-    handleVerifiedPost,
-    handleVerified,
-  } = useVerifiedPost();
   const {
     data: currentPageData,
     isLoading,
@@ -70,6 +50,12 @@ export default function Page() {
   });
   const { ref, inView } = useInView();
   const [rejectReason, setRejectReason] = useState<string>("");
+
+  // Flatten the infinite query data into a single array of posts
+  const listPost = useMemo(() => {
+    if (!currentPageData?.pages) return [];
+    return currentPageData.pages.flatMap((page) => page?.data || []);
+  }, [currentPageData]);
 
   const columns: ColumnDef<PostType>[] = [
     {
@@ -154,6 +140,26 @@ export default function Page() {
     },
   ];
 
+  const {
+    page,
+    totalPage,
+    totalDocs,
+    togglePostDialog,
+    toggleConfirmDialog,
+    currentPost,
+    selectedType,
+    limit,
+    listPostHistory,
+    setLimit,
+    handleSelectChange,
+    setPage,
+    setCurrentPost,
+    setTogglePostDialog,
+    setToggleConfirmDialog,
+    handleVerifiedPost,
+    handleVerified,
+  } = useVerifiedPost(refetch);
+
   useEffect(() => {
     if (inView && hasNextPage && !isFetchingNextPage) {
       fetchNextPage();
@@ -184,7 +190,28 @@ export default function Page() {
           value="verified"
           className="overflow-y-auto !h-[calc(100%-40px)] p-4"
         >
-          {listPost.length > 0 && (
+          {isLoading && listPost.length === 0 ? (
+            // Show loading skeletons for initial load
+            <div className="border rounded-2xl w-[720px] mx-auto pb-5">
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div className="px-8" key={`skeleton-${index}`}>
+                  <Post
+                    isLoading={true}
+                    imageUrl=""
+                    thumbnailUrl=""
+                    userName=""
+                    specialName=""
+                    createdAt=""
+                    likedCount=""
+                    commentCount=""
+                  />
+                  {index !== 2 && (
+                    <hr className="border-t border-gray-200 my-4" />
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : listPost.length > 0 ? (
             <div className="border rounded-2xl w-[720px] mx-auto pb-5">
               {listPost.map((item: PostType, index: number) => (
                 <div
@@ -217,12 +244,35 @@ export default function Page() {
                 </div>
               ))}
             </div>
+          ) : (
+            // Show empty state when no posts are available
+            <div className="flex flex-col items-center justify-center h-64 text-gray-500">
+              <svg
+                className="w-16 h-16 mb-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                />
+              </svg>
+              <h3 className="text-lg font-medium mb-2">
+                Không có bài viết nào
+              </h3>
+              <p className="text-sm">
+                Hiện tại không có bài viết nào cần phê duyệt
+              </p>
+            </div>
           )}
           <div ref={ref} className="p-4 text-center">
             {isFetchingNextPage
               ? "Đang tải thêm bài viết..."
               : !hasNextPage && listPost.length > 0
-              ? ""
+              ? "Đã hiển thị tất cả bài viết"
               : ""}
           </div>
         </TabsContent>

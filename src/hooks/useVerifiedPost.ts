@@ -7,7 +7,7 @@ import { get } from "lodash";
 import qs from "qs";
 import { useMemo, useState } from "react";
 
-export const useVerifiedPost = () => {
+export const useVerifiedPost = (customRefetch?: () => void) => {
   // const [listPost, setListPost] = useState<PostType[]>()
   const [showLoading, hideLoading] = useLoadingStore((state) => [
     state.show,
@@ -107,7 +107,11 @@ export const useVerifiedPost = () => {
       showError("Thất bại", "Phê duyệt bài viết thất bại!");
     } finally {
       hideLoading();
-      refetch();
+      if (customRefetch) {
+        customRefetch();
+      } else {
+        refetch();
+      }
     }
   };
   const handleVerifiedPost = async (data: PostType) => {
@@ -157,7 +161,7 @@ export const useInfiniteLatestPost = ({
   authorId,
 }: UseInfiniteLatestPostProps) => {
   return useInfiniteQuery({
-    queryKey: ["latest-sell-post", page, limit, type, isVerified, authorId],
+    queryKey: ["latest-post-verified", page, limit, type, isVerified, authorId],
     queryFn: async ({ pageParam = page }) => {
       try {
         const queryString = qs.stringify(
