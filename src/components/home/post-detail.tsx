@@ -12,6 +12,7 @@ import { ProfileInfoBox } from "./ProfileInfoBox";
 import { get } from "lodash";
 import { useCustomRouter } from "../common/router/CustomRouter";
 import { ROUTE } from "@/contants/router";
+import moment from "moment";
 interface PostImageGalleryProps {
   open: boolean;
   data: PostType;
@@ -151,7 +152,7 @@ export const PostImageGallery = ({
 
               {createdAt && (
                 <div className="text-sm text-gray-500 ml-auto mb-4">
-                  {createdAt}
+                  {moment(createdAt).format("DD/MM/YYYY HH:mm sss")}
                 </div>
               )}
 

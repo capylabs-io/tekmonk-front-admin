@@ -231,10 +231,7 @@ export default function Page() {
                     hideSocial
                     postContent={get(item, "content", "")}
                     postName={get(item, "name", "")}
-                    createdAt={moment(
-                      get(item, "createdAt", ""),
-                      "dd/mm/yyyy hh:mm:ss"
-                    ).toString()}
+                    createdAt={get(item, "createdAt", "")}
                     likedCount="6.2"
                     commentCount="61"
                   />

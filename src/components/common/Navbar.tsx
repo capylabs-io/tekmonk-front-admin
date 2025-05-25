@@ -4,7 +4,22 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Award, Bell, FileBadge, FileCheck, Flag, Goal, Home, ListOrdered, Newspaper, Settings, ShoppingCart, SlidersHorizontal, Ticket, User } from "lucide-react";
+import {
+  Award,
+  Bell,
+  FileBadge,
+  FileCheck,
+  Flag,
+  Goal,
+  Home,
+  ListOrdered,
+  Newspaper,
+  Settings,
+  ShoppingCart,
+  SlidersHorizontal,
+  Ticket,
+  User,
+} from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
@@ -42,7 +57,6 @@ export const Navbar = () => {
     return allowedRoles.includes(userRole);
   };
 
-
   const pathname = usePathname();
 
   return (
@@ -60,12 +74,16 @@ export const Navbar = () => {
         </div>
         <div className="flex flex-col grow mt-4 overflow-y-auto gap-2 custom-scrollbar">
           <MenuCard
-            title="Tài khoản"
+            title="Quản lý tài khoản"
             active={pathname.includes(ROUTE.ACCOUNT)}
             iconElement={({ isHovered }) => (
               <User
                 size={20}
-                color={pathname.includes(ROUTE.ACCOUNT) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.ACCOUNT) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.ACCOUNT}
@@ -108,7 +126,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <Newspaper
                 size={20}
-                color={pathname.includes(ROUTE.NEWS) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.NEWS) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.NEWS}
@@ -156,7 +178,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <Flag
                 size={20}
-                color={pathname.includes(ROUTE.VERIFIED) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.VERIFIED) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.VERIFIED}
@@ -180,7 +206,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <Goal
                 size={20}
-                color={pathname.includes(ROUTE.MISSION) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.MISSION) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.MISSION}
@@ -192,7 +222,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <SlidersHorizontal
                 size={20}
-                color={pathname.includes(ROUTE.CERTIFICATE_CONFIG) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.CERTIFICATE_CONFIG) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.CERTIFICATE_CONFIG}
@@ -204,7 +238,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <FileCheck
                 size={20}
-                color={pathname.includes(ROUTE.CERTIFICATE_REQUEST) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.CERTIFICATE_REQUEST) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.CERTIFICATE_REQUEST}
@@ -216,7 +254,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <Award
                 size={20}
-                color={pathname.includes(ROUTE.CERTIFICATE) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.CERTIFICATE) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.CERTIFICATE}
@@ -228,7 +270,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <ShoppingCart
                 size={20}
-                color={pathname.includes(ROUTE.SHOP_CONFIG) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.SHOP_CONFIG) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.SHOP_CONFIG}
@@ -240,7 +286,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <Ticket
                 size={20}
-                color={pathname.includes(ROUTE.CLAIMED_ITEM) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.CLAIMED_ITEM) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.CLAIMED_ITEM}
