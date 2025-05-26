@@ -14,6 +14,7 @@ import { useLoadingStore } from "@/store/LoadingStore";
 import { User } from "@/types/common-types";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
+import { Input } from "../common/Input";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12">
@@ -39,6 +40,7 @@ export const AccountTable = () => {
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
 
   /** UseStore */
   const [show, hide] = useLoadingStore((state) => [state.show, state.hide]);
@@ -49,17 +51,41 @@ export const AccountTable = () => {
   const queryClient = useQueryClient();
   /** UseQuery */
   const { data, refetch, isLoading } = useQuery({
-    queryKey: ["users", activeTab, page, pageSize, sortOrder],
+    queryKey: ["users", activeTab, page, pageSize, sortOrder, searchQuery],
     queryFn: async () => {
       try {
-        const queryString = qs.stringify({
-          filters: {
-            user_role: {
-              code: {
-                $eq: activeTab.toUpperCase(),
-              },
+        const filters = {
+          user_role: {
+            code: {
+              $eq: activeTab.toUpperCase(),
             },
           },
+        };
+
+
+        if (searchQuery) {
+          Object.assign(filters, {
+            $or: [
+              {
+                fullName: {
+                  $containsi: searchQuery,
+                },
+              },
+              {
+                username: {
+                  $containsi: searchQuery,
+                },
+              },
+              {
+                email: {
+                  $containsi: searchQuery,
+                },
+              },
+            ],
+          });
+        }
+        const queryString = qs.stringify({
+          filters,
           populate: "user_role",
           sort: {
             id: sortOrder,
@@ -258,7 +284,20 @@ export const AccountTable = () => {
     const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
     setSortOrder(newSortOrder);
   };
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+  };
 
+  const handleSearch = () => {
+    setPage(1); // Reset to first page on new search
+    refetch();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
   const columns: ColumnDef<User>[] = [
     {
       id: "stt",
@@ -327,17 +366,27 @@ export const AccountTable = () => {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`flex-1 min-w-[120px] max-w-[144px] py-2 px-4 text-center text-sm font-medium ${
-              activeTab === tab.id
-                ? "text-primary-600 border-b-2 border-primary-600"
-                : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
-            }`}
+            className={`flex-1 min-w-[120px] max-w-[144px] py-2 px-4 text-center text-sm font-medium ${activeTab === tab.id
+              ? "text-primary-600 border-b-2 border-primary-600"
+              : "text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
           >
             {tab.label}
           </button>
         ))}
       </div>
-
+      <div className="flex items-center justify-between gap-x-4">
+        <Input
+          type="text"
+          placeholder="Tìm kiếm"
+          customClassNames="max-w-[320px] mb-4"
+          value={searchQuery}
+          onChange={handleSearchChange}
+          onSearch={handleSearch}
+          isSearch={true}
+          onKeyDown={handleKeyPress}
+        />
+      </div>
       {data && data.meta?.pagination.total === 0 ? (
         <EmptyState />
       ) : (

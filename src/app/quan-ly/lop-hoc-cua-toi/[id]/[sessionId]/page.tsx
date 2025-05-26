@@ -11,7 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ReqGetEnrollments } from "@/requests/enrollment";
 import tekdojoAxios from "@/requests/axios.config";
 import { useSnackbarStore } from "@/store/SnackbarStore";
-import { ReqUpdateClassSession } from "@/requests/class-session";
+import { ReqFindOneClassSession, ReqUpdateClassSession } from "@/requests/class-session";
 import {
   Dialog,
   DialogContent,
@@ -124,6 +124,20 @@ export default function SessionDetailPage({
     },
     refetchOnWindowFocus: false,
   });
+  const { data: classSession } = useQuery({
+    queryKey: ["class-session-find-one", params.sessionId],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          populate: "*",
+        });
+        return await ReqFindOneClassSession(params.sessionId, queryString);
+      } catch (error) {
+        console.log("Error fetching class session:", error);
+        return { data: null };
+      }
+    },
+  });
   // Create mutation for creating new attendance records
   const createAttendanceMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -197,9 +211,9 @@ export default function SessionDetailPage({
         // If the mission exists in the record, mark it as checked and disabled
         const missionStatus = record.mission
           ? {
-              [missionKey]: true,
-              [`${missionKey}_disable`]: true,
-            }
+            [missionKey]: true,
+            [`${missionKey}_disable`]: true,
+          }
           : {};
 
         if (existingRecord) {
@@ -426,6 +440,7 @@ export default function SessionDetailPage({
                 student: record.student.id,
                 class_session: params.sessionId,
                 mission: missionId,
+                class: classSession?.data?.class?.id,
               },
             })
           );
