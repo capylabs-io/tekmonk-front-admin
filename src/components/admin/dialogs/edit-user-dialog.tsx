@@ -72,6 +72,7 @@ export const EditUserDialog = ({
                 type="text"
                 placeholder="Nhập thông tin"
                 customClassNames="flex-1"
+                disabled={true}
               />
             </div>
             <div className="flex items-center gap-2">
@@ -85,6 +86,7 @@ export const EditUserDialog = ({
                 }
                 placeholder="Nhập thông tin"
                 customClassNames="flex-1"
+                disabled={true}
               />
             </div>
             <div className="flex items-center gap-2">

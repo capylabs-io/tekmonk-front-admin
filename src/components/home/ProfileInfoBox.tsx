@@ -5,7 +5,7 @@ import classNames from "classnames";
 type Props = {
   imageUrl: string;
   userName: string;
-  userRank: ReactNode;
+  userRank?: ReactNode;
   specialName: string;
 };
 export const ProfileInfoBox = ({
@@ -30,7 +30,11 @@ export const ProfileInfoBox = ({
         <div className="truncate flex gap-x-2 items-center">
           <span className="text-base font-bold">{userName}</span>
         </div>
-        <div className="text-sm text-gray-500 inline-flex gap-1 items-center">{userRank} {specialName}</div>
+        {userRank && (
+          <div className="text-sm text-gray-500 inline-flex gap-1 items-center">
+            {userRank} {specialName}
+          </div>
+        )}
       </div>
     </div>
   );

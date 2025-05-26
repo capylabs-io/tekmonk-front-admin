@@ -224,6 +224,8 @@ export const AccountTable = () => {
       // Prepare data for API
       const {
         id,
+        username,
+        email,
         user_role: user_role,
         provider,
         password,
