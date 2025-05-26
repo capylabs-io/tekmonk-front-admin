@@ -103,7 +103,7 @@ export default function Page() {
   const listStudentHasCertificateSelected = useMemo(() => {
     if (!certificateHistory || !certificateSelected)
       return []
-    return certificateHistory.data.filter((item: CertificateHistory) => item.certificate.id === certificateSelected?.id)
+    return certificateHistory.data.filter((item: CertificateHistory) => item.certificate?.id === certificateSelected?.id)
   }, [certificateHistory, certificateSelected])
 
   const { mutate: addStudentMutation } = useMutation({

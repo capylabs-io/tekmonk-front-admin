@@ -85,6 +85,7 @@ export const NewsDialogManager = ({
       maxSalary: initialData?.maxSalary || "",
       startTime: initialData?.startTime || new Date().toISOString(),
       endTime: initialData?.endTime || new Date().toISOString(),
+      recruitmentNumber: initialData?.recruitmentNumber || "",
     },
     mode: "onChange",
   });
@@ -111,6 +112,7 @@ export const NewsDialogManager = ({
         isDealt: initialData.isDealt || false,
         minSalary: initialData.minSalary || "",
         maxSalary: initialData.maxSalary || "",
+        recruitmentNumber: initialData.recruitmentNumber || "",
         startTime: initialData.startTime || new Date().toISOString(),
         endTime: initialData.endTime || new Date().toISOString(),
       });
@@ -143,6 +145,8 @@ export const NewsDialogManager = ({
       formData.append("tags", values.tags);
       formData.append("isDealt", values.isDealt);
       if (type === "hiring") {
+        if (values.recruitmentNumber)
+          formData.append("recruitmentNumber", values.recruitmentNumber);
         if (values.minSalary) formData.append("minSalary", values.minSalary);
         if (values.maxSalary) formData.append("maxSalary", values.maxSalary);
       }
@@ -180,6 +184,8 @@ export const NewsDialogManager = ({
       formData.append("tags", values.tags);
       if (type === "hiring") {
         formData.append("isDealt", values.isDealt);
+        if (values.recruitmentNumber)
+          formData.append("recruitmentNumber", values.recruitmentNumber);
         if (values.minSalary) formData.append("minSalary", values.minSalary);
         if (values.maxSalary) formData.append("maxSalary", values.maxSalary);
       }
@@ -285,6 +291,7 @@ export const NewsDialogManager = ({
         isDealt: false,
         minSalary: "",
         maxSalary: "",
+        recruitmentNumber: "",
         startTime: new Date().toISOString(),
         endTime: new Date().toISOString(),
       });
@@ -446,7 +453,24 @@ export const NewsDialogManager = ({
               }
             </>
           )}
-
+          {type === "hiring" && (
+            <>
+              <Controller
+                control={control}
+                name="recruitmentNumber"
+                render={({ field: { value, onChange }, fieldState }) => (
+                  <InputField
+                    value={value}
+                    onChange={onChange}
+                    title="Số lượng tuyển dụng"
+                    type="text"
+                    error={fieldState && fieldState.error?.message}
+                    placeholder="Nhập số lượng tuyển dụng"
+                  />
+                )}
+              />
+            </>
+          )}
           {/* Date fields for event and hiring types */}
           {type !== "news" && (
             <div className="flex w-full items-center">

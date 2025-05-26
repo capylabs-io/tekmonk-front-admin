@@ -175,37 +175,6 @@ export default function Page() {
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
-  const { data: CertificatePdfFieldConfig, refetch: refetchCertificatePdfFieldConfig } = useQuery({
-    queryKey: ["CertificatePdfFieldConfig"],
-    queryFn: async () => {
-      try {
-        const queryString = qs.stringify(
-          {
-            filters: {
-              certificate: {
-                id: {
-                  $eq: editingCertificate?.certificatePdfConfig?.id
-                }
-              }
-            },
-            populate: ['fields'],
-          }
-        )
-        const res = await findCertificatePdfConfig(queryString)
-        if (res) {
-          setLimit(res.meta.pagination.pageSize)
-          setPage(res.meta.pagination.page)
-          setTotalDocs(res.meta.pagination.total)
-          setTotalPage(res.meta.pagination.pageCount)
-        }
-        return res;
-      } catch (err) {
-        showError("Lỗi", "Không thể lấy thông tin chứng chỉ");
-      }
-    },
-    refetchOnWindowFocus: false,
-    enabled: isMounted, // Only run query when component is mounted
-  });
 
 
   const handleSearch = () => {
@@ -258,6 +227,7 @@ export default function Page() {
           if (certificateBackground) {
             pdfConfigFormData.append("backgroundUrl", certificateBackground);
           }
+          console.log("pdfConfigFormData", pdfConfigFormData);
 
           // Tạo cấu hình PDF
           const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigFormData);

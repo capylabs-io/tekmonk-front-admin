@@ -20,4 +20,5 @@ export const ROUTE = {
   CERTIFICATE_CONFIG: "/quan-ly/cau-hinh-chung-chi",
   SHOP_CONFIG: "/quan-ly/cau-hinh-cua-hang",
   CLAIMED_ITEM: "/quan-ly/duyet-cap-vat-pham",
+  CATEGORY: "/quan-ly/danh-muc",
 };

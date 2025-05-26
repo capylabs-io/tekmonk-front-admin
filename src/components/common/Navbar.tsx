@@ -4,7 +4,7 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Award, Bell, FileBadge, FileCheck, Flag, Goal, Home, ListOrdered, Newspaper, Settings, ShoppingCart, SlidersHorizontal, Ticket, User } from "lucide-react";
+import { Award, Bell, FileBadge, FileCheck, Flag, Goal, Home, List, ListOrdered, Newspaper, Settings, ShoppingCart, SlidersHorizontal, Ticket, User } from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
@@ -47,7 +47,7 @@ export const Navbar = () => {
 
   return (
     <div>
-      <div className="h-full md:flex flex-col p-2  xl:w-[248px] w-[64px] hidden">
+      <div className="h-full md:flex flex-col p-2 xl:w-[248px] w-[64px] hidden">
         <div className="grow-0">
           <Image
             src="/image/app-logo.png"
@@ -58,7 +58,7 @@ export const Navbar = () => {
             onClick={handleRidirectHomePage}
           />
         </div>
-        <div className="flex flex-col grow mt-4 overflow-y-auto gap-2 custom-scrollbar">
+        <div className="flex flex-col grow mt-4 overflow-y-auto gap-3 custom-scrollbar">
           <MenuCard
             title="Tài khoản"
             active={pathname.includes(ROUTE.ACCOUNT)}
@@ -221,6 +221,18 @@ export const Navbar = () => {
             )}
             url={ROUTE.CERTIFICATE}
             hidden={!hasAccess([Role.CLASSMANAGEMENT])} // Visible to all roles
+          />
+          <MenuCard
+            title="Quản lý Danh mục"
+            active={pathname.includes(ROUTE.CATEGORY)}
+            iconElement={({ isHovered }) => (
+              <List
+                size={20}
+                color={pathname.includes(ROUTE.CATEGORY) || isHovered ? "#BC4CAC" : undefined}
+              />
+            )}
+            url={ROUTE.CATEGORY}
+            hidden={!hasAccess([Role.CLASSMANAGEMENT])}
           />
           <MenuCard
             title="Cấu hình Cửa Hàng"
