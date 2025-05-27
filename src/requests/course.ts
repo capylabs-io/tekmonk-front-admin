@@ -1,4 +1,3 @@
-
 import { BASE_URL } from "@/contants/api-url";
 import tekdojoAxios from "./axios.config";
 import { StrapiResponse } from "./strapi-response-pattern";

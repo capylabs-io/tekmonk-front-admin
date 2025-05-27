@@ -26,7 +26,11 @@ import {
   ReqGetAchievementHistory,
 } from "@/requests/achievement-history";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
-import { AchievementType, AchievementTypeToText, TAchievement } from "@/types/achievement";
+import {
+  AchievementType,
+  AchievementTypeToText,
+  TAchievement,
+} from "@/types/achievement";
 import { AchievementFormData } from "@/validation/achievement";
 
 export default function Page() {
@@ -297,7 +301,15 @@ export default function Page() {
     },
     {
       header: "Loại",
-      cell: ({ row }) => <div>{AchievementTypeToText[row.original.type as keyof typeof AchievementTypeToText]}</div>,
+      cell: ({ row }) => (
+        <div>
+          {
+            AchievementTypeToText[
+              row.original.type as keyof typeof AchievementTypeToText
+            ]
+          }
+        </div>
+      ),
     },
     {
       id: "action",

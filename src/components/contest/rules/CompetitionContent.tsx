@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Table,
@@ -6,9 +6,9 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
-} from '@/components/ui/table'
-import { ExamTable } from './ExamTable'
+  TableRow,
+} from "@/components/ui/table";
+import { ExamTable } from "./ExamTable";
 
 export const CompetitionContent = () => {
   return (
@@ -83,5 +83,5 @@ export const CompetitionContent = () => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

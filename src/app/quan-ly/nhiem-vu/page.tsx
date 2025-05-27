@@ -143,7 +143,15 @@ export default function Page() {
     },
     {
       header: "Loại",
-      cell: ({ row }) => <div>{MissionTypeToText[row.original.type as keyof typeof MissionTypeToText]}</div>,
+      cell: ({ row }) => (
+        <div>
+          {
+            MissionTypeToText[
+              row.original.type as keyof typeof MissionTypeToText
+            ]
+          }
+        </div>
+      ),
     },
     {
       id: "action",
@@ -152,10 +160,11 @@ export default function Page() {
         return (
           <div className="flex gap-2">
             <button
-              className={`p-2 hover:bg-gray-100 rounded-full ${row.original.type !== "Manual"
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-                }`}
+              className={`p-2 hover:bg-gray-100 rounded-full ${
+                row.original.type !== "Manual"
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleEdit(row.original);

@@ -23,7 +23,7 @@ export default function CommonLayout({
 }: LayoutProps) {
   return (
     <div className="min-h-screen">
-      <div className="container mx-auto flex">  
+      <div className="container mx-auto flex">
         {/* Left Sidebar */}
         <div className="md:block sticky top-0 hidden h-screen">
           {leftSidebar}
@@ -31,7 +31,8 @@ export default function CommonLayout({
 
         {/* Main Content */}
         <main className="flex-1 border-x">
-          <div className="mx-auto max-w-3xl overflow-y-auto">{mainContent}</div>˜
+          <div className="mx-auto max-w-3xl overflow-y-auto">{mainContent}</div>
+          ˜
         </main>
 
         {/* Right Sidebar */}
@@ -49,7 +50,8 @@ export default function CommonLayout({
           </Link>
           <Link href="/bookmarks" className="p-2">
             <Bookmark className="h-6 w-6" />
-          </Link>˜
+          </Link>
+          ˜
           <Link href="/profile" className="p-2">
             <User className="h-6 w-6" />
           </Link>

@@ -13,14 +13,10 @@ import { quillFormats } from "@/contants/config/react-quill";
 import { quillModules } from "@/contants/config/react-quill";
 import { useEffect, useMemo, useState, useRef } from "react";
 import dynamic from "next/dynamic";
-import {
-  useForm,
-  FormProvider,
-  Controller
-} from "react-hook-form";
+import { useForm, FormProvider, Controller } from "react-hook-form";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { CommonSelect } from "../common/CommonSelect";
-import { InputFileUpdload } from "../common/InputFileUpload"
+import { InputFileUpdload } from "../common/InputFileUpload";
 import { Plus } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import qs from "qs";
@@ -30,17 +26,17 @@ import CertificateEditor, { CertificateField } from "./CustomCertificateEditor";
 import React from "react";
 
 export type CertificateFormData = {
-  name?: string
-  description?: string
-  imgUrl?: File | null
+  name?: string;
+  description?: string;
+  imgUrl?: File | null;
   // type?: string,
-  course?: string,
-  isHasValidation?: boolean
+  course?: string;
+  isHasValidation?: boolean;
   // issuer_type?: string,
   // certificate_form?: string
-  certificateFields?: string
-  certificatePdfConfigId?: number
-}
+  certificateFields?: string;
+  certificatePdfConfigId?: number;
+};
 
 type Props = {
   open: boolean;
@@ -51,14 +47,13 @@ type Props = {
   editingCertificate?: any;
 };
 
-
 export const CreateCertificateModal = ({
   open,
   onOpenChange,
   onSubmit,
   onChooseCertificateForm,
   isEditMode = false,
-  editingCertificate = null
+  editingCertificate = null,
 }: Props) => {
   const [success, error] = useSnackbarStore((state) => [
     state.success,
@@ -71,15 +66,21 @@ export const CreateCertificateModal = ({
   const [certificateFormSelected, setCertificateFormSelected] = useState(false);
 
   // Thêm state để lưu trữ thông tin từ CustomCertificateEditor
-  const [certificateFields, setCertificateFields] = useState<CertificateField[]>([]);
-  const [certificateBackground, setCertificateBackground] = useState<File | null>(null);
+  const [certificateFields, setCertificateFields] = useState<
+    CertificateField[]
+  >([]);
+  const [certificateBackground, setCertificateBackground] =
+    useState<File | null>(null);
 
   // Refs để tránh vòng lặp vô hạn
   const fieldsUpdateRef = useRef<string | null>(null);
   const backgroundUpdateRef = useRef<boolean>(false);
 
   // Phương thức để xử lý khi component cha truyền dữ liệu form từ CustomCertificateEditor
-  const updateFormWithCertificateData = (fields: CertificateField[], background: File | null) => {
+  const updateFormWithCertificateData = (
+    fields: CertificateField[],
+    background: File | null
+  ) => {
     // Chỉ cập nhật fields khi thực sự thay đổi
     const fieldsStr = JSON.stringify(fields);
     if (fieldsUpdateRef.current !== fieldsStr) {
@@ -120,18 +121,16 @@ export const CreateCertificateModal = ({
       course: "",
       isHasValidation: false,
       certificateFields: "",
-      certificatePdfConfigId: undefined
+      certificatePdfConfigId: undefined,
     },
-  })
+  });
   const { data: courses } = useQuery({
     queryKey: ["course"],
     queryFn: async () => {
       try {
-        const queryString = qs.stringify(
-          {
-            populate: '*'
-          }
-        )
+        const queryString = qs.stringify({
+          populate: "*",
+        });
         return await ReqGetCourses(queryString);
       } catch (err) {
         error("Lỗi", "Không thể lấy thông tin khóa học");
@@ -150,7 +149,7 @@ export const CreateCertificateModal = ({
     trigger, // Add trigger to manually validate fields
     formState: { errors, isValid, isDirty, isSubmitting },
   } = methods;
-  const course = watch('course')
+  const course = watch("course");
   const ReactQuill = useMemo(
     () => dynamic(() => import("react-quill"), { ssr: false }),
     []
@@ -176,7 +175,10 @@ export const CreateCertificateModal = ({
 
       // Lưu ID của certificatePdfConfig nếu có
       if (editingCertificate.certificatePdfConfig?.id) {
-        setValue("certificatePdfConfigId", editingCertificate.certificatePdfConfig.id);
+        setValue(
+          "certificatePdfConfigId",
+          editingCertificate.certificatePdfConfig.id
+        );
       }
     }
   }, [isEditMode, editingCertificate, setValue]);
@@ -197,15 +199,17 @@ export const CreateCertificateModal = ({
   };
 
   const handleImageUpload = (file: File | null) => {
-    if (file) setValue("imgUrl", file as any)
-  }
+    if (file) setValue("imgUrl", file as any);
+  };
 
   const handleSelectCourseChange = (value: string) => {
-    const selectedCourse = courses?.data.find((course) => course.id === parseInt(value))
+    const selectedCourse = courses?.data.find(
+      (course) => course.id === parseInt(value)
+    );
     if (selectedCourse) {
-      setValue('course', selectedCourse.id.toString())
+      setValue("course", selectedCourse.id.toString());
     }
-  }
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -216,20 +220,23 @@ export const CreateCertificateModal = ({
   React.useEffect(() => {
     // Tạo một hàm tham chiếu mới để tránh vòng lặp vô hạn
     const publishedMethod = {
-      updateFormWithCertificateData: (fields: CertificateField[], background: File | null) => {
+      updateFormWithCertificateData: (
+        fields: CertificateField[],
+        background: File | null
+      ) => {
         updateFormWithCertificateData(fields, background);
-      }
+      },
     };
 
     // @ts-ignore - Chấp nhận lỗi TypeScript để công khai phương thức
-    if (typeof window !== 'undefined') {
+    if (typeof window !== "undefined") {
       // @ts-ignore
       window.currentCertificateModal = publishedMethod;
     }
 
     return () => {
       // @ts-ignore
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         // @ts-ignore
         delete window.currentCertificateModal;
       }
@@ -268,13 +275,17 @@ export const CreateCertificateModal = ({
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="min-w-[160px] text-SubheadMd">Form chứng chỉ</div>
+                    <div className="min-w-[160px] text-SubheadMd">
+                      Form chứng chỉ
+                    </div>
                     <Input
                       type="text"
                       placeholder="Chọn form chứng chỉ"
                       customClassNames="flex-1"
                       onClick={handleChooseCertificateForm}
-                      value={certificateFormSelected ? "Đã chọn form chứng chỉ" : ""}
+                      value={
+                        certificateFormSelected ? "Đã chọn form chứng chỉ" : ""
+                      }
                       readOnly
                     />
                   </div>
@@ -286,13 +297,26 @@ export const CreateCertificateModal = ({
                 </div>
                 <div className="flex flex-col gap-2">
                   <div className="flex items-center gap-2">
-                    <div className="min-w-[160px] text-SubheadMd">Chọn khoá học</div>
-                    <CommonSelect className="w-full bg-grey-50" selectClassName="rounded-xl h-[50px] !bg-grey-50 border border-grey-300" placeholder="Chọn khoá học" options={courses ? courses.data.map((course) => {
-                      return {
-                        label: course.name,
-                        value: course.id.toString()
+                    <div className="min-w-[160px] text-SubheadMd">
+                      Chọn khoá học
+                    </div>
+                    <CommonSelect
+                      className="w-full bg-grey-50"
+                      selectClassName="rounded-xl h-[50px] !bg-grey-50 border border-grey-300"
+                      placeholder="Chọn khoá học"
+                      options={
+                        courses
+                          ? courses.data.map((course) => {
+                              return {
+                                label: course.name,
+                                value: course.id.toString(),
+                              };
+                            })
+                          : []
                       }
-                    }) : []} value={course} onChange={handleSelectCourseChange} />
+                      value={course}
+                      onChange={handleSelectCourseChange}
+                    />
                   </div>
                 </div>
                 {/* Category Field */}
@@ -334,14 +358,16 @@ export const CreateCertificateModal = ({
                         control={control}
                         render={({ field: { value, onChange } }) => (
                           <div className="flex gap-x-2 items-center text-sm">
-                            <Switch checked={value} onCheckedChange={onChange} />
+                            <Switch
+                              checked={value}
+                              onCheckedChange={onChange}
+                            />
                           </div>
                         )}
                       />
                     </div>
                   </div>
                 </div>
-
               </div>
             </form>
           </FormProvider>
@@ -362,8 +388,12 @@ export const CreateCertificateModal = ({
               onClick={handleSubmit(onSubmit)}
             >
               {isSubmitting
-                ? (isEditMode ? "Đang cập nhật..." : "Đang tạo...")
-                : (isEditMode ? "Cập nhật" : "Tạo mới")}
+                ? isEditMode
+                  ? "Đang cập nhật..."
+                  : "Đang tạo..."
+                : isEditMode
+                ? "Cập nhật"
+                : "Tạo mới"}
             </CommonButton>
           </div>
         </DialogFooter>

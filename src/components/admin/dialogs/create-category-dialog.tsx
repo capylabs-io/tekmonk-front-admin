@@ -45,7 +45,6 @@ type Props = {
   mode?: "create" | "edit";
 };
 
-
 type CategoryFormValues = z.infer<typeof categorySchema> & {
   missions?: Mission[];
 };
@@ -120,7 +119,9 @@ const CategoryFormFields = () => {
       {/* Category Field */}
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-[160px] text-SubheadMd text-gray-60">Mã danh mục</div>
+          <div className="w-[160px] text-SubheadMd text-gray-60">
+            Mã danh mục
+          </div>
           <Controller
             name="code"
             control={control}
@@ -238,8 +239,8 @@ export const CreateCategoryDialog = ({
                   {isSubmitting
                     ? "Đang xử lý..."
                     : mode === "create"
-                      ? "Tạo"
-                      : "Cập nhật"}
+                    ? "Tạo"
+                    : "Cập nhật"}
                 </CommonButton>
               </div>
             </form>

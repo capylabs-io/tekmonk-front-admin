@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 type Props = {
   active: boolean;
@@ -8,9 +8,17 @@ type Props = {
 export const CourseManagementIcon = ({ active, isHovered }: Props) => {
   const fillColor = active || isHovered ? "#BC4CAC" : "#000000";
   return (
-    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M15.8333 2.49967H14.1667V7.91634L11.6667 6.04134L9.16667 7.91634V2.49967H4.16667V17.4997H15.8333V2.49967ZM10.8333 2.49967V4.58301L11.6667 3.95801L12.5 4.58301V2.49967H10.8333ZM17.5 19.1663H2.5V0.833008H17.5V19.1663Z" fill={fillColor} />
+    <svg
+      width="20"
+      height="20"
+      viewBox="0 0 20 20"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+    >
+      <path
+        d="M15.8333 2.49967H14.1667V7.91634L11.6667 6.04134L9.16667 7.91634V2.49967H4.16667V17.4997H15.8333V2.49967ZM10.8333 2.49967V4.58301L11.6667 3.95801L12.5 4.58301V2.49967H10.8333ZM17.5 19.1663H2.5V0.833008H17.5V19.1663Z"
+        fill={fillColor}
+      />
     </svg>
-
-  )
-}
+  );
+};

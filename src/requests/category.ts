@@ -14,7 +14,9 @@ export const ReqCreateCategory = async (data: any) => {
 };
 
 export const ReqUpdateCategory = async (id: string, data: any) => {
-  const response = await tekdojoAxios.put(`${BASE_URL}/categories/${id}`, { data });
+  const response = await tekdojoAxios.put(`${BASE_URL}/categories/${id}`, {
+    data,
+  });
   return response.data as StrapiResponse<Category>;
 };
 

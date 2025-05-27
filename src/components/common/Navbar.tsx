@@ -4,7 +4,23 @@ import { ROUTE } from "@/contants/router";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
-import { Award, Bell, FileBadge, FileCheck, Flag, Goal, Home, List, ListOrdered, Newspaper, Settings, ShoppingCart, SlidersHorizontal, Ticket, User } from "lucide-react";
+import {
+  Award,
+  Bell,
+  FileBadge,
+  FileCheck,
+  Flag,
+  Goal,
+  Home,
+  List,
+  ListOrdered,
+  Newspaper,
+  Settings,
+  ShoppingCart,
+  SlidersHorizontal,
+  Ticket,
+  User,
+} from "lucide-react";
 import { useCustomRouter } from "./router/CustomRouter";
 import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
@@ -255,7 +271,11 @@ export const Navbar = () => {
             iconElement={({ isHovered }) => (
               <List
                 size={20}
-                color={pathname.includes(ROUTE.CATEGORY) || isHovered ? "#BC4CAC" : undefined}
+                color={
+                  pathname.includes(ROUTE.CATEGORY) || isHovered
+                    ? "#BC4CAC"
+                    : undefined
+                }
               />
             )}
             url={ROUTE.CATEGORY}

@@ -72,7 +72,7 @@ export default function Login() {
           jwt: res.jwt,
           refreshToken: res.refreshToken,
           userInfo: res.user,
-        })
+        });
       }
       // const resUserInfo = await login({
       //   identifier: data.identifier,

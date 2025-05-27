@@ -24,12 +24,19 @@ export const ReqUpdateShopItem = async (id: string, data: any) => {
   return response.data;
 };
 
-export const ReqUpdateShopItemWithImage = async (id: string, data: FormData) => {
-  const response = await tekdojoAxios.put(`${BASE_URL}/shop-items/${id}`, data, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-  });
+export const ReqUpdateShopItemWithImage = async (
+  id: string,
+  data: FormData
+) => {
+  const response = await tekdojoAxios.put(
+    `${BASE_URL}/shop-items/${id}`,
+    data,
+    {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
   return response.data;
 };
 

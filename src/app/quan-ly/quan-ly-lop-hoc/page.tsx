@@ -170,10 +170,11 @@ export default function Admin() {
         <div className="flex justify-end gap-2">
           <button
             disabled={row.original.course?.isDisabled}
-            className={`p-2 hover:bg-gray-100 rounded-full ${row.original.course?.isDisabled
-              ? "opacity-50 cursor-not-allowed"
-              : ""
-              }`}
+            className={`p-2 hover:bg-gray-100 rounded-full ${
+              row.original.course?.isDisabled
+                ? "opacity-50 cursor-not-allowed"
+                : ""
+            }`}
             onClick={(e) => {
               e.stopPropagation();
               router.push(`${ROUTE.MANAGE_CLASS}/${row.original.id}`);

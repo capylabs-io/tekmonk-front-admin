@@ -8,23 +8,43 @@ import { ColumnDef } from "@tanstack/react-table";
 import { Input } from "@/components/common/Input";
 import { useEffect, useState, useRef, useCallback } from "react";
 import { useCertificate } from "@/hooks/useCertificate";
-import { CertificateFormData, CreateCertificateModal } from "@/components/certificate/CreateCertificateModal";
+import {
+  CertificateFormData,
+  CreateCertificateModal,
+} from "@/components/certificate/CreateCertificateModal";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
-import { findCertificatePdfConfig, getCertificate, getCertificatePdfConfig, postCertificate, postCertificatePdfConfig, postCertificatePdfConfigField, updateCertificate, updateCertificatePdfConfig, updateCertificatePdfConfigField } from "@/requests/certificate";
-import { Certificate, CertificatePdfFieldConfig, CertificatePdfConfig } from "@/types/certificate";
+import {
+  findCertificatePdfConfig,
+  getCertificate,
+  getCertificatePdfConfig,
+  postCertificate,
+  postCertificatePdfConfig,
+  postCertificatePdfConfigField,
+  updateCertificate,
+  updateCertificatePdfConfig,
+  updateCertificatePdfConfigField,
+} from "@/requests/certificate";
+import {
+  Certificate,
+  CertificatePdfFieldConfig,
+  CertificatePdfConfig,
+} from "@/types/certificate";
 import { get } from "lodash";
 import {
   Dialog,
-  DialogContent, DialogFooter,
+  DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { appendFormData } from "@/lib/utils";
-import CertificateEditor, { CertificateField } from "@/components/certificate/CustomCertificateEditor";
+import CertificateEditor, {
+  CertificateField,
+} from "@/components/certificate/CustomCertificateEditor";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 
@@ -34,7 +54,9 @@ interface ExtendedCertificateFormData extends CertificateFormData {
 }
 
 // Hàm chuyển đổi từ CertificatePdfFieldConfig sang CertificateField
-const convertToCertificateField = (fieldConfig: CertificatePdfFieldConfig): CertificateField => {
+const convertToCertificateField = (
+  fieldConfig: CertificatePdfFieldConfig
+): CertificateField => {
   return {
     id: String(fieldConfig.id || Date.now()),
     label: fieldConfig.label || "",
@@ -42,7 +64,7 @@ const convertToCertificateField = (fieldConfig: CertificatePdfFieldConfig): Cert
     htmlContent: fieldConfig.value || "",
     position: {
       x: fieldConfig.positionX || 0,
-      y: fieldConfig.positionY || 0
+      y: fieldConfig.positionY || 0,
     },
     fontSize: Number(fieldConfig.fontSize) || 18,
     fontWeight: fieldConfig.fontWeight || "normal",
@@ -53,7 +75,9 @@ const convertToCertificateField = (fieldConfig: CertificatePdfFieldConfig): Cert
 };
 
 // Hàm chuyển đổi từ CertificateField sang CertificatePdfFieldConfig
-const convertToPdfFieldConfig = (field: CertificateField): CertificatePdfFieldConfig => {
+const convertToPdfFieldConfig = (
+  field: CertificateField
+): CertificatePdfFieldConfig => {
   return {
     id: Number(field.id),
     label: field.label,
@@ -64,12 +88,13 @@ const convertToPdfFieldConfig = (field: CertificateField): CertificatePdfFieldCo
     fontFamily: field.fontFamily,
     positionX: field.position.x,
     positionY: field.position.y,
-    textAlign: field.textAlign
+    textAlign: field.textAlign,
   };
 };
 
 export default function Page() {
-  const { totalPage,
+  const {
+    totalPage,
     totalDocs,
     limit,
     page,
@@ -78,31 +103,44 @@ export default function Page() {
     setPage,
     setIsOpenCreateModal,
     setTotalDocs,
-    setTotalPage
-  } = useCertificate()
+    setTotalPage,
+  } = useCertificate();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [textSearch, setTextSearch] = useState("");
 
   // Thêm state để lưu trữ giá trị từ CertificateEditor
-  const [certificateFields, setCertificateFields] = useState<CertificateField[]>([]);
-  const [certificateBackground, setCertificateBackground] = useState<File | null>(null);
-  const [certificateBackgroundUrl, setCertificateBackgroundUrl] = useState<string | null>(null);
+  const [certificateFields, setCertificateFields] = useState<
+    CertificateField[]
+  >([]);
+  const [certificateBackground, setCertificateBackground] =
+    useState<File | null>(null);
+  const [certificateBackgroundUrl, setCertificateBackgroundUrl] = useState<
+    string | null
+  >(null);
 
   // Thêm refs để tránh vòng lặp vô hạn
   const fieldsChangeRef = useRef<string | null>(null);
   const backgroundChangeRef = useRef<string | null>(null);
 
   // Thêm state để theo dõi chứng chỉ đang chỉnh sửa
-  const [editingCertificate, setEditingCertificate] = useState<Certificate | null>(null);
+  const [editingCertificate, setEditingCertificate] =
+    useState<Certificate | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
 
-  const [isOpenChooseCertificateForm, setIsOpenChooseCertificateForm] = useState(false)
+  const [isOpenChooseCertificateForm, setIsOpenChooseCertificateForm] =
+    useState(false);
 
-  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide]);
-  const [showError, showSuccess] = useSnackbarStore((state) => [state.error, state.success])
+  const [showLoading, hideLoading] = useLoadingStore((state) => [
+    state.show,
+    state.hide,
+  ]);
+  const [showError, showSuccess] = useSnackbarStore((state) => [
+    state.error,
+    state.success,
+  ]);
 
   const { handleSubmit } = useForm();
 
@@ -116,7 +154,10 @@ export default function Page() {
   };
 
   // Handler cho việc cập nhật background từ CertificateEditor
-  const handleCertificateBackgroundChange = (file: File | null, imageUrl: string | null) => {
+  const handleCertificateBackgroundChange = (
+    file: File | null,
+    imageUrl: string | null
+  ) => {
     if (file) {
       setCertificateBackground(file);
     }
@@ -128,8 +169,11 @@ export default function Page() {
 
   // Handler khi xác nhận form chứng chỉ để truyền dữ liệu vào modal tạo chứng chỉ
   const handleConfirmWithCertificateModal = (modal: any) => {
-    if (modal && typeof modal.updateFormWithCertificateData === 'function') {
-      modal.updateFormWithCertificateData(certificateFields, certificateBackground);
+    if (modal && typeof modal.updateFormWithCertificateData === "function") {
+      modal.updateFormWithCertificateData(
+        certificateFields,
+        certificateBackground
+      );
     }
   };
 
@@ -139,33 +183,37 @@ export default function Page() {
       try {
         let queryString = "";
         if (textSearch !== "") {
-          queryString = qs.stringify(
-            {
-              filters: {
-                name: {
-                  $containsi: textSearch
-                }
+          queryString = qs.stringify({
+            filters: {
+              name: {
+                $containsi: textSearch,
               },
-              populate: ['course', 'certificatePdfConfig', 'certificatePdfConfig.fields'],
-              pagination: {
-                page: page,
-                pageSize: limit,
-              },
-            }
-          )
+            },
+            populate: [
+              "course",
+              "certificatePdfConfig",
+              "certificatePdfConfig.fields",
+            ],
+            pagination: {
+              page: page,
+              pageSize: limit,
+            },
+          });
         } else {
-          queryString = qs.stringify(
-            {
-              populate: ['course', 'certificatePdfConfig', 'certificatePdfConfig.fields'],
-            }
-          )
+          queryString = qs.stringify({
+            populate: [
+              "course",
+              "certificatePdfConfig",
+              "certificatePdfConfig.fields",
+            ],
+          });
         }
-        const res = await getCertificate(queryString)
+        const res = await getCertificate(queryString);
         if (res) {
-          setLimit(res.meta.pagination.pageSize)
-          setPage(res.meta.pagination.page)
-          setTotalDocs(res.meta.pagination.total)
-          setTotalPage(res.meta.pagination.pageCount)
+          setLimit(res.meta.pagination.pageSize);
+          setPage(res.meta.pagination.page);
+          setTotalDocs(res.meta.pagination.total);
+          setTotalPage(res.meta.pagination.pageCount);
         }
         return res;
       } catch (err) {
@@ -175,7 +223,6 @@ export default function Page() {
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
-
 
   const handleSearch = () => {
     setSearchQuery(textSearch);
@@ -189,7 +236,7 @@ export default function Page() {
           name: data.name,
           description: data.description,
           // Thêm các trường khác nếu cần từ data
-          isHasValidation: data.isHasValidation
+          isHasValidation: data.isHasValidation,
         };
 
         // Thêm course nếu có
@@ -200,7 +247,9 @@ export default function Page() {
         // Kiểm tra xem có dữ liệu từ CertificateEditor không
         if (certificateFields.length > 0) {
           // BƯỚC 1: Tạo các trường config PDF
-          const pdfFieldConfigs = certificateFields.map(convertToPdfFieldConfig);
+          const pdfFieldConfigs = certificateFields.map(
+            convertToPdfFieldConfig
+          );
           const createdFieldsPromises = pdfFieldConfigs.map(async (field) => {
             // Tạm thời loại bỏ id nếu có (vì đang tạo mới)
             const fieldData = { ...field };
@@ -220,7 +269,7 @@ export default function Page() {
           // Strapi yêu cầu dữ liệu dưới dạng JSON trong trường "data"
           pdfConfigFormData.append("name", data.name || "");
           // Sửa cách gửi fields để đảm bảo là mảng số
-          const fieldIds = createdFields.map(field => Number(field.id));
+          const fieldIds = createdFields.map((field) => Number(field.id));
           pdfConfigFormData.append("fields", JSON.stringify(fieldIds));
 
           // Thêm hình ảnh nền cho PDF Config nếu có
@@ -230,7 +279,9 @@ export default function Page() {
           console.log("pdfConfigFormData", pdfConfigFormData);
 
           // Tạo cấu hình PDF
-          const pdfConfigResponse = await postCertificatePdfConfig(pdfConfigFormData);
+          const pdfConfigResponse = await postCertificatePdfConfig(
+            pdfConfigFormData
+          );
           const createdPdfConfig = pdfConfigResponse;
           console.log("Created PDF config:", createdPdfConfig);
 
@@ -250,12 +301,16 @@ export default function Page() {
         // certificateFormData.set("certificatePdfConfig", get(certificateData, 'certificatePdfConfig', null));
         // Log data để debug
         const certificateFormData = {
-          name: get(certificateData, 'name', ''),
-          description: get(certificateData, 'description', ''),
-          isHasValidation: get(certificateData, 'isHasValidation', false),
-          course: Number(get(certificateData, 'course', null)),
-          certificatePdfConfig: get(certificateData, 'certificatePdfConfig', null)
-        }
+          name: get(certificateData, "name", ""),
+          description: get(certificateData, "description", ""),
+          isHasValidation: get(certificateData, "isHasValidation", false),
+          course: Number(get(certificateData, "course", null)),
+          certificatePdfConfig: get(
+            certificateData,
+            "certificatePdfConfig",
+            null
+          ),
+        };
         console.log("Final certificate data being sent:", certificateData);
 
         // Tạo chứng chỉ
@@ -268,7 +323,7 @@ export default function Page() {
     },
     onSuccess: (data) => {
       console.log("Certificate created successfully:", data);
-      showSuccess('Tạo mới', 'Tạo chứng chỉ thành công!');
+      showSuccess("Tạo mới", "Tạo chứng chỉ thành công!");
       refetchCertificates();
       setIsOpenCreateModal(false);
       // Reset các state
@@ -280,18 +335,18 @@ export default function Page() {
       }
     },
     onError: (error) => {
-      console.error('Lỗi khi tạo chứng chỉ:', error);
-      showError('Tạo mới', 'Tạo chứng chỉ thất bại!');
+      console.error("Lỗi khi tạo chứng chỉ:", error);
+      showError("Tạo mới", "Tạo chứng chỉ thất bại!");
     },
     onSettled: () => {
       hideLoading();
-    }
+    },
   });
 
   const handlePostCertificate = async (data: CertificateFormData) => {
     showLoading();
     createCertificateMutation(data);
-  }
+  };
 
   // Xử lý khi cập nhật chứng chỉ
   const handleUpdateCertificate = async (data: CertificateFormData) => {
@@ -301,7 +356,7 @@ export default function Page() {
       const certificateData: any = {
         name: data.name,
         description: data.description,
-        isHasValidation: data.isHasValidation
+        isHasValidation: data.isHasValidation,
       };
 
       // Thêm course nếu có
@@ -317,7 +372,10 @@ export default function Page() {
           const fieldData = { ...field };
           // Nếu có id thì cập nhật, không có thì tạo mới
           if (fieldData.id) {
-            const response = await updateCertificatePdfConfigField(Number(fieldData.id), fieldData);
+            const response = await updateCertificatePdfConfigField(
+              Number(fieldData.id),
+              fieldData
+            );
             return response.data;
           } else {
             const response = await postCertificatePdfConfigField(fieldData);
@@ -336,7 +394,7 @@ export default function Page() {
         pdfConfigFormData.append("name", data.name || "");
 
         // Sửa cách gửi fields để đảm bảo là mảng số
-        const fieldIds = createdFields.map(field => Number(field.id));
+        const fieldIds = createdFields.map((field) => Number(field.id));
         pdfConfigFormData.append("fields", JSON.stringify(fieldIds));
 
         // Thêm hình ảnh nền cho PDF Config chỉ khi là file mới
@@ -357,21 +415,25 @@ export default function Page() {
 
       // BƯỚC 4: Cập nhật certificate
       const certificateFormData = {
-        name: get(certificateData, 'name', ''),
-        description: get(certificateData, 'description', ''),
-        isHasValidation: get(certificateData, 'isHasValidation', false),
-        course: Number(get(certificateData, 'course', null)),
-        certificatePdfConfig: get(certificateData, 'certificatePdfConfig', null)
-      }
+        name: get(certificateData, "name", ""),
+        description: get(certificateData, "description", ""),
+        isHasValidation: get(certificateData, "isHasValidation", false),
+        course: Number(get(certificateData, "course", null)),
+        certificatePdfConfig: get(
+          certificateData,
+          "certificatePdfConfig",
+          null
+        ),
+      };
 
       // Kiểm tra id trước khi cập nhật
       if (!editingCertificate?.id) {
-        throw new Error('Không tìm thấy ID chứng chỉ cần cập nhật');
+        throw new Error("Không tìm thấy ID chứng chỉ cần cập nhật");
       }
 
       await updateCertificate(editingCertificate.id, certificateFormData);
 
-      showSuccess('Cập nhật', 'Cập nhật chứng chỉ thành công!');
+      showSuccess("Cập nhật", "Cập nhật chứng chỉ thành công!");
       refetchCertificates();
       setIsEditMode(false);
       setEditingCertificate(null);
@@ -383,12 +445,12 @@ export default function Page() {
       setCertificateBackground(null);
       setCertificateBackgroundUrl(null);
     } catch (error) {
-      console.error('Lỗi khi cập nhật chứng chỉ:', error);
-      showError('Cập nhật', 'Cập nhật chứng chỉ thất bại!');
+      console.error("Lỗi khi cập nhật chứng chỉ:", error);
+      showError("Cập nhật", "Cập nhật chứng chỉ thất bại!");
     } finally {
       hideLoading();
     }
-  }
+  };
 
   // Xử lý nộp form (tạo mới hoặc cập nhật)
   const handleFormSubmit = async (data: CertificateFormData) => {
@@ -397,14 +459,14 @@ export default function Page() {
     } else {
       handlePostCertificate(data);
     }
-  }
+  };
 
   const handleConfirmCertificateForm = () => {
     setIsOpenChooseCertificateForm(false);
 
     // Truyền dữ liệu cho modal tạo chứng chỉ nếu đang mở
     // @ts-ignore
-    if (typeof window !== 'undefined' && window.currentCertificateModal) {
+    if (typeof window !== "undefined" && window.currentCertificateModal) {
       // @ts-ignore
       handleConfirmWithCertificateModal(window.currentCertificateModal);
     }
@@ -420,96 +482,113 @@ export default function Page() {
     setIsMounted(true);
   }, []);
 
-  const columnsCustomList: ColumnDef<Certificate>[] =
-    [
-      {
-        header: 'STT',
-        cell: ({ row }) => <span>{row.index + 1}</span>,
-
-      },
-      {
-        header: 'Tên chứng chỉ',
-        cell: ({ row }) => <span>{row.original.name}</span>,
-      },
-      {
-        header: 'Mô tả',
-        cell: ({ row }) => <div
+  const columnsCustomList: ColumnDef<Certificate>[] = [
+    {
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      header: "Tên chứng chỉ",
+      cell: ({ row }) => <span>{row.original.name}</span>,
+    },
+    {
+      header: "Mô tả",
+      cell: ({ row }) => (
+        <div
           dangerouslySetInnerHTML={{
             __html: row.original.description || "",
           }}
         ></div>
-      },
-      {
-        header: 'Thuộc khoá học',
-        cell: ({ row }) => <div>
-          {
-            get(row, 'original.course.name', '')
-          }
-        </div>
-      },
-      {
-        id: 'action',
-        header: '',
-        cell: ({ row }) => {
-          return (
-            <div className="flex gap-2">
-              <button
-                className="p-2 hover:bg-gray-100 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Chuẩn bị dữ liệu cho việc chỉnh sửa
-                  const certificateData = row.original;
+      ),
+    },
+    {
+      header: "Thuộc khoá học",
+      cell: ({ row }) => <div>{get(row, "original.course.name", "")}</div>,
+    },
+    {
+      id: "action",
+      header: "",
+      cell: ({ row }) => {
+        return (
+          <div className="flex gap-2">
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Chuẩn bị dữ liệu cho việc chỉnh sửa
+                const certificateData = row.original;
 
-                  // Lưu chứng chỉ đang chỉnh sửa
-                  setEditingCertificate(certificateData);
-                  setIsEditMode(true);
+                // Lưu chứng chỉ đang chỉnh sửa
+                setEditingCertificate(certificateData);
+                setIsEditMode(true);
 
-                  // Kiểm tra và tải thông tin cấu hình PDF nếu có
-                  if (certificateData.certificatePdfConfig) {
-                    // Nếu có certificatePdfConfig, sử dụng nó
-                    const { certificatePdfConfig } = certificateData;
+                // Kiểm tra và tải thông tin cấu hình PDF nếu có
+                if (certificateData.certificatePdfConfig) {
+                  // Nếu có certificatePdfConfig, sử dụng nó
+                  const { certificatePdfConfig } = certificateData;
 
-                    // Lấy URL ảnh nền
-                    setCertificateBackgroundUrl(certificatePdfConfig.backgroundUrl || null);
-                    setCertificateBackground(null); // Reset file
+                  // Lấy URL ảnh nền
+                  setCertificateBackgroundUrl(
+                    certificatePdfConfig.backgroundUrl || null
+                  );
+                  setCertificateBackground(null); // Reset file
 
-                    // Chuyển đổi các trường
-                    if (certificatePdfConfig.fields && Array.isArray(certificatePdfConfig.fields)) {
-                      const convertedFields = certificatePdfConfig.fields.map(convertToCertificateField);
-                      setCertificateFields(convertedFields);
-                    } else {
-                      setCertificateFields([]);
-                    }
+                  // Chuyển đổi các trường
+                  if (
+                    certificatePdfConfig.fields &&
+                    Array.isArray(certificatePdfConfig.fields)
+                  ) {
+                    const convertedFields = certificatePdfConfig.fields.map(
+                      convertToCertificateField
+                    );
+                    setCertificateFields(convertedFields);
                   } else {
-                    // Backup plan: sử dụng certificateFields như trước nếu không có certificatePdfConfig
-                    try {
-                      // Tải thông tin trường nếu có
-                      const certificateFieldsData = certificateData.certificateFields ?
-                        JSON.parse(certificateData.certificateFields) : [];
-                      setCertificateFields(certificateFieldsData);
-                    } catch (error) {
-                      console.error('Không thể phân tích dữ liệu trường:', error);
-                      setCertificateFields([]);
-                    }
-
-                    // Đặt URL ảnh nền
-                    setCertificateBackground(null); // Reset file
+                    setCertificateFields([]);
+                  }
+                } else {
+                  // Backup plan: sử dụng certificateFields như trước nếu không có certificatePdfConfig
+                  try {
+                    // Tải thông tin trường nếu có
+                    const certificateFieldsData =
+                      certificateData.certificateFields
+                        ? JSON.parse(certificateData.certificateFields)
+                        : [];
+                    setCertificateFields(certificateFieldsData);
+                  } catch (error) {
+                    console.error("Không thể phân tích dữ liệu trường:", error);
+                    setCertificateFields([]);
                   }
 
-                  // Mở modal chỉnh sửa
-                  setIsOpenCreateModal(true);
-                }}
+                  // Đặt URL ảnh nền
+                  setCertificateBackground(null); // Reset file
+                }
+
+                // Mở modal chỉnh sửa
+                setIsOpenCreateModal(true);
+              }}
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-4 w-4"
+                color="#7C6C80"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" color="#7C6C80">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                </svg>
-              </button>
-            </div>
-          );
-        },
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+          </div>
+        );
       },
-    ]
+    },
+  ];
   return (
     <>
       <div className="w-full h-screen border-r border-gray-20">
@@ -573,7 +652,6 @@ export default function Page() {
             onPageSizeChange={setLimit}
           />
         </div>
-
       </div>
       <CreateCertificateModal
         open={isOpenCreateModal}
@@ -593,16 +671,21 @@ export default function Page() {
         }}
         onSubmit={handleFormSubmit}
         onChooseCertificateForm={() => {
-          setIsOpenChooseCertificateForm(true)
+          setIsOpenChooseCertificateForm(true);
         }}
         isEditMode={isEditMode}
         editingCertificate={editingCertificate}
       />
       {isOpenChooseCertificateForm && (
-        <Dialog open={isOpenChooseCertificateForm} onOpenChange={setIsOpenChooseCertificateForm}>
+        <Dialog
+          open={isOpenChooseCertificateForm}
+          onOpenChange={setIsOpenChooseCertificateForm}
+        >
           <DialogContent className="max-w-[1300px] h-[90vh] overflow-y-auto !bg-white">
             <DialogHeader>
-              <DialogTitle className="text-xl">Tùy chỉnh mẫu chứng chỉ</DialogTitle>
+              <DialogTitle className="text-xl">
+                Tùy chỉnh mẫu chứng chỉ
+              </DialogTitle>
               <DialogDescription>
                 Thiết kế mẫu chứng chỉ của bạn với các trường tùy chỉnh.
               </DialogDescription>

@@ -54,7 +54,7 @@ export const MenuCard = ({
       onMouseLeave={() => setIsHovered(false)}
       aria-disabled={disabled}
     >
-      {typeof iconElement === 'function'
+      {typeof iconElement === "function"
         ? iconElement({ isHovered })
         : iconElement}
       {title && (
