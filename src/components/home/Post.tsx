@@ -18,6 +18,7 @@ import { CommonTag } from "../common/CommonTag";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { PostImageGallery } from "./post-detail";
+import { ProjectResources } from "./project-resource";
 
 type Props = {
   data?: PostType | null;
@@ -340,42 +341,10 @@ export const Post = ({
           ></div>
         )}
 
-        {!hideSocial && (
-          <div className="mt-3 flex gap-x-10">
-            <div className={classNames("flex items-center gap-x-1 font-bold ")}>
-              <button
-                onClick={() => {
-                  data && onLikedPostClick?.(data);
-                }}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill={data?.isLiked ? "#ef4444" : "none"}
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className={classNames(
-                    "cursor-pointer",
-                    data?.isLiked ? "text-red-500" : ""
-                  )}
-                >
-                  <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-                </svg>
-              </button>
-              <span>{likedCount}</span>
-            </div>
-            <div className="flex items-center gap-x-1 font-bold text-gray-500">
-              <button>
-                <MessageCircle size={20} />
-              </button>
-              <span>{commentCount}</span>
-            </div>
-          </div>
-        )}
+        <ProjectResources
+          projectFile={get(data, "projectFile", "")}
+          projectLink={get(data, "projectLink", "")}
+        />
       </div>
 
       {/* Post Detail Dialog */}

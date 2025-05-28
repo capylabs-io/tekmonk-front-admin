@@ -46,6 +46,7 @@ interface AddItemDialogProps {
   onItemsPerPageChange?: (itemsPerPage: number) => void;
   showSelectedTags?: boolean;
   showPagination?: boolean;
+  onSearchChange?: (value: string) => void;
 }
 
 export const AddItemDialog = ({
@@ -70,6 +71,7 @@ export const AddItemDialog = ({
   onItemsPerPageChange = () => {},
   showSelectedTags = true,
   showPagination = true,
+  onSearchChange,
 }: AddItemDialogProps) => {
   /** UseState */
   const [searchQuery, setSearchQuery] = useState("");
@@ -136,7 +138,12 @@ export const AddItemDialog = ({
               type="text"
               placeholder={searchPlaceholder}
               value={searchQuery}
-              onChange={(value) => setSearchQuery(value)}
+              onChange={(value) => {
+                setSearchQuery(value);
+                if (onSearchChange) {
+                  onSearchChange(value);
+                }
+              }}
               customClassNames="w-full"
               customInputClassNames="w-full pl-8"
             />

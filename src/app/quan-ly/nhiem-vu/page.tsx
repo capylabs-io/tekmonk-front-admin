@@ -1,6 +1,6 @@
 "use client";
 
-import { Edit, PanelLeft } from "lucide-react";
+import { Edit, PanelLeft, UserPlus } from "lucide-react";
 import { CommonCard } from "@/components/common/CommonCard";
 import "react-quill/dist/quill.snow.css";
 import { CommonTable } from "@/components/common/CommonTable";
@@ -15,11 +15,16 @@ import { Mission, MissionType, MissionTypeToText } from "@/types/mission";
 import { Input } from "@/components/common/Input";
 import { CreateMissionDialog } from "@/components/class/create-mission-dialog";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
-import { ReqGetUsersAchievedMission } from "@/requests/user";
+import {
+  ReqGetUsersAchievedMission,
+  ReqGetUserHaveNotAchievedMission,
+} from "@/requests/user";
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { MissionFormData } from "@/validation/mission";
 import { useMissionQuery } from "@/queries/mission-query";
 import { useSnackbarStore } from "@/store/SnackbarStore";
+import { AddItemDialog } from "@/components/admin/dialogs/add-item-dialog";
+import { ReqCreateMissionHistory } from "@/requests/mission-history";
 
 export default function Page() {
   const { setIsOpenCreateModal, isOpenCreateModal } = useMission();
@@ -33,10 +38,20 @@ export default function Page() {
   const [isOpenEditModal, setIsOpenEditModal] = useState(false);
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+
+  const handleUserSearchChange = async (value: string) => {
+    setStudentCurrentPage(1);
+    setUserSearchQuery(value);
+  };
 
   // Dialog states
   const [isViewStudentsDialogOpen, setIsViewStudentsDialogOpen] =
     useState(false);
+  const [showStudentListDialog, setShowStudentListDialog] = useState(false);
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
+  const [studentCurrentPage, setStudentCurrentPage] = useState(1);
+  const [studentItemsPerPage, setStudentItemsPerPage] = useState(10);
 
   const { data: missionList, refetch: refetchMissionList } = useMissionQuery(
     activeTab,
@@ -44,6 +59,30 @@ export default function Page() {
     itemsPerPage,
     searchQuery
   );
+
+  const { data: studentList } = useQuery({
+    queryKey: [
+      "studentList",
+      studentCurrentPage,
+      studentItemsPerPage,
+      selectedMission?.id,
+      userSearchQuery,
+    ],
+    queryFn: async () => {
+      try {
+        const queryString = qs.stringify({
+          mission: selectedMission?.id,
+          page: studentCurrentPage,
+          pageSize: studentItemsPerPage,
+          search: userSearchQuery,
+        });
+        return await ReqGetUserHaveNotAchievedMission(queryString);
+      } catch (error) {
+        console.log("error when fetching student list", error);
+      }
+    },
+    enabled: showStudentListDialog && !!selectedMission,
+  });
 
   const [showSuccess, showError] = useSnackbarStore((state) => [
     state.success,
@@ -72,6 +111,54 @@ export default function Page() {
       setIsOpenEditModal(true);
     } else {
       console.log("Cannot edit system missions");
+    }
+  };
+
+  const handleOpenStudentList = (mission: Mission) => {
+    setSelectedMission(mission);
+    setShowStudentListDialog(true);
+  };
+
+  const addStudentsMutation = useMutation({
+    mutationFn: async ({
+      missionId,
+      studentIds,
+    }: {
+      missionId: string;
+      studentIds: string[];
+    }) => {
+      const promises = studentIds.map(async (id) => {
+        return await ReqCreateMissionHistory({
+          data: {
+            user: id,
+            mission: missionId,
+          },
+        });
+      });
+
+      return await Promise.all(promises);
+    },
+    onSuccess: () => {
+      showSuccess("Thành công", "Thêm học viên thành công!");
+      setShowStudentListDialog(false);
+      setSelectedStudents([]);
+      refetchMissionList();
+    },
+    onError: (err) => {
+      console.error("Error adding students:", err);
+      showError("Lỗi", "Có lỗi xảy ra khi thêm học viên");
+    },
+  });
+
+  const handleAddStudents = async () => {
+    if (!selectedMission) return;
+    try {
+      await addStudentsMutation.mutateAsync({
+        missionId: String(selectedMission.id),
+        studentIds: selectedStudents.map((student) => student),
+      });
+    } catch (err) {
+      console.error("Error in handleAddStudents:", err);
     }
   };
 
@@ -123,11 +210,6 @@ export default function Page() {
     },
   });
 
-  const handleCreateSuccess = () => {
-    refetchMissionList();
-    setIsOpenCreateModal(false);
-  };
-
   const columns: ColumnDef<Mission>[] = [
     {
       header: "STT",
@@ -143,7 +225,15 @@ export default function Page() {
     },
     {
       header: "Loại",
-      cell: ({ row }) => <div>{MissionTypeToText[row.original.type as keyof typeof MissionTypeToText]}</div>,
+      cell: ({ row }) => (
+        <div>
+          {
+            MissionTypeToText[
+              row.original.type as keyof typeof MissionTypeToText
+            ]
+          }
+        </div>
+      ),
     },
     {
       id: "action",
@@ -152,10 +242,21 @@ export default function Page() {
         return (
           <div className="flex gap-2">
             <button
-              className={`p-2 hover:bg-gray-100 rounded-full ${row.original.type !== "Manual"
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-                }`}
+              className="p-2 hover:bg-gray-100 rounded-full"
+              onClick={() => handleOpenStudentList(row.original)}
+            >
+              {row.original.type === "Manual" ? (
+                <UserPlus className="h-4 w-4" color="#7C6C80" />
+              ) : (
+                <></>
+              )}
+            </button>
+            <button
+              className={`p-2 hover:bg-gray-100 rounded-full ${
+                row.original.type !== "Manual"
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
               onClick={(e) => {
                 e.stopPropagation();
                 handleEdit(row.original);
@@ -263,6 +364,27 @@ export default function Page() {
           mission={selectedMission}
         />
       )}
+
+      <AddItemDialog
+        open={showStudentListDialog}
+        onOpenChange={setShowStudentListDialog}
+        title="Học viên chưa hoàn thành nhiệm vụ"
+        items={studentList?.data || []}
+        selectedItems={selectedStudents}
+        setSelectedItems={setSelectedStudents}
+        searchPlaceholder="Tìm kiếm học viên"
+        nameKey="username"
+        descriptionKey="email"
+        onSubmit={handleAddStudents}
+        onCancel={() => setShowStudentListDialog(false)}
+        totalItems={studentList?.meta?.pagination?.total || 0}
+        currentPage={studentCurrentPage}
+        itemsPerPage={studentItemsPerPage}
+        onPageChange={setStudentCurrentPage}
+        onItemsPerPageChange={setStudentItemsPerPage}
+        showSelectedTags={false}
+        onSearchChange={handleUserSearchChange}
+      />
 
       {/* View students who have achieved this mission */}
       {isViewStudentsDialogOpen && (

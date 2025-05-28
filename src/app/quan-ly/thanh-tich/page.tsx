@@ -26,7 +26,11 @@ import {
   ReqGetAchievementHistory,
 } from "@/requests/achievement-history";
 import { StudentListDialog } from "@/components/admin/dialogs/student-list-dialog";
-import { AchievementType, AchievementTypeToText, TAchievement } from "@/types/achievement";
+import {
+  AchievementType,
+  AchievementTypeToText,
+  TAchievement,
+} from "@/types/achievement";
 import { AchievementFormData } from "@/validation/achievement";
 
 export default function Page() {
@@ -50,6 +54,12 @@ export default function Page() {
     state.success,
     state.error,
   ]);
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+
+  const handleUserSearchChange = async (value: string) => {
+    setStudentCurrentPage(1);
+    setUserSearchQuery(value);
+  };
   const [isViewStudentsDialogOpen, setIsViewStudentsDialogOpen] =
     useState(false);
 
@@ -107,6 +117,8 @@ export default function Page() {
       studentCurrentPage,
       studentItemsPerPage,
       selectedAchievement?.id,
+      searchQuery,
+      userSearchQuery,
     ],
     queryFn: async () => {
       try {
@@ -114,6 +126,7 @@ export default function Page() {
           achievement: selectedAchievement?.id,
           page: studentCurrentPage,
           pageSize: studentItemsPerPage,
+          search: userSearchQuery,
         });
         return await ReqGetUserHaveAchievedAchievement(queryString);
       } catch (error) {
@@ -297,7 +310,15 @@ export default function Page() {
     },
     {
       header: "Loại",
-      cell: ({ row }) => <div>{AchievementTypeToText[row.original.type as keyof typeof AchievementTypeToText]}</div>,
+      cell: ({ row }) => (
+        <div>
+          {
+            AchievementTypeToText[
+              row.original.type as keyof typeof AchievementTypeToText
+            ]
+          }
+        </div>
+      ),
     },
     {
       id: "action",
@@ -444,7 +465,7 @@ export default function Page() {
       <AddItemDialog
         open={showStudentListDialog}
         onOpenChange={setShowStudentListDialog}
-        title="Học viên hoàn thành nhiệm vụ"
+        title="Học viên chưa đạt Thành tựu này"
         items={studentList?.data || []}
         selectedItems={selectedStudents}
         setSelectedItems={setSelectedStudents}
@@ -459,6 +480,7 @@ export default function Page() {
         onPageChange={setStudentCurrentPage}
         onItemsPerPageChange={setStudentItemsPerPage}
         showSelectedTags={false}
+        onSearchChange={handleUserSearchChange}
       />
 
       {isViewStudentsDialogOpen && (
