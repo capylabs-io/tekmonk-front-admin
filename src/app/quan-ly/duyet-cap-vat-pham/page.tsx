@@ -21,7 +21,10 @@ import {
 import qs from "qs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
-import { ReqGetClaimedItem, ReqUpdateClaimedItem } from "@/requests/claimed-item";
+import {
+  ReqGetClaimedItem,
+  ReqUpdateClaimedItem,
+} from "@/requests/claimed-item";
 import { ClaimedItemStatusEnum } from "@/types/shop";
 import { Tabs } from "@/components/new/tabs";
 import { Input } from "@/components/common/Input";
@@ -99,8 +102,6 @@ export default function VerifyClaimedItem() {
     enabled: isMounted, // Only run query when component is mounted
   });
 
-
-
   // Effect hooks
   useEffect(() => {
     setIsMounted(true);
@@ -143,37 +144,43 @@ export default function VerifyClaimedItem() {
     // },
     {
       header: "Số lượng",
-      cell: ({ row }) => <span>{get(row.original, "quantity", "Không có")}</span>,
+      cell: ({ row }) => (
+        <span>{get(row.original, "quantity", "Không có")}</span>
+      ),
     },
     {
       header: "Người dùng",
-      cell: ({ row }) => <span>{get(row.original, "user.username", "Không có")}</span>,
+      cell: ({ row }) => (
+        <span>{get(row.original, "user.username", "Không có")}</span>
+      ),
     },
     {
       header: "Ngày tạo",
-      cell: ({ row }) => <span>{get(row.original, "createdAt", "Không có")}</span>,
+      cell: ({ row }) => (
+        <span>{get(row.original, "createdAt", "Không có")}</span>
+      ),
     },
     {
       id: "action",
       header: "",
       cell: ({ row }) => (
         <div className="flex gap-2">
-          {
-            get(row.original, "status", "") === ClaimedItemStatusEnum.PENDING ?
-              <button
-                className="p-2 hover:bg-gray-100 rounded-full"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsDialogOpen(true);
-                  setClaimedItemToEdit(row.original);
-                }}
-              >
-                <CheckCircle className="h-5 w-5" color="#7C6C80" />
-              </button> :
-              <div className="flex items-center justify-center">
-                <div className="text-base text-primary-50">Đã duyệt</div>
-              </div>
-          }
+          {get(row.original, "status", "") === ClaimedItemStatusEnum.PENDING ? (
+            <button
+              className="p-2 hover:bg-gray-100 rounded-full"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsDialogOpen(true);
+                setClaimedItemToEdit(row.original);
+              }}
+            >
+              <CheckCircle className="h-5 w-5" color="#7C6C80" />
+            </button>
+          ) : (
+            <div className="flex items-center justify-center">
+              <div className="text-base text-primary-50">Đã duyệt</div>
+            </div>
+          )}
         </div>
       ),
     },
@@ -195,7 +202,9 @@ export default function VerifyClaimedItem() {
               <PanelLeft width={17} height={17} />
             </CommonCard>
             <div className="flex items-center justify-center">
-              <div className="text-SubheadLg text-gray-95">Duyệt cấp vật phẩm</div>
+              <div className="text-SubheadLg text-gray-95">
+                Duyệt cấp vật phẩm
+              </div>
             </div>
           </div>
         </div>
@@ -206,76 +215,76 @@ export default function VerifyClaimedItem() {
           setCurrentTab={setActiveTab}
           className="w-full !justify-start space-x-5 px-4 border-b border-gray-20"
         />
-        {
-          activeTab.id === 'pending' && (
-            <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
-              <div className="flex justify-between items-center">
-                <Input
-                  type="text"
-                  isSearch={true}
-                  value={textSearch}
-                  onChange={setTextSearch}
-                  placeholder="Tìm kiếm vật phẩm theo mã quy đổi"
-                  customClassNames="max-w-[410px] h-10 mb-4"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                  onSearch={handleSearch}
-                />
-              </div>
-              {courses && (
-                <CommonTable
-                  data={courses?.data.filter((item: any) => item.status === ClaimedItemStatusEnum.PENDING)}
-                  isLoading={false}
-                  columns={columns}
-                  page={page}
-                  totalPage={courses.meta.pagination.pageCount}
-                  totalDocs={courses.meta.pagination.total}
-                  onPageChange={setPage}
-                  docsPerPage={pageSize}
-                  onPageSizeChange={setPageSize}
-                />
-              )}
+        {activeTab.id === "pending" && (
+          <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+            <div className="flex justify-between items-center">
+              <Input
+                type="text"
+                isSearch={true}
+                value={textSearch}
+                onChange={setTextSearch}
+                placeholder="Tìm kiếm vật phẩm theo mã quy đổi"
+                customClassNames="max-w-[410px] h-10 mb-4"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+                onSearch={handleSearch}
+              />
             </div>
-          )
-        }
-        {
-          activeTab.id === 'verified' && (
-            <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
-              <div className="flex justify-between items-center">
-                <Input
-                  type="text"
-                  isSearch={true}
-                  value={textSearch}
-                  onChange={setTextSearch}
-                  placeholder="Tìm kiếm vật phẩm theo mã quy đổi"
-                  customClassNames="max-w-[410px] h-10 mb-4"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                  onSearch={handleSearch}
-                />
-              </div>
-              {courses && (
-                <CommonTable
-                  data={courses?.data.filter((item: any) => item.status === ClaimedItemStatusEnum.CLAIMED)}
-                  isLoading={false}
-                  columns={columns}
-                  page={page}
-                  totalPage={courses.meta.pagination.pageCount}
-                  totalDocs={courses.meta.pagination.total}
-                  onPageChange={setPage}
-                  docsPerPage={pageSize}
-                  onPageSizeChange={setPageSize}
-                />
-              )}
+            {courses && (
+              <CommonTable
+                data={courses?.data.filter(
+                  (item: any) => item.status === ClaimedItemStatusEnum.PENDING
+                )}
+                isLoading={false}
+                columns={columns}
+                page={page}
+                totalPage={courses.meta.pagination.pageCount}
+                totalDocs={courses.meta.pagination.total}
+                onPageChange={setPage}
+                docsPerPage={pageSize}
+                onPageSizeChange={setPageSize}
+              />
+            )}
+          </div>
+        )}
+        {activeTab.id === "verified" && (
+          <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+            <div className="flex justify-between items-center">
+              <Input
+                type="text"
+                isSearch={true}
+                value={textSearch}
+                onChange={setTextSearch}
+                placeholder="Tìm kiếm vật phẩm theo mã quy đổi"
+                customClassNames="max-w-[410px] h-10 mb-4"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+                onSearch={handleSearch}
+              />
             </div>
-          )
-        }
+            {courses && (
+              <CommonTable
+                data={courses?.data.filter(
+                  (item: any) => item.status === ClaimedItemStatusEnum.CLAIMED
+                )}
+                isLoading={false}
+                columns={columns}
+                page={page}
+                totalPage={courses.meta.pagination.pageCount}
+                totalDocs={courses.meta.pagination.total}
+                onPageChange={setPage}
+                docsPerPage={pageSize}
+                onPageSizeChange={setPageSize}
+              />
+            )}
+          </div>
+        )}
       </div>
       <Dialog
         open={isDialogOpen}

@@ -7,10 +7,9 @@ export type Course = {
   numberSession: number;
   description?: string;
   thumbnail?: string;
-}
-
+};
 
 export type CourseMission = {
-  course: Course,
-  mission: Mission
-}
+  course: Course;
+  mission: Mission;
+};

@@ -8,26 +8,26 @@ export const LeadeboardContent = () => {
   const dataMockData = [
     {
       user: {
-        username: 'Long',
-        specialName: 'BÁ VƯƠNG HỌC ĐƯỜNG',
+        username: "Long",
+        specialName: "BÁ VƯƠNG HỌC ĐƯỜNG",
       },
-      score: "20000"
+      score: "20000",
     },
     {
       user: {
-        username: 'Hải',
-        specialName: 'BÁ VƯƠNG HỌC ĐƯỜNG',
+        username: "Hải",
+        specialName: "BÁ VƯƠNG HỌC ĐƯỜNG",
       },
-      score: "30000"
+      score: "30000",
     },
     {
       user: {
-        username: 'Phong',
-        specialName: 'BÁ VƯƠNG HỌC ĐƯỜNG',
+        username: "Phong",
+        specialName: "BÁ VƯƠNG HỌC ĐƯỜNG",
       },
-      score: "10000"
+      score: "10000",
     },
-  ]
+  ];
   return (
     <div>
       <div className="w-full flex justify-center items-center bg-[url('/image/leaderboard/leaderboard-banner.png')] bg-no-repeat bg-cover h-[400px] gap-x-12 pb-7">
@@ -45,11 +45,9 @@ export const LeadeboardContent = () => {
 
         <LeaderboardTopUserCard
           customClassNames="mb-4"
-
           rank="first"
           name={
-            dataMockData[0]?.user?.username &&
-            dataMockData[0]?.user?.username
+            dataMockData[0]?.user?.username && dataMockData[0]?.user?.username
           }
           specialName={dataMockData[0]?.user?.specialName}
           score={dataMockData[0]?.score}

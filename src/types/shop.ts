@@ -1,35 +1,34 @@
-import { Category } from "./Category"
-import { User } from "./common-types"
+import { Category } from "./Category";
+import { User } from "./common-types";
 
 export type ShopItem = {
-  name?: string
-  image?: string,
-  price?: number,
-  description?: string
-  category: Category
-  type?: ShopItemEnum
-  quantity?: number
-}
+  name?: string;
+  image?: string;
+  price?: number;
+  description?: string;
+  category: Category;
+  type?: ShopItemEnum;
+  quantity?: number;
+};
 
 export enum ShopItemEnum {
   VIRTUAL = "virtual",
-  STATIONERY = "stationery"
+  STATIONERY = "stationery",
 }
-
 
 export type ClaimedItem = {
-  id?: number,
-  code?: string,
-  itemCode?: string
-  quantity?: number
-  user?: User
-  createdAt?: string
-  updatedAt?: string
-  status?: ClaimedItemStatusEnum
-}
+  id?: number;
+  code?: string;
+  itemCode?: string;
+  quantity?: number;
+  user?: User;
+  createdAt?: string;
+  updatedAt?: string;
+  status?: ClaimedItemStatusEnum;
+};
 
 export enum ClaimedItemStatusEnum {
   PENDING = "pending",
   CLAIMED = "claimed",
-  REJECTED = "rejected"
+  REJECTED = "rejected",
 }

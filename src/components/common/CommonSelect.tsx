@@ -1,21 +1,27 @@
-"use client"
+"use client";
 
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import classNames from "classnames"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import classNames from "classnames";
 
 export type SelectOption = {
-  value: string
-  label: string
-}
+  value: string;
+  label: string;
+};
 
 export interface SelectProps {
-  value?: string
-  onChange?: (value: string) => void
-  options?: SelectOption[]
-  placeholder?: string
-  className?: string
-  selectClassName?: string
-  disabled?: boolean
+  value?: string;
+  onChange?: (value: string) => void;
+  options?: SelectOption[];
+  placeholder?: string;
+  className?: string;
+  selectClassName?: string;
+  disabled?: boolean;
 }
 
 export const CommonSelect = ({
@@ -34,14 +40,18 @@ export const CommonSelect = ({
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent className="bg-grey-50 !z-50">
-          {options && options.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="cursor-pointer">
-              {option.label}
-            </SelectItem>
-          ))}
+          {options &&
+            options.map((option) => (
+              <SelectItem
+                key={option.value}
+                value={option.value}
+                className="cursor-pointer"
+              >
+                {option.label}
+              </SelectItem>
+            ))}
         </SelectContent>
       </Select>
     </div>
-  )
-}
-
+  );
+};

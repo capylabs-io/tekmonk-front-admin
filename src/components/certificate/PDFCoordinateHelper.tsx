@@ -1,33 +1,33 @@
-import React from 'react';
-import { Document, Page, View, Text, StyleSheet } from '@react-pdf/renderer';
+import React from "react";
+import { Document, Page, View, Text, StyleSheet } from "@react-pdf/renderer";
 
 const styles = StyleSheet.create({
   page: {
-    flexDirection: 'column',
-    backgroundColor: '#ffffff',
+    flexDirection: "column",
+    backgroundColor: "#ffffff",
   },
   ruler: {
-    position: 'absolute',
+    position: "absolute",
     height: 1,
-    width: '100%',
-    backgroundColor: '#cccccc',
+    width: "100%",
+    backgroundColor: "#cccccc",
   },
   verticalRuler: {
-    position: 'absolute',
+    position: "absolute",
     width: 1,
-    height: '100%',
-    backgroundColor: '#cccccc',
+    height: "100%",
+    backgroundColor: "#cccccc",
   },
   marker: {
-    position: 'absolute',
+    position: "absolute",
     width: 10,
     height: 10,
-    backgroundColor: 'red',
+    backgroundColor: "red",
   },
   label: {
-    position: 'absolute',
+    position: "absolute",
     fontSize: 8,
-    color: '#000000',
+    color: "#000000",
   },
 });
 
@@ -37,7 +37,11 @@ interface PDFCoordinateHelperProps {
   step: number;
 }
 
-const PDFCoordinateHelper: React.FC<PDFCoordinateHelperProps> = ({ width, height, step = 100 }) => {
+const PDFCoordinateHelper: React.FC<PDFCoordinateHelperProps> = ({
+  width,
+  height,
+  step = 100,
+}) => {
   // Tạo các đường thước ngang
   const horizontalRulers = [];
   for (let y = 0; y <= height; y += step) {
@@ -70,4 +74,4 @@ const PDFCoordinateHelper: React.FC<PDFCoordinateHelperProps> = ({ width, height
   );
 };
 
-export default PDFCoordinateHelper; 
+export default PDFCoordinateHelper;

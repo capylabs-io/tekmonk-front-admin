@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState } from "react";
 import { Input } from "@/components/common/Input";
 import {
   Dialog,
@@ -7,22 +7,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import {
-  useForm,
-  FormProvider,
-  Controller,
-} from "react-hook-form";
-import { ShopItem, ShopItemEnum } from '@/types/shop';
-import { quillFormats, quillModules } from '@/contants/config/react-quill';
-import { CommonSelect } from '../common/CommonSelect';
-import { CommonButton } from '../common/button/CommonButton';
-import { useQuery } from '@tanstack/react-query';
-import { ReqGetCategory } from '@/requests/category';
-import { useSnackbarStore } from '@/store/SnackbarStore';
-import { SHOP_ITEM_TYPE } from '@/contants/shop';
-import { InputFileUpdload } from '../common/InputFileUpload';
-import { ImagePlus } from 'lucide-react';
-import dynamic from 'next/dynamic';
+import { useForm, FormProvider, Controller } from "react-hook-form";
+import { ShopItem, ShopItemEnum } from "@/types/shop";
+import { quillFormats, quillModules } from "@/contants/config/react-quill";
+import { CommonSelect } from "../common/CommonSelect";
+import { CommonButton } from "../common/button/CommonButton";
+import { useQuery } from "@tanstack/react-query";
+import { ReqGetCategory } from "@/requests/category";
+import { useSnackbarStore } from "@/store/SnackbarStore";
+import { SHOP_ITEM_TYPE } from "@/contants/shop";
+import { InputFileUpdload } from "../common/InputFileUpload";
+import { ImagePlus } from "lucide-react";
+import dynamic from "next/dynamic";
 const ReactQuill = dynamic(() => import("react-quill"), {
   ssr: false,
   loading: () => (
@@ -42,17 +38,17 @@ export const CreateShopItem = ({
   isEdit,
   onOpenChange,
   onSubmit,
-  initialData
+  initialData,
 }: Props) => {
   const form = useForm<ShopItem>({
     // resolver: zodResolver(misionFormSchema),
     defaultValues: {
-      name: initialData?.name || '',
-      image: initialData?.image || '',
+      name: initialData?.name || "",
+      image: initialData?.image || "",
       price: initialData?.price || 0,
-      description: initialData?.description || '',
+      description: initialData?.description || "",
       category: initialData?.category || undefined,
-      type: initialData?.type || '' as ShopItemEnum,
+      type: initialData?.type || ("" as ShopItemEnum),
       quantity: initialData?.quantity || 0,
     },
   });
@@ -86,32 +82,38 @@ export const CreateShopItem = ({
     },
   });
   const handleSelectChange = (value: string) => {
-    const category = categories?.data?.find((category) => category.id?.toString() === value);
+    const category = categories?.data?.find(
+      (category) => category.id?.toString() === value
+    );
     if (!category?.id) {
-      return
+      return;
     }
-    setValue('category', category);
-  }
+    setValue("category", category);
+  };
   const handleImageUpload = (file: File | null) => {
     console.log("file", file as any);
     setUploadedImage(file);
     // Update the form value for validation
-    setValue("image", file ? "has-new-file" : (initialData?.image ? "existing-image" : ""), {
-      shouldValidate: true,
-      shouldDirty: true,
-      shouldTouch: true,
-    });
+    setValue(
+      "image",
+      file ? "has-new-file" : initialData?.image ? "existing-image" : "",
+      {
+        shouldValidate: true,
+        shouldDirty: true,
+        shouldTouch: true,
+      }
+    );
   };
 
   const handleSelectItemTypeChange = (value: string) => {
     if (value === ShopItemEnum.VIRTUAL) {
-      setValue('quantity', 0);
+      setValue("quantity", 0);
       setIsStationery(true);
     } else {
       setIsStationery(false);
     }
-    setValue('type', value as ShopItemEnum);
-  }
+    setValue("type", value as ShopItemEnum);
+  };
   const handleDialogChange = (open: boolean) => {
     if (!open) {
       reset();
@@ -121,15 +123,14 @@ export const CreateShopItem = ({
   useEffect(() => {
     if (initialData) {
       reset({
-        name: initialData.name || '',
+        name: initialData.name || "",
         price: initialData.price || 0,
-        image: initialData.image || '',
-        description: initialData.description || '',
+        image: initialData.image || "",
+        description: initialData.description || "",
         category: initialData.category || undefined,
         type: initialData.type || ShopItemEnum.VIRTUAL,
         quantity: initialData.quantity || 0,
       });
-
     }
   }, [initialData]);
   useEffect(() => {
@@ -178,27 +179,37 @@ export const CreateShopItem = ({
                     contentImageUpload={
                       <>
                         {initialData?.image ? (
-                          <img src={initialData.image} alt="ảnh" className="w-[100px] h-[100px] object-cover" />
-                        )
-                          :
+                          <img
+                            src={initialData.image}
+                            alt="ảnh"
+                            className="w-[100px] h-[100px] object-cover"
+                          />
+                        ) : (
                           <>
-                            <div
-                              className="rounded-full p-5 w-max mx-auto flex items-center justify-center relative bg-gray-20"
-                            >
-                              <ImagePlus size={20} className="absolute text-gray-50" />
+                            <div className="rounded-full p-5 w-max mx-auto flex items-center justify-center relative bg-gray-20">
+                              <ImagePlus
+                                size={20}
+                                className="absolute text-gray-50"
+                              />
                             </div>
                             <div className="mt-2 text-gray-70 text-SubheadSm">
                               Tải lên ảnh/video
                             </div>
-                            <p className="text-gray-70 !text-xs font-normal">Hoặc kéo và thả</p>
+                            <p className="text-gray-70 !text-xs font-normal">
+                              Hoặc kéo và thả
+                            </p>
                           </>
-                        }
+                        )}
                       </>
                     }
                   />
                 </div>
               </div>
-              {errors.image && <span className="text-red-500 text-xs mt-1">{errors.image.message}</span>}
+              {errors.image && (
+                <span className="text-red-500 text-xs mt-1">
+                  {errors.image.message}
+                </span>
+              )}
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="w-[160px] text-SubheadMd">Giá tiền</div>
@@ -221,7 +232,9 @@ export const CreateShopItem = ({
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-[160px] text-SubheadMd">Số lượng yêu cầu</div>
+                  <div className="w-[160px] text-SubheadMd">
+                    Số lượng yêu cầu
+                  </div>
                   <Controller
                     name="quantity"
                     control={control}
@@ -243,14 +256,37 @@ export const CreateShopItem = ({
 
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
-                  <div className="min-w-[160px] text-SubheadMd">Loại vật phẩm</div>
-                  <CommonSelect className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn loại vật phẩm" options={SHOP_ITEM_TYPE} value={getValues('type')} onChange={handleSelectItemTypeChange} />
+                  <div className="min-w-[160px] text-SubheadMd">
+                    Loại vật phẩm
+                  </div>
+                  <CommonSelect
+                    className="w-full"
+                    selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300"
+                    placeholder="Chọn loại vật phẩm"
+                    options={SHOP_ITEM_TYPE}
+                    value={getValues("type")}
+                    onChange={handleSelectItemTypeChange}
+                  />
                 </div>
               </div>
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2">
                   <div className="min-w-[160px] text-SubheadMd">Danh mục</div>
-                  <CommonSelect className="w-full" selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300" placeholder="Chọn danh mục" options={categories ? categories?.data?.map((category) => ({ label: category.name || "", value: category.id?.toString() || "" })) : []} value={getValues('category.name')} onChange={handleSelectChange} />
+                  <CommonSelect
+                    className="w-full"
+                    selectClassName="rounded-xl h-[50px] bg-grey-50 border border-grey-300"
+                    placeholder="Chọn danh mục"
+                    options={
+                      categories
+                        ? categories?.data?.map((category) => ({
+                            label: category.name || "",
+                            value: category.id?.toString() || "",
+                          }))
+                        : []
+                    }
+                    value={getValues("category.name")}
+                    onChange={handleSelectChange}
+                  />
                 </div>
               </div>
               {/* Description Field */}
@@ -284,7 +320,6 @@ export const CreateShopItem = ({
               </div>
 
               {/* Category Field */}
-
             </div>
           </form>
         </FormProvider>
@@ -302,9 +337,9 @@ export const CreateShopItem = ({
               className="h-11 w-[139px]"
               disabled={isSubmitting}
               onClick={() => {
-                onSubmit(getValues(), uploadedImage)
-                reset()
-                setUploadedImage(null)
+                onSubmit(getValues(), uploadedImage);
+                reset();
+                setUploadedImage(null);
               }}
             >
               {isEdit ? "Cập nhật" : "Tạo mới"}
@@ -313,5 +348,5 @@ export const CreateShopItem = ({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

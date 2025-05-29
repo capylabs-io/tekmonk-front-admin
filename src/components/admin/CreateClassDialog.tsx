@@ -364,10 +364,11 @@ export function CreateClassDialog({
                   control={step1Form.control}
                   render={({ field }) => (
                     <select
-                      className={`flex-1 w-full p-2 border ${step1Form.formState.errors.courseId
-                        ? "border-red-500"
-                        : "border-gray-300"
-                        } rounded-md`}
+                      className={`flex-1 w-full p-2 border ${
+                        step1Form.formState.errors.courseId
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      } rounded-md`}
                       {...field}
                       onChange={(e) => {
                         field.onChange(e);
@@ -413,13 +414,13 @@ export function CreateClassDialog({
                 {step1Form.formState.errors.dateRange && (
                   <p className="text-red-500 text-sm mt-1">
                     {typeof step1Form.formState.errors.dateRange.message ===
-                      "string"
+                    "string"
                       ? step1Form.formState.errors.dateRange.message
                       : step1Form.formState.errors.dateRange?.startDate
-                        ?.message ||
-                      step1Form.formState.errors.dateRange?.endDate
-                        ?.message ||
-                      "Vui lòng chọn thời gian bắt đầu và kết thúc hợp lệ"}
+                          ?.message ||
+                        step1Form.formState.errors.dateRange?.endDate
+                          ?.message ||
+                        "Vui lòng chọn thời gian bắt đầu và kết thúc hợp lệ"}
                   </p>
                 )}
               </div>
@@ -451,10 +452,11 @@ export function CreateClassDialog({
                       type="text"
                       value={field.value}
                       onChange={(e) => field.onChange(e)}
-                      customClassNames={`flex-1 border-${step1Form.formState.errors.className
-                        ? "red-500"
-                        : "gray-300"
-                        } focus:ring-purple-500 focus:border-transparent`}
+                      customClassNames={`flex-1 border-${
+                        step1Form.formState.errors.className
+                          ? "red-500"
+                          : "gray-300"
+                      } focus:ring-purple-500 focus:border-transparent`}
                     />
                   )}
                 />
@@ -491,10 +493,11 @@ export function CreateClassDialog({
                                 setTeacherSearchQuery(value);
                                 setIsTeacherDropdownOpen(true);
                               }}
-                              customClassNames={`flex-1 !w-[464px] border-${step1Form.formState.errors.teacherId
-                                ? "red-500"
-                                : "gray-300"
-                                } focus:ring-purple-500 focus:border-transparent cursor-pointer`}
+                              customClassNames={`flex-1 !w-[464px] border-${
+                                step1Form.formState.errors.teacherId
+                                  ? "red-500"
+                                  : "gray-300"
+                              } focus:ring-purple-500 focus:border-transparent cursor-pointer`}
                             />
                           </div>
                           {isTeacherDropdownOpen && (
@@ -548,8 +551,8 @@ export function CreateClassDialog({
                                             </div>
                                             {field.value ===
                                               teacher.id.toString() && (
-                                                <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
-                                              )}
+                                              <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
+                                            )}
                                           </div>
                                         ))}
                                     </div>

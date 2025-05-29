@@ -14,7 +14,11 @@ import { useQuery } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
-import { deleteCertificateHistory, getCertificateHistory, updateCertificateHistory } from "@/requests/certificate";
+import {
+  deleteCertificateHistory,
+  getCertificateHistory,
+  updateCertificateHistory,
+} from "@/requests/certificate";
 import { CertificateHistory } from "@/types/certificate";
 import { get } from "lodash";
 import {
@@ -29,15 +33,16 @@ import moment from "moment";
 import CustomCertificateEditor from "@/components/certificate/CustomCertificateEditor";
 
 export default function Page() {
-  const { totalPage,
+  const {
+    totalPage,
     totalDocs,
     limit,
     page,
     setLimit,
     setPage,
     setTotalDocs,
-    setTotalPage
-  } = useCertificate()
+    setTotalPage,
+  } = useCertificate();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [textSearch, setTextSearch] = useState("");
@@ -46,245 +51,236 @@ export default function Page() {
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
-  const [certificateHistorySelected, setCertificateHistorySelected] = useState<CertificateHistory>()
+  const [certificateHistorySelected, setCertificateHistorySelected] =
+    useState<CertificateHistory>();
   const [activeTab, setActiveTab] = useState<{ id: string; label: string }>({
     id: "pending",
     label: "Đợi phê duyệt",
   });
-  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide]);
-  const [showError, showSuccess] = useSnackbarStore((state) => [state.error, state.success])
+  const [showLoading, hideLoading] = useLoadingStore((state) => [
+    state.show,
+    state.hide,
+  ]);
+  const [showError, showSuccess] = useSnackbarStore((state) => [
+    state.error,
+    state.success,
+  ]);
   const tabs = [
     { id: "pending", label: "Đợi phê duyệt" },
     { id: "verified", label: "Đã phê duyệt" },
   ];
-  const { data: certificateHistory, refetch: refetchCertificateHistory } = useQuery({
-    queryKey: ["certificateHistories", page, limit, textSearch],
-    queryFn: async () => {
-      try {
-        const queryString = qs.stringify(
-          {
+  const { data: certificateHistory, refetch: refetchCertificateHistory } =
+    useQuery({
+      queryKey: ["certificateHistories", page, limit, textSearch],
+      queryFn: async () => {
+        try {
+          const queryString = qs.stringify({
             filters: {
               certificate: {
                 name: {
-                  $containsi: textSearch
-                }
-              }
+                  $containsi: textSearch,
+                },
+              },
             },
-            populate: ['certificate', 'student', 'certificate.course', 'certificate.certificatePdfConfig', 'certificate.certificatePdfConfig.fields'],
+            populate: [
+              "certificate",
+              "student",
+              "certificate.course",
+              "certificate.certificatePdfConfig",
+              "certificate.certificatePdfConfig.fields",
+            ],
             pagination: {
               page: page,
               pageSize: limit,
             },
+          });
+          const res = await getCertificateHistory(queryString);
+          if (res) {
+            setLimit(res.meta.pagination.pageSize);
+            setPage(res.meta.pagination.page);
+            setTotalDocs(res.meta.pagination.total);
+            setTotalPage(res.meta.pagination.pageCount);
           }
-        )
-        const res = await getCertificateHistory(queryString)
-        if (res) {
-          setLimit(res.meta.pagination.pageSize)
-          setPage(res.meta.pagination.page)
-          setTotalDocs(res.meta.pagination.total)
-          setTotalPage(res.meta.pagination.pageCount)
+          return res;
+        } catch (err) {
+          showError("Lỗi", "Không thể lấy thông tin Lịch sử chứng chỉ");
         }
-        return res;
-      } catch (err) {
-        showError("Lỗi", "Không thể lấy thông tin Lịch sử chứng chỉ");
-      }
-    },
-    refetchOnWindowFocus: false,
-    enabled: isMounted, // Only run query when component is mounted
-  });
+      },
+      refetchOnWindowFocus: false,
+      enabled: isMounted, // Only run query when component is mounted
+    });
 
   const listCertificateUnVerified = useMemo(() => {
-    if (!certificateHistory)
-      return []
-    return certificateHistory.data.filter((item: CertificateHistory) => !item.isVerified)
-  }, [certificateHistory])
+    if (!certificateHistory) return [];
+    return certificateHistory.data.filter(
+      (item: CertificateHistory) => !item.isVerified
+    );
+  }, [certificateHistory]);
 
   const listCertificateVerified = useMemo(() => {
-    if (!certificateHistory)
-      return []
-    return certificateHistory.data.filter((item: CertificateHistory) => item.isVerified)
-  }, [certificateHistory])
+    if (!certificateHistory) return [];
+    return certificateHistory.data.filter(
+      (item: CertificateHistory) => item.isVerified
+    );
+  }, [certificateHistory]);
 
   const handleSearch = () => {
     setSearchQuery(textSearch);
   };
 
-
-  const handleConfirmVerified = useCallback(
-    async () => {
-      try {
-        showLoading()
-        if (!certificateHistorySelected) return
-        const res = await updateCertificateHistory(certificateHistorySelected?.id || 0, {
-          isVerified: true
-        })
-        if (res) {
-          showSuccess('Cập nhật', 'Chứng chỉ cập nhật thành công!')
+  const handleConfirmVerified = useCallback(async () => {
+    try {
+      showLoading();
+      if (!certificateHistorySelected) return;
+      const res = await updateCertificateHistory(
+        certificateHistorySelected?.id || 0,
+        {
+          isVerified: true,
         }
-      } catch (error) {
-        console.log('error', error);
-        showError('Cập nhật', 'Chứng chỉ cập nhật thất bại!')
-      } finally {
-        hideLoading()
-        setIsConfirmOpen(false)
-        refetchCertificateHistory()
+      );
+      if (res) {
+        showSuccess("Cập nhật", "Chứng chỉ cập nhật thành công!");
       }
-    },
-    [certificateHistorySelected],
-  )
+    } catch (error) {
+      console.log("error", error);
+      showError("Cập nhật", "Chứng chỉ cập nhật thất bại!");
+    } finally {
+      hideLoading();
+      setIsConfirmOpen(false);
+      refetchCertificateHistory();
+    }
+  }, [certificateHistorySelected]);
 
-  const handleConfirmDelete = useCallback(
-    async () => {
-      try {
-        showLoading()
-        if (!certificateHistorySelected) return
-        const res = await deleteCertificateHistory(certificateHistorySelected?.id || 0)
-        if (res) {
-          showSuccess('Xóa', 'Chứng chỉ đã được xóa thành công!')
-        }
-      } catch (error) {
-        console.log('error', error);
-        showError('Xóa', 'Chứng chỉ đã được xóa thất bại!')
-      } finally {
-        hideLoading()
-        setIsDeleteOpen(false)
-        refetchCertificateHistory()
+  const handleConfirmDelete = useCallback(async () => {
+    try {
+      showLoading();
+      if (!certificateHistorySelected) return;
+      const res = await deleteCertificateHistory(
+        certificateHistorySelected?.id || 0
+      );
+      if (res) {
+        showSuccess("Xóa", "Chứng chỉ đã được xóa thành công!");
       }
-    },
-    [certificateHistorySelected],
-  )
+    } catch (error) {
+      console.log("error", error);
+      showError("Xóa", "Chứng chỉ đã được xóa thất bại!");
+    } finally {
+      hideLoading();
+      setIsDeleteOpen(false);
+      refetchCertificateHistory();
+    }
+  }, [certificateHistorySelected]);
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-
-  const columnsCertificateHistories: ColumnDef<CertificateHistory>[] =
-    [
-      {
-        header: 'STT',
-        cell: ({ row }) => <span>{row.index + 1}</span>,
-
-      },
-      {
-        header: 'Tên chứng chỉ',
-        cell: ({ row }) => <span>{row.original.certificate.name}</span>,
-      },
-      {
-        header: 'Mô tả',
-        cell: ({ row }) => (
-          <div
-            dangerouslySetInnerHTML={{
-              __html: row.original.certificate.description || "",
+  const columnsCertificateHistories: ColumnDef<CertificateHistory>[] = [
+    {
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      header: "Tên chứng chỉ",
+      cell: ({ row }) => <span>{row.original.certificate.name}</span>,
+    },
+    {
+      header: "Mô tả",
+      cell: ({ row }) => (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: row.original.certificate.description || "",
+          }}
+        ></div>
+      ),
+    },
+    {
+      header: "Thuộc khoá học",
+      cell: ({ row }) => (
+        <div>{get(row, "original.certificate.course.name", "")}</div>
+      ),
+    },
+    {
+      header: "Học viên",
+      cell: ({ row }) => <div>{get(row, "original.student.username", "")}</div>,
+    },
+    {
+      header: "Ngày tạo",
+      cell: ({ row }) => (
+        <div>
+          {moment(get(row, "original.createdAt", "")).format("DD/MM/YYYY")}
+        </div>
+      ),
+    },
+    {
+      id: "action",
+      header: "",
+      cell: ({ row }) => (
+        <div className="flex gap-2">
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
+            onClick={() => {
+              setIsConfirmOpen(true);
+              setCertificateHistorySelected(row.original);
             }}
-          ></div>
-        )
-      },
-      {
-        header: 'Thuộc khoá học',
-        cell: ({ row }) => <div>
-          {
-            get(row, 'original.certificate.course.name', '')
-          }
-        </div>
-      },
-      {
-        header: 'Học viên',
-        cell: ({ row }) => <div>
-          {
-            get(row, 'original.student.username', '')
-          }
-        </div>
-      },
-      {
-        header: 'Ngày tạo',
-        cell: ({ row }) => <div>
-          {
-            moment(get(row, 'original.createdAt', '')).format('DD/MM/YYYY')
-          }
-        </div>
-      },
-      {
-        id: 'action',
-        header: '',
-        cell: ({ row }) => (
-          <div className="flex gap-2">
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
-              onClick={() => {
-                setIsConfirmOpen(true)
-                setCertificateHistorySelected(row.original)
-              }}
-            >
-              <CheckCircle className="h-5 w-5" color="#7C6C80" />
-            </button>
-            <button
-              className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
-              onClick={() => {
-                setCertificateHistorySelected(row.original)
-                setIsDeleteOpen(true)
-              }}
-            >
-              <Trash2 className="h-5 w-5" color="#7C6C80" />
-            </button>
-          </div>
-        )
-      },
-    ]
-  const columnsCertificateHistoriesVerified: ColumnDef<CertificateHistory>[] =
-    [
-      {
-        header: 'STT',
-        cell: ({ row }) => <span>{row.index + 1}</span>,
-
-      },
-      {
-        header: 'Tên chứng chỉ',
-        cell: ({ row }) => <span>{row.original.certificate.name}</span>,
-      },
-      {
-        header: 'Mô tả',
-        cell: ({ row }) => (
-          <div
-            dangerouslySetInnerHTML={{
-              __html: row.original.certificate.description || "",
+          >
+            <CheckCircle className="h-5 w-5" color="#7C6C80" />
+          </button>
+          <button
+            className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
+            onClick={() => {
+              setCertificateHistorySelected(row.original);
+              setIsDeleteOpen(true);
             }}
-          ></div>
-        )
-      },
-      {
-        header: 'Thuộc khoá học',
-        cell: ({ row }) => <div>
-          {
-            get(row, 'original.certificate.course.name', '')
-          }
+          >
+            <Trash2 className="h-5 w-5" color="#7C6C80" />
+          </button>
         </div>
-      },
-      {
-        header: 'Học viên',
-        cell: ({ row }) => <div>
-          {
-            get(row, 'original.student.username', '')
-          }
+      ),
+    },
+  ];
+  const columnsCertificateHistoriesVerified: ColumnDef<CertificateHistory>[] = [
+    {
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      header: "Tên chứng chỉ",
+      cell: ({ row }) => <span>{row.original.certificate.name}</span>,
+    },
+    {
+      header: "Mô tả",
+      cell: ({ row }) => (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: row.original.certificate.description || "",
+          }}
+        ></div>
+      ),
+    },
+    {
+      header: "Thuộc khoá học",
+      cell: ({ row }) => (
+        <div>{get(row, "original.certificate.course.name", "")}</div>
+      ),
+    },
+    {
+      header: "Học viên",
+      cell: ({ row }) => <div>{get(row, "original.student.username", "")}</div>,
+    },
+    {
+      header: "Ngày tạo",
+      cell: ({ row }) => (
+        <div>
+          {moment(get(row, "original.createdAt", "")).format("DD/MM/YYYY")}
         </div>
-      },
-      {
-        header: 'Ngày tạo',
-        cell: ({ row }) => <div>
-          {
-            moment(get(row, 'original.createdAt', '')).format('DD/MM/YYYY')
-          }
-        </div>
-      },
-      {
-        id: 'action',
-        header: '',
-        cell: ({ row }) => (
-          <span>
-
-          </span>
-        )
-      },
-    ]
+      ),
+    },
+    {
+      id: "action",
+      header: "",
+      cell: ({ row }) => <span></span>,
+    },
+  ];
   return (
     <>
       <div className="w-full h-screen border-r border-gray-20">
@@ -307,72 +303,68 @@ export default function Page() {
           className="w-full !justify-start space-x-5 px-4 border-b border-gray-20"
         />
 
-        {
-          activeTab.id === 'pending' && (
-            <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
-              <div className="flex justify-between items-center">
-                <Input
-                  type="text"
-                  isSearch={true}
-                  value={textSearch}
-                  onChange={setTextSearch}
-                  placeholder="Tìm kiếm chứng chỉ theo từ khoá"
-                  customClassNames="max-w-[410px] h-10 mb-4"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                  onSearch={handleSearch}
-                />
-              </div>
-              <CommonTable
-                data={listCertificateUnVerified}
-                isLoading={false}
-                columns={columnsCertificateHistories}
-                page={page}
-                totalPage={totalPage}
-                totalDocs={totalDocs}
-                onPageChange={setPage}
-                docsPerPage={limit}
-                onPageSizeChange={setLimit}
+        {activeTab.id === "pending" && (
+          <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+            <div className="flex justify-between items-center">
+              <Input
+                type="text"
+                isSearch={true}
+                value={textSearch}
+                onChange={setTextSearch}
+                placeholder="Tìm kiếm chứng chỉ theo từ khoá"
+                customClassNames="max-w-[410px] h-10 mb-4"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+                onSearch={handleSearch}
               />
             </div>
-          )
-        }
-        {
-          activeTab.id === 'verified' && (
-            <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
-              <div className="flex justify-between items-center">
-                <Input
-                  type="text"
-                  isSearch={true}
-                  value={textSearch}
-                  onChange={setTextSearch}
-                  placeholder="Tìm kiếm chứng chỉ theo từ khoá"
-                  customClassNames="max-w-[410px] h-10 mb-4"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      handleSearch();
-                    }
-                  }}
-                  onSearch={handleSearch}
-                />
-              </div>
-              <CommonTable
-                data={listCertificateVerified}
-                isLoading={false}
-                columns={columnsCertificateHistoriesVerified}
-                page={page}
-                totalPage={totalPage}
-                totalDocs={totalDocs}
-                onPageChange={setPage}
-                docsPerPage={limit}
-                onPageSizeChange={setLimit}
+            <CommonTable
+              data={listCertificateUnVerified}
+              isLoading={false}
+              columns={columnsCertificateHistories}
+              page={page}
+              totalPage={totalPage}
+              totalDocs={totalDocs}
+              onPageChange={setPage}
+              docsPerPage={limit}
+              onPageSizeChange={setLimit}
+            />
+          </div>
+        )}
+        {activeTab.id === "verified" && (
+          <div className="w-full h-[calc(100%-40px-12px)] overflow-y-auto p-4">
+            <div className="flex justify-between items-center">
+              <Input
+                type="text"
+                isSearch={true}
+                value={textSearch}
+                onChange={setTextSearch}
+                placeholder="Tìm kiếm chứng chỉ theo từ khoá"
+                customClassNames="max-w-[410px] h-10 mb-4"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") {
+                    handleSearch();
+                  }
+                }}
+                onSearch={handleSearch}
               />
             </div>
-          )
-        }
+            <CommonTable
+              data={listCertificateVerified}
+              isLoading={false}
+              columns={columnsCertificateHistoriesVerified}
+              page={page}
+              totalPage={totalPage}
+              totalDocs={totalDocs}
+              onPageChange={setPage}
+              docsPerPage={limit}
+              onPageSizeChange={setLimit}
+            />
+          </div>
+        )}
       </div>
 
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
@@ -402,7 +394,9 @@ export default function Page() {
                     Ngày tạo:
                   </div>
                   <div className="text-base">
-                    {moment(get(certificateHistorySelected, 'createdAt', '')).format('DD/MM/YYYY')}
+                    {moment(
+                      get(certificateHistorySelected, "createdAt", "")
+                    ).format("DD/MM/YYYY")}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
@@ -411,22 +405,32 @@ export default function Page() {
                   </div>
                   <div>
                     <CustomCertificateEditor
-                      initialFields={certificateHistorySelected?.certificate.certificatePdfConfig?.fields ? certificateHistorySelected?.certificate.certificatePdfConfig?.fields.map((field) => ({
-                        id: String(field.id || Date.now()),
-                        label: field.label || "",
-                        value: field.value || "",
-                        htmlContent: field.value || "",
-                        position: {
-                          x: field.positionX || 0,
-                          y: field.positionY || 0
-                        },
-                        fontSize: Number(field.fontSize) || 18,
-                        fontWeight: field.fontWeight || "normal",
-                        color: field.color || "#000000",
-                        fontFamily: field.fontFamily || "Roboto",
-                        textAlign: field.textAlign || "center",
-                      })) : []}
-                      initialBackgroundImage={certificateHistorySelected?.certificate.certificatePdfConfig?.backgroundUrl || null}
+                      initialFields={
+                        certificateHistorySelected?.certificate
+                          .certificatePdfConfig?.fields
+                          ? certificateHistorySelected?.certificate.certificatePdfConfig?.fields.map(
+                              (field) => ({
+                                id: String(field.id || Date.now()),
+                                label: field.label || "",
+                                value: field.value || "",
+                                htmlContent: field.value || "",
+                                position: {
+                                  x: field.positionX || 0,
+                                  y: field.positionY || 0,
+                                },
+                                fontSize: Number(field.fontSize) || 18,
+                                fontWeight: field.fontWeight || "normal",
+                                color: field.color || "#000000",
+                                fontFamily: field.fontFamily || "Roboto",
+                                textAlign: field.textAlign || "center",
+                              })
+                            )
+                          : []
+                      }
+                      initialBackgroundImage={
+                        certificateHistorySelected?.certificate
+                          .certificatePdfConfig?.backgroundUrl || null
+                      }
                       isPreviewCertificate={true}
                     />
                   </div>
@@ -441,7 +445,9 @@ export default function Page() {
             >
               Hủy
             </CommonButton>
-            <CommonButton onClick={handleConfirmVerified}>Xác nhận</CommonButton>
+            <CommonButton onClick={handleConfirmVerified}>
+              Xác nhận
+            </CommonButton>
           </DialogFooter>
         </DialogContent>
       </Dialog>

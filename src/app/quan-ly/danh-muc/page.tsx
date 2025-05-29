@@ -97,62 +97,68 @@ export default function Categories() {
     enabled: isMounted, // Only run query when component is mounted
   });
 
-  const { mutate: createCategoryMutation, isPending: isCreating } = useMutation({
-    mutationFn: (data: any) => {
-      return ReqCreateCategory(data);
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã tạo khóa học thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error creating Category:", err);
-      error("Lỗi", "Có lỗi xảy ra khi tạo khóa học");
-    },
-    onSettled: () => {
-      hide();
-      setIsDialogOpen(false);
-    },
-  });
+  const { mutate: createCategoryMutation, isPending: isCreating } = useMutation(
+    {
+      mutationFn: (data: any) => {
+        return ReqCreateCategory(data);
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã tạo khóa học thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error creating Category:", err);
+        error("Lỗi", "Có lỗi xảy ra khi tạo khóa học");
+      },
+      onSettled: () => {
+        hide();
+        setIsDialogOpen(false);
+      },
+    }
+  );
 
-  const { mutate: updateCategoryMutation, isPending: isUpdating } = useMutation({
-    mutationFn: (data: any) => {
-      const { id, ...dataUpdate } = data;
-      return ReqUpdateCategory(id.toString(), dataUpdate);
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã cập nhật danh mục thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error updating Category:", err);
-      error("Lỗi", "Có lỗi xảy ra khi cập nhật danh mục");
-    },
-    onSettled: () => {
-      hide();
-      setIsDialogOpen(false);
-      setCategoryToEdit(null);
-    },
-  });
+  const { mutate: updateCategoryMutation, isPending: isUpdating } = useMutation(
+    {
+      mutationFn: (data: any) => {
+        const { id, ...dataUpdate } = data;
+        return ReqUpdateCategory(id.toString(), dataUpdate);
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã cập nhật danh mục thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error updating Category:", err);
+        error("Lỗi", "Có lỗi xảy ra khi cập nhật danh mục");
+      },
+      onSettled: () => {
+        hide();
+        setIsDialogOpen(false);
+        setCategoryToEdit(null);
+      },
+    }
+  );
 
-  const { mutate: deleteCategoryMutation, isPending: isDeleting } = useMutation({
-    mutationFn: (id: number) => {
-      return ReqDeleteCategory(id.toString());
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã xóa danh mục thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error deleting Category:", err);
-      error("Lỗi", "Có lỗi xảy ra khi xóa danh mục");
-    },
-    onSettled: () => {
-      hide();
-      setDeleteDialogOpen(false);
-      setCategoryToDelete(null);
-    },
-  });
+  const { mutate: deleteCategoryMutation, isPending: isDeleting } = useMutation(
+    {
+      mutationFn: (id: number) => {
+        return ReqDeleteCategory(id.toString());
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã xóa danh mục thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error deleting Category:", err);
+        error("Lỗi", "Có lỗi xảy ra khi xóa danh mục");
+      },
+      onSettled: () => {
+        hide();
+        setDeleteDialogOpen(false);
+        setCategoryToDelete(null);
+      },
+    }
+  );
 
   // Effect hooks
   useEffect(() => {

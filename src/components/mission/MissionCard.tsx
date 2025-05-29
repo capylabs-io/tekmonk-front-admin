@@ -27,18 +27,16 @@ export const MissionCard = ({
       prev === "inprogress"
         ? "complete"
         : prev === "complete"
-          ? "claimded"
-          : "inprogress"
+        ? "claimded"
+        : "inprogress"
     );
   };
   return (
-    <CommonCard isActive={missionStatus !== "complete"} className="flex flex-col items-center justify-center w-[200px] text-center p-4 !bg-white border-2 border-gray-30 place-self-stretch">
-      <Image
-        src={imageUrl || ""}
-        alt="mission"
-        width={120}
-        height={120}
-      />
+    <CommonCard
+      isActive={missionStatus !== "complete"}
+      className="flex flex-col items-center justify-center w-[200px] text-center p-4 !bg-white border-2 border-gray-30 place-self-stretch"
+    >
+      <Image src={imageUrl || ""} alt="mission" width={120} height={120} />
 
       <span className="text-SubheadSm mt-2 text-gray-95">{missionName}</span>
       <span className="text-BodyXs text-gray-70">{missionDescription}</span>
@@ -52,11 +50,14 @@ export const MissionCard = ({
           {score}
         </Button>
       ) : missionStatus === "complete" ? (
-        <Button urlIcon="/image/home/coin.png"
+        <Button
+          urlIcon="/image/home/coin.png"
           style={{
-            boxShadow:
-              "0px 2px 0px #9a1595"
-          }} onClick={handleMissionOnClick} className="mt-2 text-SubheadXs border-2 border-primary-70 !py-[6px] !px-[12px] !font-normal">
+            boxShadow: "0px 2px 0px #9a1595",
+          }}
+          onClick={handleMissionOnClick}
+          className="mt-2 text-SubheadXs border-2 border-primary-70 !py-[6px] !px-[12px] !font-normal"
+        >
           {score}
         </Button>
       ) : (
@@ -66,8 +67,7 @@ export const MissionCard = ({
         >
           <Check size={18} className="mr-2" fontWeight={800} /> Đã nhận
         </Button>
-      )
-      }
-    </CommonCard >
+      )}
+    </CommonCard>
   );
 };

@@ -1,20 +1,20 @@
-import { Class, Course, User } from '@/types/common-types';
-import React, { useState } from 'react'
-import DateRangePicker from '../common/date-picker/DatePicker';
-import { Input } from '../common/Input';
-import { Check, Edit } from 'lucide-react';
-import { useLoadingStore } from '@/store/LoadingStore';
+import { Class, Course, User } from "@/types/common-types";
+import React, { useState } from "react";
+import DateRangePicker from "../common/date-picker/DatePicker";
+import { Input } from "../common/Input";
+import { Check, Edit } from "lucide-react";
+import { useLoadingStore } from "@/store/LoadingStore";
 import { format } from "date-fns";
-import { useMutation, useQuery } from '@tanstack/react-query';
-import { ReqGetClasses, ReqUpdateClass } from '@/requests/class';
-import { useSnackbarStore } from '@/store/SnackbarStore';
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { ReqGetClasses, ReqUpdateClass } from "@/requests/class";
+import { useSnackbarStore } from "@/store/SnackbarStore";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import qs from 'qs';
+import qs from "qs";
 type ValuePiece = Date | null;
 
 type DateValue = ValuePiece | [ValuePiece, ValuePiece];
@@ -24,8 +24,14 @@ type EditCourseModalProps = {
   teacherList?: User[];
   open: boolean;
   setOpen: (open: boolean) => void;
-}
-export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpen }: EditCourseModalProps) => {
+};
+export const EditCourseModal = ({
+  classId,
+  courseList,
+  teacherList,
+  open,
+  setOpen,
+}: EditCourseModalProps) => {
   const [teacherId, setTeacherId] = useState("");
   const [courseId, setCourseId] = useState("");
 
@@ -34,7 +40,10 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
     new Date(),
   ]);
   const { success, error } = useSnackbarStore();
-  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide]);
+  const [showLoading, hideLoading] = useLoadingStore((state) => [
+    state.show,
+    state.hide,
+  ]);
   const [formData, setFormData] = useState({
     courseName: "",
     classNames: "",
@@ -60,8 +69,9 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
           setFormData({
             courseName: classDetail.course?.name || "",
             classNames: classDetail.name || "",
-            duration: `${classDetail.startTime || ""} - ${classDetail.endTime || ""
-              }`,
+            duration: `${classDetail.startTime || ""} - ${
+              classDetail.endTime || ""
+            }`,
             teacherName: classDetail.teacher?.fullName || "",
             status:
               new Date(classDetail.endTime) > new Date()
@@ -104,7 +114,9 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
   });
   const { mutate: updateClassMutation } = useMutation({
     mutationFn: async (data: any) => {
-      return await ReqUpdateClass(classDetail?.id?.toString() || "", { data: data });
+      return await ReqUpdateClass(classDetail?.id?.toString() || "", {
+        data: data,
+      });
     },
     onSuccess: () => {
       success("Thành công", "Đã cập nhật thông tin lớp học");
@@ -150,9 +162,7 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
         <div className="space-y-6 max-w-2xl mt-3">
           <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <div className="text-SubheadSm text-gray-95 !w-40">
-                Khóa học
-              </div>
+              <div className="text-SubheadSm text-gray-95 !w-40">Khóa học</div>
               <select
                 className="flex-1 w-full py-2 border border-gray-300 rounded-md"
                 value={
@@ -175,25 +185,19 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
               </select>
             </div>
             <div className="flex items-center gap-4">
-              <div className="text-SubheadSm text-gray-95 w-40">
-                Tên lớp
-              </div>
+              <div className="text-SubheadSm text-gray-95 w-40">Tên lớp</div>
               <div className="flex-1">
                 <Input
                   type="text"
                   value={formData.classNames || classDetail?.name || ""}
-                  onChange={(e) =>
-                    setFormData({ ...formData, classNames: e })
-                  }
+                  onChange={(e) => setFormData({ ...formData, classNames: e })}
                   customClassNames="w-full"
                 />
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="text-SubheadSm text-gray-95 w-40">
-                Duration
-              </div>
+              <div className="text-SubheadSm text-gray-95 w-40">Duration</div>
               <div className="flex-1">
                 {/* <DateRangePicker
                       value={dateValue}
@@ -253,9 +257,7 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
                                 ?.filter((teacher) =>
                                   teacher.username
                                     .toLowerCase()
-                                    .includes(
-                                      teacherSearchQuery.toLowerCase()
-                                    )
+                                    .includes(teacherSearchQuery.toLowerCase())
                                 )
                                 .map((teacher) => (
                                   <div
@@ -263,9 +265,7 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
                                     className="flex items-center justify-between px-4 py-2 cursor-pointer hover:bg-gray-100"
                                     onClick={() => {
                                       setTeacherId(teacher.id.toString());
-                                      setTeacherSearchQuery(
-                                        teacher.username
-                                      );
+                                      setTeacherSearchQuery(teacher.username);
                                       setIsTeacherDropdownOpen(false);
                                     }}
                                   >
@@ -277,10 +277,9 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
                                         {teacher.email}
                                       </div>
                                     </div>
-                                    {teacherId ===
-                                      teacher.id.toString() && (
-                                        <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
-                                      )}
+                                    {teacherId === teacher.id.toString() && (
+                                      <Check className="h-4 w-4 text-primary-600 ml-2 flex-shrink-0" />
+                                    )}
                                   </div>
                                 ))}
                             </div>
@@ -318,9 +317,7 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="text-SubheadSm text-gray-95 w-40">
-                Trạng thái
-              </div>
+              <div className="text-SubheadSm text-gray-95 w-40">Trạng thái</div>
               <div className="flex-1">
                 <Input
                   type="text"
@@ -353,5 +350,5 @@ export const EditCourseModal = ({ classId, courseList, teacherList, open, setOpe
         </div>
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

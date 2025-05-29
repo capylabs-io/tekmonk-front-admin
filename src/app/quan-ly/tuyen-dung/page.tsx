@@ -97,11 +97,15 @@ export default function Hiring() {
     },
     {
       header: "Mức lương tối thiểu",
-      cell: ({ row }) => <span>{row.original.minSalary || "Thương lượng"}</span>,
+      cell: ({ row }) => (
+        <span>{row.original.minSalary || "Thương lượng"}</span>
+      ),
     },
     {
       header: "Mức lương tối đa",
-      cell: ({ row }) => <span>{row.original.maxSalary || "Thương lượng"}</span>,
+      cell: ({ row }) => (
+        <span>{row.original.maxSalary || "Thương lượng"}</span>
+      ),
     },
     {
       header: "Thời gian diễn ra",
