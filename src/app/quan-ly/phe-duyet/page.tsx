@@ -33,9 +33,15 @@ import {
 import { useEffect, useState, useMemo } from "react";
 import { Input } from "@/components/common/Input";
 import { useInView } from "react-intersection-observer";
+import { useDebounce } from "@/hooks/useDebounceValue";
+
 const DEFAULT_PAGE = 1;
 const DEFAULT_PAGE_SIZE = 10;
+
 export default function Page() {
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const searchTermDebounce = useDebounce(searchTerm, 1000);
+
   const {
     data: currentPageData,
     isLoading,
@@ -47,6 +53,7 @@ export default function Page() {
     page: DEFAULT_PAGE,
     limit: DEFAULT_PAGE_SIZE,
     isVerified: PostVerificationType.PENDING,
+    searchTerm: searchTermDebounce,
   });
   const { ref, inView } = useInView();
   const [rejectReason, setRejectReason] = useState<string>("");
@@ -166,6 +173,10 @@ export default function Page() {
     }
   }, [inView, fetchNextPage, hasNextPage, isFetchingNextPage]);
 
+  const handleSearch = (value: string) => {
+    setSearchTerm(value);
+  };
+
   return (
     <div className="w-full h-full border-r border-gray-20">
       <div className="w-full h-[68px] flex flex-col sm:flex-row items-start sm:items-center justify-between px-2 border-b border-gray-20">
@@ -178,9 +189,15 @@ export default function Page() {
           </CommonCard>
           Phê duyệt
         </div>
+        <Input
+          type="text"
+          placeholder="Tìm kiếm bài viết..."
+          customClassNames="max-w-[320px]"
+          value={searchTerm}
+          onChange={handleSearch}
+          isSearch={true}
+        />
       </div>
-      {/* <div className="w-full flex flex-col py-2">
-        <div className="h-9 w-[265px] flex items-center justify-center text-gray-95 gap-3"> */}
       <Tabs defaultValue="verified" className="w-full !h-[calc(100%-68px)]">
         <TabsList className="w-full border-b border-gray-200 !justify-start">
           <TabsTrigger value="verified">Phê duyệt</TabsTrigger>
