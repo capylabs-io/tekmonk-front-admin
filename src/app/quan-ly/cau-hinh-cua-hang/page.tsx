@@ -3,6 +3,7 @@
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
+import { Input } from "@/components/common/Input";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -31,6 +32,7 @@ import {
 } from "@/requests/shop";
 import Image from "next/image";
 import { ShopItemEnum } from "@/types/shop";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 // Simple loading component
 const LoadingState = () => (
@@ -63,6 +65,8 @@ export default function ConfigShop() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
 
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
@@ -73,15 +77,41 @@ export default function ConfigShop() {
 
   /* UseQuery */
   const { data: courses, refetch } = useQuery({
-    queryKey: ["course", page, pageSize],
+    queryKey: ["course", page, pageSize, searchQueryDebounce],
     queryFn: async () => {
       try {
+        const filters: any = {};
+
+        // Add search filters if search query exists
+        if (searchQueryDebounce) {
+          filters.$or = [
+            {
+              name: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              description: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              category: {
+                name: {
+                  $containsi: searchQueryDebounce,
+                },
+              },
+            },
+          ];
+        }
+
         const queryString = qs.stringify({
           populate: ["category"],
           pagination: {
             page,
             pageSize: pageSize,
           },
+          filters,
         });
         return await ReqGetShopItem(queryString);
       } catch (err) {
@@ -219,6 +249,11 @@ export default function ConfigShop() {
     }
   };
 
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset to first page when searching
+  };
+
   const columns: ColumnDef<any>[] = [
     {
       header: "STT",
@@ -316,6 +351,16 @@ export default function ConfigShop() {
           >
             Tạo vật phẩm
           </CommonButton>
+        </div>
+        <div className="flex items-center justify-between gap-x-4">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm theo tên vật phẩm, mô tả hoặc danh mục..."
+            customClassNames="max-w-[320px] m-2"
+            value={searchQuery}
+            onChange={handleSearch}
+            isSearch={true}
+          />
         </div>
         <div className="p-4">
           {courses && (

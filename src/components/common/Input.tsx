@@ -44,6 +44,7 @@ export const Input = ({
 }: Props) => {
   const [showPassword, setshowPassword] = useState(false);
   const handleOnChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault();
     const newVal = e.target.value;
     onChange && onChange(newVal);
   };
