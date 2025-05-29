@@ -6,16 +6,11 @@ import { usePathname } from "next/navigation";
 import { MenuCard } from "@/components/home/MenuCard";
 import {
   Award,
-  Bell,
-  FileBadge,
   FileCheck,
   Flag,
   Goal,
-  Home,
   List,
-  ListOrdered,
   Newspaper,
-  Settings,
   ShoppingCart,
   SlidersHorizontal,
   Ticket,
@@ -26,7 +21,6 @@ import { useUserStore } from "@/store/UserStore";
 import UserProfileLink from "./UserProfileLink";
 import { get } from "lodash";
 import { Role } from "@/contants/role";
-import { useNavbarStore } from "@/store/navbar-store";
 import { MyClassIcon } from "./navbar/MyClassIcon";
 import { ClassManagementIcon } from "./navbar/ClassManagementIcon";
 import { CourseManagementIcon } from "./navbar/CourseManagementIcon";
@@ -39,10 +33,6 @@ export const Navbar = () => {
 
   /** UseStore */
   const [userInfo] = useUserStore((state) => [state.userInfo]);
-  const [isExpand, setIsExpand] = useNavbarStore((state) => [
-    state.isExpand,
-    state.setIsExpand,
-  ]);
 
   const userRole = get(userInfo, ["user_role", "code"], "");
 
@@ -62,7 +52,7 @@ export const Navbar = () => {
 
   return (
     <div>
-      <div className="h-full md:flex flex-col p-3 xl:w-[248px] w-[64px] hidden bg-gradient-to-b from-white to-gray-50/30 border-r border-gray-100">
+      <div className="h-full md:flex flex-col pl-3 py-3 xl:w-[248px] w-[64px] hidden border-r border-gray-100">
         <div className="grow-0 pb-4">
           <Image
             src="/image/app-logo.png"

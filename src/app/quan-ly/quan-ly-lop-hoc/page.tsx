@@ -16,6 +16,8 @@ import qs from "qs";
 import { useState, useEffect } from "react";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
+import { Input } from "@/components/common/Input";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12">
@@ -24,10 +26,7 @@ const EmptyState = () => (
       style={{ backgroundImage: "url('/admin/empty-data.png')" }}
     />
     <p className="text-gray-500 mt-4">Không có dữ liệu</p>
-    <p className="text-gray-500">Tạo tài khoản mới cho học viên để bắt đầu</p>
-    <button className="mt-4 px-4 py-2 bg-primary-600 text-white rounded-full hover:bg-primary-700">
-      Tạo tài khoản
-    </button>
+    <p className="text-gray-500">Tạo lớp học mới để bắt đầu</p>
   </div>
 );
 
@@ -39,6 +38,8 @@ export default function Admin() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const valueClassSearch = useDebounce(searchQuery, 1000);
 
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
@@ -58,7 +59,7 @@ export default function Admin() {
     refetch,
     isLoading,
   } = useQuery({
-    queryKey: ["class", page, pageSize],
+    queryKey: ["class", page, pageSize, valueClassSearch],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
@@ -66,6 +67,20 @@ export default function Admin() {
           pagination: {
             page: page,
             pageSize: pageSize,
+          },
+          filters: {
+            $or: [
+              {
+                name: {
+                  $containsi: valueClassSearch,
+                },
+              },
+              {
+                code: {
+                  $containsi: valueClassSearch,
+                },
+              },
+            ],
           },
         });
         return await ReqGetClasses(queryString);
@@ -111,6 +126,11 @@ export default function Admin() {
 
     show();
     deleteClassMutation(classToDelete.id);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1);
   };
 
   const columns: ColumnDef<Class>[] = [
@@ -218,6 +238,16 @@ export default function Admin() {
           <CommonButton className="ml-auto h-9" onClick={handleOpenDialog}>
             Tạo lớp
           </CommonButton>
+        </div>
+        <div className="flex items-center justify-between gap-x-4">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm"
+            customClassNames="max-w-[320px] m-2"
+            value={searchQuery}
+            onChange={handleSearch}
+            isSearch={true}
+          />
         </div>
         <div className="p-4 flex-1 w-full">
           {classes && classes.meta.pagination.total === 0 ? (

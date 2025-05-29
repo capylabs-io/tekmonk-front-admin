@@ -281,10 +281,6 @@ export const AccountTable = () => {
     }
   };
 
-  const handleSort = () => {
-    const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
-    setSortOrder(newSortOrder);
-  };
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
   };
