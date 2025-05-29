@@ -21,6 +21,7 @@ import {
 } from "@/requests/certificate";
 import { Certificate, CertificateHistory } from "@/types/certificate";
 import { get } from "lodash";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function Page() {
   const {
@@ -37,6 +38,7 @@ export default function Page() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [textSearch, setTextSearch] = useState("");
+  const textSearchDebounce = useDebounce(textSearch, 1000);
 
   const [showStudentListDialog, setShowStudentListDialog] = useState(false);
 
@@ -51,13 +53,13 @@ export default function Page() {
     state.success,
   ]);
   const { data: certificates } = useQuery({
-    queryKey: ["certificates", page, limit, textSearch],
+    queryKey: ["certificates", page, limit, textSearchDebounce],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
           filters: {
             name: {
-              $containsi: textSearch,
+              $containsi: textSearchDebounce,
             },
           },
           populate: "*",
@@ -164,8 +166,9 @@ export default function Page() {
       hideLoading();
     },
   });
-  const handleSearch = () => {
-    setSearchQuery(textSearch);
+  const handleSearch = (value: string) => {
+    setTextSearch(value);
+    setPage(1);
   };
   const handleAddStudents = useCallback(
     (data: string[]) => {
@@ -254,15 +257,9 @@ export default function Page() {
               type="text"
               isSearch={true}
               value={textSearch}
-              onChange={setTextSearch}
+              onChange={(e) => handleSearch(e)}
               placeholder="Tìm kiếm chứng chỉ theo từ khoá"
               customClassNames="max-w-[410px] h-10 mb-4"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch();
-                }
-              }}
-              onSearch={handleSearch}
             />
           </div>
           <CommonTable
