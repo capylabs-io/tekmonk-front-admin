@@ -27,6 +27,8 @@ import {
 import qs from "qs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import { Input } from "@/components/common/Input";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 // Dynamically import the dialog component with SSR disabled and loading state
 const CreateCourseDialog = dynamic(
@@ -71,7 +73,8 @@ export default function Courses() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isMounted, setIsMounted] = useState(false);
-
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const valueSearch = useDebounce(searchQuery, 1000);
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
     state.error,
@@ -81,13 +84,27 @@ export default function Courses() {
 
   /* UseQuery */
   const { data: courses, refetch } = useQuery({
-    queryKey: ["course", page, pageSize],
+    queryKey: ["course", page, pageSize, valueSearch],
     queryFn: async () => {
       try {
         const queryString = qs.stringify({
           pagination: {
             page,
             pageSize: pageSize,
+          },
+          filters: {
+            $or: [
+              {
+                name: {
+                  $containsi: valueSearch,
+                },
+              },
+              {
+                type: {
+                  $containsi: valueSearch,
+                },
+              },
+            ],
           },
         });
         return await ReqGetCourses(queryString);
@@ -166,6 +183,11 @@ export default function Courses() {
     setDialogMode("create");
     setCourseToEdit(null);
     setIsDialogOpen(true);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1);
   };
 
   const handleOpenEditDialog = (course: any) => {
@@ -273,6 +295,16 @@ export default function Courses() {
           >
             Tạo khóa học
           </CommonButton>
+        </div>
+        <div className="flex items-center justify-between gap-x-4">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm"
+            customClassNames="max-w-[320px] m-2"
+            value={searchQuery}
+            onChange={handleSearch}
+            isSearch={true}
+          />
         </div>
         <div className="p-4">
           {courses && (

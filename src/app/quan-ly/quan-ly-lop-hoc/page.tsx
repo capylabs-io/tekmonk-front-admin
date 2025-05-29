@@ -161,6 +161,15 @@ export default function Admin() {
       ),
     },
     {
+      id: "name",
+      header: "Tên lớp học",
+      cell: ({ row }) => (
+        <div className="max-w-[150px] truncate" title={row.original.name}>
+          {row.original.name}
+        </div>
+      ),
+    },
+    {
       id: "teacher",
       header: "Tên giảng viên",
       cell: ({ row }) => (
