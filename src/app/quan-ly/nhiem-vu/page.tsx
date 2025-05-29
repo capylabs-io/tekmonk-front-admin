@@ -25,6 +25,7 @@ import { useMissionQuery } from "@/queries/mission-query";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { AddItemDialog } from "@/components/admin/dialogs/add-item-dialog";
 import { ReqCreateMissionHistory } from "@/requests/mission-history";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function Page() {
   const { setIsOpenCreateModal, isOpenCreateModal } = useMission();
@@ -39,6 +40,9 @@ export default function Page() {
   const [selectedMission, setSelectedMission] = useState<Mission | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [userSearchQuery, setUserSearchQuery] = useState("");
+
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
+  const userSearchQueryDebounce = useDebounce(userSearchQuery, 1000);
 
   const handleUserSearchChange = async (value: string) => {
     setStudentCurrentPage(1);
@@ -57,7 +61,7 @@ export default function Page() {
     activeTab,
     currentPage,
     itemsPerPage,
-    searchQuery
+    searchQueryDebounce
   );
 
   const { data: studentList } = useQuery({
@@ -66,7 +70,7 @@ export default function Page() {
       studentCurrentPage,
       studentItemsPerPage,
       selectedMission?.id,
-      userSearchQuery,
+      userSearchQueryDebounce,
     ],
     queryFn: async () => {
       try {
@@ -74,7 +78,7 @@ export default function Page() {
           mission: selectedMission?.id,
           page: studentCurrentPage,
           pageSize: studentItemsPerPage,
-          search: userSearchQuery,
+          search: userSearchQueryDebounce,
         });
         return await ReqGetUserHaveNotAchievedMission(queryString);
       } catch (error) {
@@ -91,17 +95,12 @@ export default function Page() {
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
+    setCurrentPage(1);
   };
 
   const handleSearch = () => {
     setCurrentPage(1); // Reset to first page on new search
     refetchMissionList();
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
   };
 
   const handleEdit = (mission: Mission) => {
@@ -326,7 +325,6 @@ export default function Page() {
             onChange={handleSearchChange}
             onSearch={handleSearch}
             isSearch={true}
-            onKeyDown={handleKeyPress}
           />
 
           {missionList && (

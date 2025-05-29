@@ -32,6 +32,7 @@ import {
   TAchievement,
 } from "@/types/achievement";
 import { AchievementFormData } from "@/validation/achievement";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function Page() {
   const tabs = [
@@ -50,11 +51,14 @@ export default function Page() {
   const [studentCurrentPage, setStudentCurrentPage] = useState(1);
   const [studentItemsPerPage, setStudentItemsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState("");
+  const [userSearchQuery, setUserSearchQuery] = useState("");
+
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
+  const userSearchQueryDebounce = useDebounce(userSearchQuery, 1000);
   const [success, error] = useSnackbarStore((state) => [
     state.success,
     state.error,
   ]);
-  const [userSearchQuery, setUserSearchQuery] = useState("");
 
   const handleUserSearchChange = async (value: string) => {
     setStudentCurrentPage(1);
@@ -69,7 +73,7 @@ export default function Page() {
       activeTab.id,
       currentPage,
       itemsPerPage,
-      searchQuery,
+      searchQueryDebounce,
     ],
     queryFn: async () => {
       try {
@@ -78,17 +82,17 @@ export default function Page() {
         };
 
         // Only add search filter if searchQuery is not empty
-        if (searchQuery) {
+        if (searchQueryDebounce) {
           Object.assign(filters, {
             $or: [
               {
                 title: {
-                  $containsi: searchQuery,
+                  $containsi: searchQueryDebounce,
                 },
               },
               {
                 description: {
-                  $containsi: searchQuery,
+                  $containsi: searchQueryDebounce,
                 },
               },
             ],
@@ -117,8 +121,7 @@ export default function Page() {
       studentCurrentPage,
       studentItemsPerPage,
       selectedAchievement?.id,
-      searchQuery,
-      userSearchQuery,
+      userSearchQueryDebounce,
     ],
     queryFn: async () => {
       try {
@@ -126,7 +129,7 @@ export default function Page() {
           achievement: selectedAchievement?.id,
           page: studentCurrentPage,
           pageSize: studentItemsPerPage,
-          search: userSearchQuery,
+          search: userSearchQueryDebounce,
         });
         return await ReqGetUserHaveAchievedAchievement(queryString);
       } catch (error) {
@@ -268,22 +271,6 @@ export default function Page() {
     setShowStudentListDialog(true);
   };
 
-  const handleEdit = (achievement: TAchievement) => {
-    // Only allow editing achievements with type "Manual"
-    if (achievement.type === AchievementType.MANUAL) {
-      setSelectedAchievement(achievement);
-      setIsEditModalOpen(true);
-    } else {
-      console.log("Cannot edit system achievements");
-      error("Lỗi", "Không thể chỉnh sửa Thành tựu hệ thống");
-    }
-  };
-
-  const handleViewStudentsAchieved = (achievement: TAchievement) => {
-    setSelectedAchievement(achievement);
-    setIsViewStudentsDialogOpen(true);
-  };
-
   const columns: ColumnDef<TAchievement>[] = [
     {
       header: "STT",
@@ -373,17 +360,12 @@ export default function Page() {
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
+    setCurrentPage(1);
   };
 
   const handleSearch = () => {
     setCurrentPage(1); // Reset to first page on new search
     refetchAchievementList();
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") {
-      handleSearch();
-    }
   };
 
   return (
@@ -422,9 +404,7 @@ export default function Page() {
               customClassNames="max-w-[320px]"
               value={searchQuery}
               onChange={handleSearchChange}
-              onSearch={handleSearch}
               isSearch={true}
-              onKeyDown={handleKeyPress}
             />
           </div>
 
