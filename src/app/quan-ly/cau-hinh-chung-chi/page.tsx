@@ -47,6 +47,7 @@ import CertificateEditor, {
 } from "@/components/certificate/CustomCertificateEditor";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 // Mở rộng kiểu CertificateFormData để thêm các trường thiếu
 interface ExtendedCertificateFormData extends CertificateFormData {
@@ -106,8 +107,8 @@ export default function Page() {
     setTotalPage,
   } = useCertificate();
 
-  const [searchQuery, setSearchQuery] = useState("");
   const [textSearch, setTextSearch] = useState("");
+  const textSearchDebounce = useDebounce(textSearch, 1000);
 
   // Thêm state để lưu trữ giá trị từ CertificateEditor
   const [certificateFields, setCertificateFields] = useState<
@@ -178,15 +179,15 @@ export default function Page() {
   };
 
   const { data: certificates, refetch: refetchCertificates } = useQuery({
-    queryKey: ["certificates", page, limit, textSearch],
+    queryKey: ["certificates", page, limit, textSearchDebounce],
     queryFn: async () => {
       try {
         let queryString = "";
-        if (textSearch !== "") {
+        if (textSearchDebounce !== "") {
           queryString = qs.stringify({
             filters: {
               name: {
-                $containsi: textSearch,
+                $containsi: textSearchDebounce,
               },
             },
             populate: [
@@ -223,10 +224,6 @@ export default function Page() {
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
-
-  const handleSearch = () => {
-    setSearchQuery(textSearch);
-  };
 
   const { mutate: createCertificateMutation } = useMutation({
     mutationFn: async (data: CertificateFormData) => {
@@ -612,12 +609,6 @@ export default function Page() {
               onChange={setTextSearch}
               placeholder="Tìm kiếm chứng chỉ theo từ khoá"
               customClassNames="max-w-[410px] h-10 mb-4"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch();
-                }
-              }}
-              onSearch={handleSearch}
             />
             <CommonButton
               variant="primary"
