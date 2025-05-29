@@ -7,6 +7,7 @@ import Image from "next/image";
 import Loading from "@/app/loading";
 import { CommonCard } from "@/components/common/CommonCard";
 import { TimeConvert } from "@/components/common/TimeConvert";
+import { Input } from "@/components/common/Input";
 import { ReqGetAllNews } from "@/requests/news";
 import { TNews } from "@/types/common-types";
 import { useQuery } from "@tanstack/react-query";
@@ -17,12 +18,15 @@ import { Tabs } from "@/components/new/tabs";
 import { hiringSchema } from "@/validation/news";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function Hiring() {
   const [toggleHiringDialog, setToggleHiringDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentHiring, setCurrentHiring] = useState<TNews | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
 
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
@@ -36,25 +40,42 @@ export default function Hiring() {
     { id: "draft", label: "Bản nháp" },
     { id: "trash", label: "Thùng rác" },
   ];
-
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const { data, isLoading, isError } = useQuery({
     refetchOnWindowFocus: false,
-    queryKey: ["hiring", page, pageSize, activeTab.id],
+    queryKey: ["hiring", page, pageSize, activeTab.id, searchQueryDebounce],
     queryFn: async () => {
       try {
+        const filters: any = {
+          type: "hiring",
+          status: activeTab.id,
+        };
+
+        // Add search filters if search query exists
+        if (searchQueryDebounce) {
+          filters.$or = [
+            {
+              title: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              tags: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+          ];
+        }
+
         const queryString = qs.stringify({
           pagination: {
             page: page,
             pageSize: pageSize,
           },
-          filters: {
-            type: "hiring",
-            status: activeTab.id,
-          },
+          filters,
           sort: ["id:asc"],
           populate: "*",
         });
@@ -65,6 +86,11 @@ export default function Hiring() {
     },
     enabled: isMounted,
   });
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset to first page when searching
+  };
 
   const handleEditHiring = (item: TNews) => {
     setCurrentHiring(item);
@@ -194,6 +220,16 @@ export default function Hiring() {
         >
           Tạo tin tuyển dụng
         </CommonButton>
+      </div>
+      <div className="flex items-center justify-between gap-x-4">
+        <Input
+          type="text"
+          placeholder="Tìm kiếm theo tiêu đề hoặc chủ đề..."
+          customClassNames="max-w-[320px] m-2"
+          value={searchQuery}
+          onChange={handleSearch}
+          isSearch={true}
+        />
       </div>
       <div className="w-full flex flex-col border-y border-gray-20 py-2">
         <Tabs

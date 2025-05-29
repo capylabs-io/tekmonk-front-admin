@@ -5,6 +5,7 @@ import Image from "next/image";
 
 import Loading from "@/app/loading";
 import { TimeConvert } from "@/components/common/TimeConvert";
+import { Input } from "@/components/common/Input";
 import { ReqGetAllNews } from "@/requests/news";
 import { TNews } from "@/types/common-types";
 import { useQuery } from "@tanstack/react-query";
@@ -20,12 +21,15 @@ import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function Event() {
   const [toggleNewsDialog, setToggleNewsDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentNews, setCurrentNews] = useState<TNews | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
 
   const [pageSize, setPageSize] = useState(10);
   const [page, setPage] = useState(1);
@@ -46,18 +50,36 @@ export default function Event() {
 
   const { data, isLoading, isError } = useQuery({
     refetchOnWindowFocus: false,
-    queryKey: ["event", page, pageSize, activeTab.id],
+    queryKey: ["event", page, pageSize, activeTab.id, searchQueryDebounce],
     queryFn: async () => {
       try {
+        const filters: any = {
+          type: "event",
+          status: activeTab.id,
+        };
+
+        // Add search filters if search query exists
+        if (searchQueryDebounce) {
+          filters.$or = [
+            {
+              title: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              tags: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+          ];
+        }
+
         const queryString = qs.stringify({
           pagination: {
             page: page,
             pageSize: pageSize,
           },
-          filters: {
-            type: "event",
-            status: activeTab.id,
-          },
+          filters,
           sort: ["id:asc"],
           populate: "*",
         });
@@ -68,6 +90,11 @@ export default function Event() {
     },
     enabled: isMounted,
   });
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset to first page when searching
+  };
 
   const handleEditNews = (item: TNews) => {
     setCurrentNews(item);
@@ -185,6 +212,16 @@ export default function Event() {
         >
           Tạo sự kiện
         </CommonButton>
+      </div>
+      <div className="flex items-center justify-between gap-x-4">
+        <Input
+          type="text"
+          placeholder="Tìm kiếm theo tiêu đề hoặc chủ đề..."
+          customClassNames="max-w-[320px] m-2"
+          value={searchQuery}
+          onChange={handleSearch}
+          isSearch={true}
+        />
       </div>
       <div className="w-full flex flex-col border-y border-gray-20 py-2">
         <Tabs

@@ -6,6 +6,7 @@ import Image from "next/image";
 import Loading from "@/app/loading";
 import { TimeConvert } from "@/components/common/TimeConvert";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/common/Input";
 import { ReqDeleteNews, ReqGetAllNews, ReqUpdateNews } from "@/requests/news";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
@@ -24,12 +25,15 @@ import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function News() {
   const [toggleNewsDialog, setToggleNewsDialog] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentNews, setCurrentNews] = useState<TNews | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
 
   const methods = useForm({
     resolver: zodResolver(newsSchema),
@@ -68,18 +72,36 @@ export default function News() {
 
   const { data, isLoading, isError } = useQuery({
     refetchOnWindowFocus: false,
-    queryKey: ["news", page, pageSize, activeTab.id],
+    queryKey: ["news", page, pageSize, activeTab.id, searchQueryDebounce],
     queryFn: async () => {
       try {
+        const filters: any = {
+          type: "news",
+          status: activeTab.id,
+        };
+
+        // Add search filters if search query exists
+        if (searchQueryDebounce) {
+          filters.$or = [
+            {
+              title: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              tags: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+          ];
+        }
+
         const queryString = qs.stringify({
           pagination: {
             page: page,
             pageSize: pageSize,
           },
-          filters: {
-            type: "news",
-            status: activeTab.id,
-          },
+          filters,
           sort: ["id:asc"],
           populate: "*",
         });
@@ -90,6 +112,11 @@ export default function News() {
     },
     enabled: isMounted,
   });
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset to first page when searching
+  };
 
   const handleMoveToTrash = async (data: TNews | null) => {
     try {
@@ -249,6 +276,16 @@ export default function News() {
         >
           Tạo bài viết
         </CommonButton>
+      </div>
+      <div className="flex items-center justify-between gap-x-4">
+        <Input
+          type="text"
+          placeholder="Tìm kiếm theo tiêu đề hoặc chủ đề..."
+          customClassNames="max-w-[320px] m-2"
+          value={searchQuery}
+          onChange={handleSearch}
+          isSearch={true}
+        />
       </div>
       <div className="w-full flex flex-col border-y border-gray-20 py-2">
         <Tabs
