@@ -151,6 +151,7 @@ type UseInfiniteLatestPostProps = {
   type?: PostTypeEnum;
   isVerified: PostVerificationType;
   authorId?: number;
+  searchTerm?: string;
 };
 
 export const useInfiniteLatestPost = ({
@@ -159,9 +160,10 @@ export const useInfiniteLatestPost = ({
   type,
   isVerified = PostVerificationType.ACCEPTED,
   authorId,
+  searchTerm
 }: UseInfiniteLatestPostProps) => {
   return useInfiniteQuery({
-    queryKey: ["latest-post-verified", page, limit, type, isVerified, authorId],
+    queryKey: ["latest-post-verified", page, limit, type, isVerified, authorId, searchTerm],
     queryFn: async ({ pageParam = page }) => {
       try {
         const queryString = qs.stringify(
@@ -172,6 +174,7 @@ export const useInfiniteLatestPost = ({
             isVerified: isVerified,
             type: type,
             authorId: authorId,
+            searchTerm: searchTerm,
           },
           { encodeValuesOnly: true }
         );

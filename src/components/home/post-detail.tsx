@@ -2,16 +2,14 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { Dialog, DialogClose, DialogContent } from "@/components/ui/dialog";
-import { ChevronLeft, ChevronRight, MessageCircle, X } from "lucide-react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion } from "framer-motion";
 import { CommonTag } from "../common/CommonTag";
 import { cn } from "@/lib/utils";
 import { PostType, PostTypeEnum } from "@/types/posts";
 import { ProfileInfoBox } from "./ProfileInfoBox";
-import { get } from "lodash";
 import { useCustomRouter } from "../common/router/CustomRouter";
-import { ROUTE } from "@/contants/router";
 import moment from "moment";
 interface PostImageGalleryProps {
   open: boolean;

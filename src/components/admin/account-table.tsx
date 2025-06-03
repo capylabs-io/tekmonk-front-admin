@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Edit, Pencil, Trash2 } from "lucide-react";
+import { useState } from "react";
+import { Edit, Trash2 } from "lucide-react";
 import { EditUserDialog } from "./dialogs/edit-user-dialog";
 import { DeactivateUserDialog } from "./dialogs/deactivate-user-dialog";
 import { DeleteUserDialog } from "./dialogs/delete-user-dialog";
@@ -15,6 +15,7 @@ import { User } from "@/types/common-types";
 import { CommonTable } from "@/components/common/CommonTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { Input } from "../common/Input";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 const EmptyState = () => (
   <div className="flex flex-col items-center justify-center py-12">
@@ -41,6 +42,7 @@ export const AccountTable = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState<User | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const valueSearch = useDebounce(searchQuery, 1000);
 
   /** UseStore */
   const [show, hide] = useLoadingStore((state) => [state.show, state.hide]);
@@ -51,7 +53,7 @@ export const AccountTable = () => {
   const queryClient = useQueryClient();
   /** UseQuery */
   const { data, refetch, isLoading } = useQuery({
-    queryKey: ["users", activeTab, page, pageSize, sortOrder, searchQuery],
+    queryKey: ["users", activeTab, page, pageSize, sortOrder, valueSearch],
     queryFn: async () => {
       try {
         const filters = {
@@ -62,22 +64,22 @@ export const AccountTable = () => {
           },
         };
 
-        if (searchQuery) {
+        if (valueSearch) {
           Object.assign(filters, {
             $or: [
               {
                 fullName: {
-                  $containsi: searchQuery,
+                  $containsi: valueSearch,
                 },
               },
               {
                 username: {
-                  $containsi: searchQuery,
+                  $containsi: valueSearch,
                 },
               },
               {
                 email: {
-                  $containsi: searchQuery,
+                  $containsi: valueSearch,
                 },
               },
             ],
@@ -279,10 +281,6 @@ export const AccountTable = () => {
     }
   };
 
-  const handleSort = () => {
-    const newSortOrder = sortOrder === "asc" ? "desc" : "asc";
-    setSortOrder(newSortOrder);
-  };
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
   };

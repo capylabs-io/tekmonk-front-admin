@@ -23,6 +23,11 @@ const nextConfig = {
                 hostname: 'tekdojo-be-uat.s3.ap-southeast-1.amazonaws.com',
                 pathname: '/**',
                 
+            },
+            {
+                protocol: 'https',
+                hostname: 'img.youtube.com',
+                pathname: '/**',
             }
         ],
     },

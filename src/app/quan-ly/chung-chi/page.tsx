@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/dialog";
 import moment from "moment";
 import CustomCertificateEditor from "@/components/certificate/CustomCertificateEditor";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function Page() {
   const {
@@ -46,6 +47,7 @@ export default function Page() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [textSearch, setTextSearch] = useState("");
+  const textSearchDebounce = useDebounce(textSearch, 1000);
 
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
@@ -71,14 +73,14 @@ export default function Page() {
   ];
   const { data: certificateHistory, refetch: refetchCertificateHistory } =
     useQuery({
-      queryKey: ["certificateHistories", page, limit, textSearch],
+      queryKey: ["certificateHistories", page, limit, textSearchDebounce],
       queryFn: async () => {
         try {
           const queryString = qs.stringify({
             filters: {
               certificate: {
                 name: {
-                  $containsi: textSearch,
+                  $containsi: textSearchDebounce,
                 },
               },
             },
@@ -124,8 +126,9 @@ export default function Page() {
     );
   }, [certificateHistory]);
 
-  const handleSearch = () => {
-    setSearchQuery(textSearch);
+  const handleSearch = (value: string) => {
+    setTextSearch(value);
+    setPage(1);
   };
 
   const handleConfirmVerified = useCallback(async () => {
@@ -310,15 +313,9 @@ export default function Page() {
                 type="text"
                 isSearch={true}
                 value={textSearch}
-                onChange={setTextSearch}
+                onChange={(e) => handleSearch(e)}
                 placeholder="Tìm kiếm chứng chỉ theo từ khoá"
                 customClassNames="max-w-[410px] h-10 mb-4"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch();
-                  }
-                }}
-                onSearch={handleSearch}
               />
             </div>
             <CommonTable
@@ -341,15 +338,9 @@ export default function Page() {
                 type="text"
                 isSearch={true}
                 value={textSearch}
-                onChange={setTextSearch}
+                onChange={(e) => handleSearch(e)}
                 placeholder="Tìm kiếm chứng chỉ theo từ khoá"
                 customClassNames="max-w-[410px] h-10 mb-4"
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") {
-                    handleSearch();
-                  }
-                }}
-                onSearch={handleSearch}
               />
             </div>
             <CommonTable
