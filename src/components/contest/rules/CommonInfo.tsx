@@ -1,5 +1,5 @@
-'use client'
-import { Card, CardContent, CardHeader } from '@/components/ui/card'
+"use client";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 export const CommonInfo = () => {
   return (
@@ -40,5 +40,5 @@ export const CommonInfo = () => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};

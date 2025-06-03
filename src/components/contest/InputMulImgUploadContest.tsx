@@ -25,7 +25,9 @@ export const InputMulImgUploadContest = ({
   const hiddenFileInput = React.useRef<HTMLInputElement>(null);
   const [fileUrls, setFileUrls] = useState<string[]>([]);
   const MAX_UPLOAD_FILES = parseInt(process.env.MAX_NUMBER_IMG_UPLOAD || "5");
-  const MAX_FILE_SIZE_MB = parseInt(process.env.NEXT_PUBLIC_MAX_SIZE_IMAGE_UPLOAD || "15");
+  const MAX_FILE_SIZE_MB = parseInt(
+    process.env.NEXT_PUBLIC_MAX_SIZE_IMAGE_UPLOAD || "15"
+  );
   const [isExceedFileSize, setIsExceedFileSize] = useState(false);
   useEffect(() => {
     const urls = imgArr.map(URL.createObjectURL);
@@ -40,8 +42,8 @@ export const InputMulImgUploadContest = ({
     const validFiles = selectedFiles.filter((file) =>
       ["image/png", "image/jpeg", "image/svg+xml"].includes(file.type)
     );
-    if(selectedFile) {
-      if (selectedFile.size >MAX_FILE_SIZE_MB * 1024 * 10) {
+    if (selectedFile) {
+      if (selectedFile.size > MAX_FILE_SIZE_MB * 1024 * 10) {
         setIsExceedFileSize(true);
         return;
       }

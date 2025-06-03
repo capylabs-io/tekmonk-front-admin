@@ -118,7 +118,7 @@ const FormSubmitContest = React.forwardRef<
     // return contestSubmission.data.length > 0;
   };
 
-  const onSubmit = async (data: any) => { };
+  const onSubmit = async (data: any) => {};
 
   const closeDialog = () => {
     // warn("Warning", "Bạn đã nộp bài thi rồi!");
@@ -281,7 +281,7 @@ const FormSubmitContest = React.forwardRef<
                 className="w-[260px]"
                 outlined={false}
                 style={{ borderRadius: "4rem" }}
-              // onClick={handleSubmit(onSubmit)}
+                // onClick={handleSubmit(onSubmit)}
               >
                 Nộp bài
               </Button>

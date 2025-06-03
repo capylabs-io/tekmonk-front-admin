@@ -27,7 +27,9 @@
   border-radius: 0.25rem;
 }
 
-.react-datepicker__day--in-selecting-range:not(.react-datepicker__day--in-range) {
+.react-datepicker__day--in-selecting-range:not(
+    .react-datepicker__day--in-range
+  ) {
   background-color: rgba(59, 130, 246, 0.5);
 }
 
@@ -40,4 +42,3 @@
   border-top-right-radius: 0.25rem;
   border-bottom-right-radius: 0.25rem;
 }
-

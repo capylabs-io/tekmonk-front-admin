@@ -3,6 +3,7 @@
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
+import { Input } from "@/components/common/Input";
 import {
   ReqCreateCategory,
   ReqUpdateCategory,
@@ -27,6 +28,7 @@ import {
 import qs from "qs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
+import { useDebounce } from "@/hooks/useDebounceValue";
 const CreateCategoryDialog = dynamic(
   () =>
     import("@/components/admin/dialogs/create-category-dialog").then(
@@ -69,6 +71,8 @@ export default function Categories() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
 
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
@@ -79,80 +83,105 @@ export default function Categories() {
 
   /* UseQuery */
   const { data: categories, refetch } = useQuery({
-    queryKey: ["category", page, pageSize],
+    queryKey: ["category", page, pageSize, searchQueryDebounce],
     queryFn: async () => {
       try {
+        const filters: any = {};
+
+        // Add search filters if search query exists
+        if (searchQueryDebounce) {
+          filters.$or = [
+            {
+              name: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              code: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+          ];
+        }
+
         const queryString = qs.stringify({
           pagination: {
             page,
             pageSize: pageSize,
           },
+          filters,
         });
         return await ReqGetCategory(queryString);
       } catch (err) {
-        error("Lỗi", "Không thể lấy thông tin khóa học");
+        error("Lỗi", "Không thể lấy thông tin danh mục");
       }
     },
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
 
-  const { mutate: createCategoryMutation, isPending: isCreating } = useMutation({
-    mutationFn: (data: any) => {
-      return ReqCreateCategory(data);
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã tạo khóa học thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error creating Category:", err);
-      error("Lỗi", "Có lỗi xảy ra khi tạo khóa học");
-    },
-    onSettled: () => {
-      hide();
-      setIsDialogOpen(false);
-    },
-  });
+  const { mutate: createCategoryMutation, isPending: isCreating } = useMutation(
+    {
+      mutationFn: (data: any) => {
+        return ReqCreateCategory(data);
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã tạo khóa học thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error creating Category:", err);
+        error("Lỗi", "Có lỗi xảy ra khi tạo khóa học");
+      },
+      onSettled: () => {
+        hide();
+        setIsDialogOpen(false);
+      },
+    }
+  );
 
-  const { mutate: updateCategoryMutation, isPending: isUpdating } = useMutation({
-    mutationFn: (data: any) => {
-      const { id, ...dataUpdate } = data;
-      return ReqUpdateCategory(id.toString(), dataUpdate);
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã cập nhật danh mục thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error updating Category:", err);
-      error("Lỗi", "Có lỗi xảy ra khi cập nhật danh mục");
-    },
-    onSettled: () => {
-      hide();
-      setIsDialogOpen(false);
-      setCategoryToEdit(null);
-    },
-  });
+  const { mutate: updateCategoryMutation, isPending: isUpdating } = useMutation(
+    {
+      mutationFn: (data: any) => {
+        const { id, ...dataUpdate } = data;
+        return ReqUpdateCategory(id.toString(), dataUpdate);
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã cập nhật danh mục thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error updating Category:", err);
+        error("Lỗi", "Có lỗi xảy ra khi cập nhật danh mục");
+      },
+      onSettled: () => {
+        hide();
+        setIsDialogOpen(false);
+        setCategoryToEdit(null);
+      },
+    }
+  );
 
-  const { mutate: deleteCategoryMutation, isPending: isDeleting } = useMutation({
-    mutationFn: (id: number) => {
-      return ReqDeleteCategory(id.toString());
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã xóa danh mục thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error deleting Category:", err);
-      error("Lỗi", "Có lỗi xảy ra khi xóa danh mục");
-    },
-    onSettled: () => {
-      hide();
-      setDeleteDialogOpen(false);
-      setCategoryToDelete(null);
-    },
-  });
+  const { mutate: deleteCategoryMutation, isPending: isDeleting } = useMutation(
+    {
+      mutationFn: (id: number) => {
+        return ReqDeleteCategory(id.toString());
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã xóa danh mục thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error deleting Category:", err);
+        error("Lỗi", "Có lỗi xảy ra khi xóa danh mục");
+      },
+      onSettled: () => {
+        hide();
+        setDeleteDialogOpen(false);
+        setCategoryToDelete(null);
+      },
+    }
+  );
 
   // Effect hooks
   useEffect(() => {
@@ -194,6 +223,11 @@ export default function Categories() {
     } else {
       updateCategoryMutation({ ...courseData, id: categoryToEdit?.id });
     }
+  };
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset to first page when searching
   };
 
   const columns: ColumnDef<any>[] = [
@@ -263,6 +297,16 @@ export default function Categories() {
           >
             Tạo danh mục
           </CommonButton>
+        </div>
+        <div className="flex items-center justify-between gap-x-4">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm theo tên hoặc mã danh mục..."
+            customClassNames="max-w-[320px] m-2"
+            value={searchQuery}
+            onChange={handleSearch}
+            isSearch={true}
+          />
         </div>
         <div className="p-4">
           {categories && (

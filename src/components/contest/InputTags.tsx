@@ -52,8 +52,8 @@ export const InputTags = ({
     // Nếu có dấu phẩy, tách theo dấu phẩy và loại bỏ các giá trị rỗng
     return tagString
       .split(",")
-      .map(tag => tag.trim())
-      .filter(tag => tag !== "");
+      .map((tag) => tag.trim())
+      .filter((tag) => tag !== "");
   };
 
   useEffect(() => {
@@ -97,7 +97,7 @@ export const InputTags = ({
     <TooltipProvider>
       <div className="space-y-1.5 w-full">
         <div className="relative block sm:flex justify-between  w-full items-center">
-          {!hideTitle &&
+          {!hideTitle && (
             <div className="w-full sm:w-1/4 flex text-primary-950 text-SubheadSm items-center">
               <div className="text-SubheadSm text-gray-60">Tags</div>
               {isTooltip ? (
@@ -121,15 +121,23 @@ export const InputTags = ({
                 <span className="text-red-500">{isRequired ? " *" : ""}</span>
               )}
             </div>
-          }
+          )}
           <div className="w-full flex flex-col items-end gap-2">
-            <div className={classNames("min-h-[3rem] w-full rounded-xl border border-grey-300 bg-grey-50 px-3 py-2 text-sm", customClassNames)}>
+            <div
+              className={classNames(
+                "min-h-[3rem] w-full rounded-xl border border-grey-300 bg-grey-50 px-3 py-2 text-sm",
+                customClassNames
+              )}
+            >
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className={classNames("flex-1 bg-transparent min-w-[120px] w-full text-BodyMd outline-none bg-grey-50 border-grey-300 mt-1 placeholder:text-gray-70 placeholder:text-BodyMd", customInputClassNames)}
+                className={classNames(
+                  "flex-1 bg-transparent min-w-[120px] w-full text-BodyMd outline-none bg-grey-50 border-grey-300 mt-1 placeholder:text-gray-70 placeholder:text-BodyMd",
+                  customInputClassNames
+                )}
                 placeholder={placeholder || "Nhập tags ..."}
               />
             </div>

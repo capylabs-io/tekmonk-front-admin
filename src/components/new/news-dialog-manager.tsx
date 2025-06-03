@@ -331,18 +331,20 @@ export const NewsDialogManager = ({
           <DialogHeader>
             <DialogTitle className="text-xl">
               {initialData
-                ? `Chỉnh sửa ${type === "news"
-                  ? "tin tức"
-                  : type === "event"
-                    ? "sự kiện"
-                    : "tuyển dụng"
-                }`
-                : `Tạo ${type === "news"
-                  ? "tin tức"
-                  : type === "event"
-                    ? "sự kiện"
-                    : "tuyển dụng"
-                } mới`}
+                ? `Chỉnh sửa ${
+                    type === "news"
+                      ? "tin tức"
+                      : type === "event"
+                      ? "sự kiện"
+                      : "tuyển dụng"
+                  }`
+                : `Tạo ${
+                    type === "news"
+                      ? "tin tức"
+                      : type === "event"
+                      ? "sự kiện"
+                      : "tuyển dụng"
+                  } mới`}
             </DialogTitle>
           </DialogHeader>
           <Controller
@@ -417,40 +419,38 @@ export const NewsDialogManager = ({
                   </div>
                 )}
               />
-              {
-                !isDealt && (
-                  <>
-                    <Controller
-                      control={control}
-                      name="minSalary"
-                      render={({ field: { value, onChange }, fieldState }) => (
-                        <InputField
-                          value={value || ""}
-                          onChange={onChange}
-                          title="Mức lương tối thiểu"
-                          type="text"
-                          error={fieldState && fieldState.error?.message}
-                          placeholder="Nhập mức lương"
-                        />
-                      )}
-                    />
-                    <Controller
-                      control={control}
-                      name="maxSalary"
-                      render={({ field: { value, onChange }, fieldState }) => (
-                        <InputField
-                          value={value || ""}
-                          onChange={onChange}
-                          title="Mức lương tối đa"
-                          type="text"
-                          error={fieldState && fieldState.error?.message}
-                          placeholder="Nhập mức lương"
-                        />
-                      )}
-                    />
-                  </>
-                )
-              }
+              {!isDealt && (
+                <>
+                  <Controller
+                    control={control}
+                    name="minSalary"
+                    render={({ field: { value, onChange }, fieldState }) => (
+                      <InputField
+                        value={value || ""}
+                        onChange={onChange}
+                        title="Mức lương tối thiểu"
+                        type="text"
+                        error={fieldState && fieldState.error?.message}
+                        placeholder="Nhập mức lương"
+                      />
+                    )}
+                  />
+                  <Controller
+                    control={control}
+                    name="maxSalary"
+                    render={({ field: { value, onChange }, fieldState }) => (
+                      <InputField
+                        value={value || ""}
+                        onChange={onChange}
+                        title="Mức lương tối đa"
+                        type="text"
+                        error={fieldState && fieldState.error?.message}
+                        placeholder="Nhập mức lương"
+                      />
+                    )}
+                  />
+                </>
+              )}
             </>
           )}
           {type === "hiring" && (
@@ -584,8 +584,8 @@ export const NewsDialogManager = ({
                 {isSubmitting
                   ? "Đang lưu..."
                   : initialData
-                    ? "Đưa về bản nháp"
-                    : "Lưu bản nháp"}
+                  ? "Đưa về bản nháp"
+                  : "Lưu bản nháp"}
               </CommonButton>
               <CommonButton
                 className={`text-white h-[48px] w-[133px]`}
@@ -598,10 +598,11 @@ export const NewsDialogManager = ({
                 {isSubmitting
                   ? "Đang xử lý..."
                   : initialData
-                    ? "Cập nhật"
-                    : `Đăng ${type === "news"
-                      ? "tin tức"
-                      : type === "event"
+                  ? "Cập nhật"
+                  : `Đăng ${
+                      type === "news"
+                        ? "tin tức"
+                        : type === "event"
                         ? "sự kiện"
                         : "tuyển dụng"
                     }`}

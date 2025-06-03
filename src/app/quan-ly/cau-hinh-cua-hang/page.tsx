@@ -3,6 +3,7 @@
 import { CommonButton } from "@/components/common/button/CommonButton";
 import { CommonCard } from "@/components/common/CommonCard";
 import { CommonTable } from "@/components/common/CommonTable";
+import { Input } from "@/components/common/Input";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -22,10 +23,16 @@ import qs from "qs";
 import dynamic from "next/dynamic";
 import { Suspense } from "react";
 import { CreateShopItem } from "@/components/shop/CreateShopItem";
-import { ReqCreateShopItem, ReqDeleteShopItem, ReqGetShopItem, ReqUpdateShopItem, ReqUpdateShopItemWithImage } from "@/requests/shop";
+import {
+  ReqCreateShopItem,
+  ReqDeleteShopItem,
+  ReqGetShopItem,
+  ReqUpdateShopItem,
+  ReqUpdateShopItemWithImage,
+} from "@/requests/shop";
 import Image from "next/image";
 import { ShopItemEnum } from "@/types/shop";
-
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 // Simple loading component
 const LoadingState = () => (
@@ -58,6 +65,8 @@ export default function ConfigShop() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [isMounted, setIsMounted] = useState(false);
+  const [searchQuery, setSearchQuery] = useState<string>("");
+  const searchQueryDebounce = useDebounce(searchQuery, 1000);
 
   /* UseStore */
   const [error, success] = useSnackbarStore((state) => [
@@ -68,15 +77,41 @@ export default function ConfigShop() {
 
   /* UseQuery */
   const { data: courses, refetch } = useQuery({
-    queryKey: ["course", page, pageSize],
+    queryKey: ["course", page, pageSize, searchQueryDebounce],
     queryFn: async () => {
       try {
+        const filters: any = {};
+
+        // Add search filters if search query exists
+        if (searchQueryDebounce) {
+          filters.$or = [
+            {
+              name: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              description: {
+                $containsi: searchQueryDebounce,
+              },
+            },
+            {
+              category: {
+                name: {
+                  $containsi: searchQueryDebounce,
+                },
+              },
+            },
+          ];
+        }
+
         const queryString = qs.stringify({
           populate: ["category"],
           pagination: {
             page,
             pageSize: pageSize,
           },
+          filters,
         });
         return await ReqGetShopItem(queryString);
       } catch (err) {
@@ -86,39 +121,10 @@ export default function ConfigShop() {
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
-  const { mutate: createShopItemMutation, isPending: isCreating } = useMutation({
-    mutationFn: async (data: any) => {
-      const { image, ...dataUpdate } = data;
-      const formData = new FormData();
-      formData.append("name", dataUpdate.name);
-      formData.append("price", dataUpdate.price);
-      formData.append("description", dataUpdate.description);
-      formData.append("category", dataUpdate.category.id);
-      formData.append("type", dataUpdate.type);
-      formData.append("quantity", dataUpdate.quantity);
-      if (image) {
-        formData.append("image", image);
-      }
-      return await ReqCreateShopItem(formData);
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã tạo vật phẩm thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error creating course:", err);
-      error("Lỗi", "Có lỗi xảy ra khi tạo vật phẩm");
-    },
-    onSettled: () => {
-      hide();
-      setIsDialogOpen(false);
-    },
-  });
-  const { mutate: updateShopItemMutation, isPending: isUpdating } = useMutation({
-    mutationFn: (data: any) => {
-      const { id, image, ...dataUpdate } = data;
-      if (image && image instanceof File) {
-        // Xử lý cập nhật với hình ảnh mới
+  const { mutate: createShopItemMutation, isPending: isCreating } = useMutation(
+    {
+      mutationFn: async (data: any) => {
+        const { image, ...dataUpdate } = data;
         const formData = new FormData();
         formData.append("name", dataUpdate.name);
         formData.append("price", dataUpdate.price);
@@ -126,48 +132,83 @@ export default function ConfigShop() {
         formData.append("category", dataUpdate.category.id);
         formData.append("type", dataUpdate.type);
         formData.append("quantity", dataUpdate.quantity);
-        formData.append('image', image);
-        // Bỏ trường image ra khỏi dữ liệu
+        if (image) {
+          formData.append("image", image);
+        }
+        return await ReqCreateShopItem(formData);
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã tạo vật phẩm thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error creating course:", err);
+        error("Lỗi", "Có lỗi xảy ra khi tạo vật phẩm");
+      },
+      onSettled: () => {
+        hide();
+        setIsDialogOpen(false);
+      },
+    }
+  );
+  const { mutate: updateShopItemMutation, isPending: isUpdating } = useMutation(
+    {
+      mutationFn: (data: any) => {
+        const { id, image, ...dataUpdate } = data;
+        if (image && image instanceof File) {
+          // Xử lý cập nhật với hình ảnh mới
+          const formData = new FormData();
+          formData.append("name", dataUpdate.name);
+          formData.append("price", dataUpdate.price);
+          formData.append("description", dataUpdate.description);
+          formData.append("category", dataUpdate.category.id);
+          formData.append("type", dataUpdate.type);
+          formData.append("quantity", dataUpdate.quantity);
+          formData.append("image", image);
+          // Bỏ trường image ra khỏi dữ liệu
 
-        return ReqUpdateShopItemWithImage(id.toString(), formData);
-      } else {
-        // Cập nhật bình thường không có hình ảnh mới
-        return ReqUpdateShopItem(id.toString(), dataUpdate);
-      }
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã cập nhật vật phẩm thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error updating course:", err);
-      error("Lỗi", "Có lỗi xảy ra khi cập nhật vật phẩm");
-    },
-    onSettled: () => {
-      hide();
-      setIsDialogOpen(false);
-      setShopItemToEdit(null);
-    },
-  });
+          return ReqUpdateShopItemWithImage(id.toString(), formData);
+        } else {
+          // Cập nhật bình thường không có hình ảnh mới
+          return ReqUpdateShopItem(id.toString(), dataUpdate);
+        }
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã cập nhật vật phẩm thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error updating course:", err);
+        error("Lỗi", "Có lỗi xảy ra khi cập nhật vật phẩm");
+      },
+      onSettled: () => {
+        hide();
+        setIsDialogOpen(false);
+        setShopItemToEdit(null);
+      },
+    }
+  );
 
-  const { mutate: deleteShopItemMutation, isPending: isDeleting } = useMutation({
-    mutationFn: (id: number) => {
-      return ReqDeleteShopItem(id.toString());
-    },
-    onSuccess: () => {
-      success("Thành công", "Đã xóa vật phẩm thành công");
-      refetch();
-    },
-    onError: (err) => {
-      console.error("Error deleting course:", err);
-      error("Lỗi", "Có lỗi xảy ra khi xóa vật phẩm");
-    },
-    onSettled: () => {
-      hide();
-      setDeleteDialogOpen(false);
-      setShopItemToDelete(null);
-    },
-  });
+  const { mutate: deleteShopItemMutation, isPending: isDeleting } = useMutation(
+    {
+      mutationFn: (id: number) => {
+        return ReqDeleteShopItem(id.toString());
+      },
+      onSuccess: () => {
+        success("Thành công", "Đã xóa vật phẩm thành công");
+        refetch();
+      },
+      onError: (err) => {
+        console.error("Error deleting course:", err);
+        error("Lỗi", "Có lỗi xảy ra khi xóa vật phẩm");
+      },
+      onSettled: () => {
+        hide();
+        setDeleteDialogOpen(false);
+        setShopItemToDelete(null);
+      },
+    }
+  );
 
   // Effect hooks
   useEffect(() => {
@@ -208,6 +249,11 @@ export default function ConfigShop() {
     }
   };
 
+  const handleSearch = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset to first page when searching
+  };
+
   const columns: ColumnDef<any>[] = [
     {
       header: "STT",
@@ -219,20 +265,27 @@ export default function ConfigShop() {
     },
     {
       header: "Hình ảnh",
-      cell: ({ row }) => <div>
-        <Image
-          src={row.original.image || ''}
-          alt="avatar pic"
-          width={170}
-          height={100}
-          className="rounded-xl max-h-[100px] max-w-[170px] object-cover"
-        />
-
-      </div>,
+      cell: ({ row }) => (
+        <div>
+          <Image
+            src={row.original.image || ""}
+            alt="avatar pic"
+            width={170}
+            height={100}
+            className="rounded-xl max-h-[100px] max-w-[170px] object-cover"
+          />
+        </div>
+      ),
     },
     {
       header: "Số lượng",
-      cell: ({ row }) => <span>{row.original.type === ShopItemEnum.VIRTUAL ? 'Không giới hạn' : row.original.quantity}</span>,
+      cell: ({ row }) => (
+        <span>
+          {row.original.type === ShopItemEnum.VIRTUAL
+            ? "Không giới hạn"
+            : row.original.quantity}
+        </span>
+      ),
     },
     {
       header: "Loại vật phẩm",
@@ -286,7 +339,9 @@ export default function ConfigShop() {
               <PanelLeft width={17} height={17} />
             </CommonCard>
             <div className="flex items-center justify-center">
-              <div className="text-SubheadLg text-gray-95">Cấu hình cửa hàng</div>
+              <div className="text-SubheadLg text-gray-95">
+                Cấu hình cửa hàng
+              </div>
             </div>
           </div>
           <CommonButton
@@ -296,6 +351,16 @@ export default function ConfigShop() {
           >
             Tạo vật phẩm
           </CommonButton>
+        </div>
+        <div className="flex items-center justify-between gap-x-4">
+          <Input
+            type="text"
+            placeholder="Tìm kiếm theo tên vật phẩm, mô tả hoặc danh mục..."
+            customClassNames="max-w-[320px] m-2"
+            value={searchQuery}
+            onChange={handleSearch}
+            isSearch={true}
+          />
         </div>
         <div className="p-4">
           {courses && (
@@ -357,7 +422,13 @@ export default function ConfigShop() {
       </Dialog>
       <Suspense fallback={<div>Loading...</div>}>
         {isMounted && (
-          <CreateShopItem open={isDialogOpen} initialData={courseToEdit} onOpenChange={setIsDialogOpen} onSubmit={handleFormSubmit} isEdit={dialogMode === "edit"} />
+          <CreateShopItem
+            open={isDialogOpen}
+            initialData={courseToEdit}
+            onOpenChange={setIsDialogOpen}
+            onSubmit={handleFormSubmit}
+            isEdit={dialogMode === "edit"}
+          />
         )}
       </Suspense>
     </>

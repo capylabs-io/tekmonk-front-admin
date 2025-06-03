@@ -161,7 +161,9 @@ const CourseFormFields = ({ onClickSearchCertificate }: FormProps) => {
       </div>
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2">
-          <div className="w-[160px] text-SubheadMd text-gray-60">Trạng thái</div>
+          <div className="w-[160px] text-SubheadMd text-gray-60">
+            Trạng thái
+          </div>
           <Controller
             name="isDisabled"
             control={control}
@@ -300,8 +302,8 @@ export const CreateCourseDialog = ({
                   {isSubmitting
                     ? "Đang xử lý..."
                     : mode === "create"
-                      ? "Tạo"
-                      : "Cập nhật"}
+                    ? "Tạo"
+                    : "Cập nhật"}
                 </CommonButton>
               </div>
             </form>

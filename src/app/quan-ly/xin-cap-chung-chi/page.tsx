@@ -13,12 +13,19 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLoadingStore } from "@/store/LoadingStore";
 import { useSnackbarStore } from "@/store/SnackbarStore";
 import qs from "qs";
-import { deleteCertificateHistory, getCertificate, getCertificateHistory, postCertificateHistory } from "@/requests/certificate";
+import {
+  deleteCertificateHistory,
+  getCertificate,
+  getCertificateHistory,
+  postCertificateHistory,
+} from "@/requests/certificate";
 import { Certificate, CertificateHistory } from "@/types/certificate";
 import { get } from "lodash";
+import { useDebounce } from "@/hooks/useDebounceValue";
 
 export default function Page() {
-  const { totalPage,
+  const {
+    totalPage,
     totalDocs,
     limit,
     page,
@@ -26,42 +33,47 @@ export default function Page() {
     setPage,
     setIsOpenCreateModal,
     setTotalDocs,
-    setTotalPage
-  } = useCertificate()
+    setTotalPage,
+  } = useCertificate();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [textSearch, setTextSearch] = useState("");
+  const textSearchDebounce = useDebounce(textSearch, 1000);
 
-  const [showStudentListDialog, setShowStudentListDialog] = useState(false)
+  const [showStudentListDialog, setShowStudentListDialog] = useState(false);
 
   const [isMounted, setIsMounted] = useState(false);
-  const [certificateSelected, setCertificateSelected] = useState<Certificate>()
-  const [showLoading, hideLoading] = useLoadingStore((state) => [state.show, state.hide]);
-  const [showError, showSuccess] = useSnackbarStore((state) => [state.error, state.success])
+  const [certificateSelected, setCertificateSelected] = useState<Certificate>();
+  const [showLoading, hideLoading] = useLoadingStore((state) => [
+    state.show,
+    state.hide,
+  ]);
+  const [showError, showSuccess] = useSnackbarStore((state) => [
+    state.error,
+    state.success,
+  ]);
   const { data: certificates } = useQuery({
-    queryKey: ["certificates", page, limit, textSearch],
+    queryKey: ["certificates", page, limit, textSearchDebounce],
     queryFn: async () => {
       try {
-        const queryString = qs.stringify(
-          {
-            filters: {
-              name: {
-                $containsi: textSearch
-              }
+        const queryString = qs.stringify({
+          filters: {
+            name: {
+              $containsi: textSearchDebounce,
             },
-            populate: '*',
-            pagination: {
-              page: page,
-              pageSize: limit,
-            },
-          }
-        )
-        const res = await getCertificate(queryString)
+          },
+          populate: "*",
+          pagination: {
+            page: page,
+            pageSize: limit,
+          },
+        });
+        const res = await getCertificate(queryString);
         if (res) {
-          setLimit(res.meta.pagination.pageSize)
-          setPage(res.meta.pagination.page)
-          setTotalDocs(res.meta.pagination.total)
-          setTotalPage(res.meta.pagination.pageCount)
+          setLimit(res.meta.pagination.pageSize);
+          setPage(res.meta.pagination.page);
+          setTotalDocs(res.meta.pagination.total);
+          setTotalPage(res.meta.pagination.pageCount);
         }
         return res;
       } catch (err) {
@@ -71,40 +83,41 @@ export default function Page() {
     refetchOnWindowFocus: false,
     enabled: isMounted, // Only run query when component is mounted
   });
-  const { data: certificateHistory, refetch: refetchCertificateHistory } = useQuery({
-    queryKey: ["certificateHistories", page, limit],
-    queryFn: async () => {
-      try {
-        const queryString = qs.stringify(
-          {
-            populate: ['certificate', 'student', 'certificate.course'],
+  const { data: certificateHistory, refetch: refetchCertificateHistory } =
+    useQuery({
+      queryKey: ["certificateHistories", page, limit],
+      queryFn: async () => {
+        try {
+          const queryString = qs.stringify({
+            populate: ["certificate", "student", "certificate.course"],
             pagination: {
               page: page,
               pageSize: limit,
             },
+          });
+          const res = await getCertificateHistory(queryString);
+          if (res) {
+            setLimit(res.meta.pagination.pageSize);
+            setPage(res.meta.pagination.page);
+            setTotalDocs(res.meta.pagination.total);
+            setTotalPage(res.meta.pagination.pageCount);
           }
-        )
-        const res = await getCertificateHistory(queryString)
-        if (res) {
-          setLimit(res.meta.pagination.pageSize)
-          setPage(res.meta.pagination.page)
-          setTotalDocs(res.meta.pagination.total)
-          setTotalPage(res.meta.pagination.pageCount)
+          return res;
+        } catch (err) {
+          showError("Lỗi", "Không thể lấy thông tin Lịch sử chứng chỉ");
         }
-        return res;
-      } catch (err) {
-        showError("Lỗi", "Không thể lấy thông tin Lịch sử chứng chỉ");
-      }
-    },
-    refetchOnWindowFocus: false,
-    enabled: isMounted, // Only run query when component is mounted
-  });
+      },
+      refetchOnWindowFocus: false,
+      enabled: isMounted, // Only run query when component is mounted
+    });
 
   const listStudentHasCertificateSelected = useMemo(() => {
-    if (!certificateHistory || !certificateSelected)
-      return []
-    return certificateHistory.data.filter((item: CertificateHistory) => item.certificate?.id === certificateSelected?.id)
-  }, [certificateHistory, certificateSelected])
+    if (!certificateHistory || !certificateSelected) return [];
+    return certificateHistory.data.filter(
+      (item: CertificateHistory) =>
+        item.certificate?.id === certificateSelected?.id
+    );
+  }, [certificateHistory, certificateSelected]);
 
   const { mutate: addStudentMutation } = useMutation({
     mutationFn: async (studentIds: string[]) => {
@@ -114,12 +127,12 @@ export default function Page() {
       }));
       const res = certificateData.map(async (item) => {
         return await postCertificateHistory({ ...item });
-      })
-      return await Promise.all(res)
+      });
+      return await Promise.all(res);
     },
     onSuccess: () => {
       showSuccess("Thành công", "Đã thêm học viên vào chứng chỉ");
-      refetchCertificateHistory()
+      refetchCertificateHistory();
       setShowStudentListDialog(false);
     },
     onError: (err) => {
@@ -137,12 +150,12 @@ export default function Page() {
       }));
       const res = certificateData.map(async (item) => {
         return await deleteCertificateHistory(item.student);
-      })
-      return await Promise.all(res)
+      });
+      return await Promise.all(res);
     },
     onSuccess: () => {
       showSuccess("Thành công", "Đã thêm học viên vào chứng chỉ");
-      refetchCertificateHistory()
+      refetchCertificateHistory();
       setShowStudentListDialog(false);
     },
     onError: (err) => {
@@ -153,71 +166,76 @@ export default function Page() {
       hideLoading();
     },
   });
-  const handleSearch = () => {
-    setSearchQuery(textSearch);
+  const handleSearch = (value: string) => {
+    setTextSearch(value);
+    setPage(1);
   };
-  const handleAddStudents = useCallback((data: string[]) => {
-    const StudentHasCertificateSelected = listStudentHasCertificateSelected.map((item: CertificateHistory) => item.student?.id)
-    let dataFilter = data.filter((item: string) => !StudentHasCertificateSelected.includes(item))
-    let dataDelete = data.filter((item: string) => StudentHasCertificateSelected.includes(item))
-    if (dataFilter.length === 0) {
-      showError("Lỗi", "Vui lòng chọn ít nhất một học viên");
-      return;
-    }
-    showLoading();
-    addStudentMutation(dataFilter);
-    deleteStudentMutation(dataDelete);
-  }, [addStudentMutation, listStudentHasCertificateSelected])
+  const handleAddStudents = useCallback(
+    (data: string[]) => {
+      const StudentHasCertificateSelected =
+        listStudentHasCertificateSelected.map(
+          (item: CertificateHistory) => item.student?.id
+        );
+      let dataFilter = data.filter(
+        (item: string) => !StudentHasCertificateSelected.includes(item)
+      );
+      let dataDelete = data.filter((item: string) =>
+        StudentHasCertificateSelected.includes(item)
+      );
+      if (dataFilter.length === 0) {
+        showError("Lỗi", "Vui lòng chọn ít nhất một học viên");
+        return;
+      }
+      showLoading();
+      addStudentMutation(dataFilter);
+      deleteStudentMutation(dataDelete);
+    },
+    [addStudentMutation, listStudentHasCertificateSelected]
+  );
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
-  const columnsRequestList: ColumnDef<Certificate>[] =
-    [
-      {
-        header: 'STT',
-        cell: ({ row }) => <span>{row.index + 1}</span>,
-
-      },
-      {
-        header: 'Tên chứng chỉ',
-        cell: ({ row }) => <span>{row.original.name}</span>,
-      },
-      {
-        header: 'Mô tả',
-        cell: ({ row }) => (
-          <div
-            dangerouslySetInnerHTML={{
-              __html: row.original.description || "",
-            }}
-          ></div>
-        )
-      },
-      {
-        header: 'Thuộc khoá học',
-        cell: ({ row }) => <div>
-          {
-            get(row, 'original.course.name', '')
-          }
-        </div>
-      },
-      {
-        id: 'action',
-        header: '',
-        cell: ({ row }) => (
-          <button
-            className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
-            onClick={() => {
-              setCertificateSelected(row.original)
-              setShowStudentListDialog(true)
-            }}
-          >
-            <UserPlus className="h-5 w-5" color="#7C6C80" />
-          </button>
-        )
-      },
-    ]
+  const columnsRequestList: ColumnDef<Certificate>[] = [
+    {
+      header: "STT",
+      cell: ({ row }) => <span>{row.index + 1}</span>,
+    },
+    {
+      header: "Tên chứng chỉ",
+      cell: ({ row }) => <span>{row.original.name}</span>,
+    },
+    {
+      header: "Mô tả",
+      cell: ({ row }) => (
+        <div
+          dangerouslySetInnerHTML={{
+            __html: row.original.description || "",
+          }}
+        ></div>
+      ),
+    },
+    {
+      header: "Thuộc khoá học",
+      cell: ({ row }) => <div>{get(row, "original.course.name", "")}</div>,
+    },
+    {
+      id: "action",
+      header: "",
+      cell: ({ row }) => (
+        <button
+          className="p-2 hover:bg-gray-100 rounded-full flex justify-center items-center"
+          onClick={() => {
+            setCertificateSelected(row.original);
+            setShowStudentListDialog(true);
+          }}
+        >
+          <UserPlus className="h-5 w-5" color="#7C6C80" />
+        </button>
+      ),
+    },
+  ];
   return (
     <>
       <div className="w-full h-screen border-r border-gray-20">
@@ -239,15 +257,9 @@ export default function Page() {
               type="text"
               isSearch={true}
               value={textSearch}
-              onChange={setTextSearch}
+              onChange={(e) => handleSearch(e)}
               placeholder="Tìm kiếm chứng chỉ theo từ khoá"
               customClassNames="max-w-[410px] h-10 mb-4"
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearch();
-                }
-              }}
-              onSearch={handleSearch}
             />
           </div>
           <CommonTable
@@ -262,7 +274,6 @@ export default function Page() {
             onPageSizeChange={setLimit}
           />
         </div>
-
       </div>
       <SelectStudentListDialog
         isOpen={showStudentListDialog}

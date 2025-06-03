@@ -35,7 +35,6 @@ type ContestLayoutProps = {
 const ContestLayout = ({ children }: ContestLayoutProps) => {
   const router = useCustomRouter();
   const pathname = usePathname();
-  const is_show_full = process.env.NEXT_PUBLIC_SHOW_FULL_CONTEST == "true";
   //use state
   const [isClient, setIsClient] = useState(false);
   const [clear, isConnected] = useUserStore((state) => [

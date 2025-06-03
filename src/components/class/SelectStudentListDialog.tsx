@@ -43,9 +43,17 @@ export const SelectStudentListDialog = ({
 
   // Theo dõi danh sách học viên đã được chọn trước đó
   useEffect(() => {
-    if (listStudentHasCertificateSelected && listStudentHasCertificateSelected.length > 0) {
-      console.log("listStudentHasCertificateSelected", listStudentHasCertificateSelected);
-      const selectedIds = listStudentHasCertificateSelected.map(student => String(student.id));
+    if (
+      listStudentHasCertificateSelected &&
+      listStudentHasCertificateSelected.length > 0
+    ) {
+      console.log(
+        "listStudentHasCertificateSelected",
+        listStudentHasCertificateSelected
+      );
+      const selectedIds = listStudentHasCertificateSelected.map((student) =>
+        String(student.id)
+      );
       setSelectedStudents(selectedIds);
     }
   }, [listStudentHasCertificateSelected]);

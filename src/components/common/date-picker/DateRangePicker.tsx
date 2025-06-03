@@ -145,8 +145,6 @@ const DateRangePicker = ({
     }
   };
 
-  
-
   return (
     <div className="date-range-picker-container" ref={containerRef}>
       <div className="date-range-input-wrapper">

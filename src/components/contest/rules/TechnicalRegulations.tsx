@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import {
   Table,
@@ -6,8 +6,8 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
-} from '@/components/ui/table'
+  TableRow,
+} from "@/components/ui/table";
 export const TechnicalRegulations = () => {
   return (
     <>
@@ -75,5 +75,5 @@ export const TechnicalRegulations = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
