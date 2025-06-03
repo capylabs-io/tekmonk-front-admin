@@ -44,7 +44,7 @@ export default function Page() {
 
   const {
     data: currentPageData,
-    isLoading,
+    isLoading, 
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
